@@ -23,7 +23,8 @@ services:
   eureka-service:
     container_name: eureka-service
     depends_on:
-      - config-server
+      config-server:
+        condition: service_healthy
     env_file:
       - .env
     build:
