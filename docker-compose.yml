@@ -10,6 +10,11 @@ services:
     container_name: config-server
     env_file:
       - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+#      - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=${GITHUB_URI}
+#      - SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME=${GITHUB_NAME}
+#      - SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD=${GITHUB_TOKEN}
     ports:
       - "8888:8888"
     networks:
