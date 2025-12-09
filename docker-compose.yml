@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        FILE_DIRECTORY: service/config-server
+        FILE_DIRECTORY: service/config/server
     container_name: config-server
 
     env_file:
