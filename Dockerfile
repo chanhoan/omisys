@@ -1,5 +1,5 @@
 # Dockerfile
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-jammy
 
 # 시간대 설정
 ENV TZ=Asia/Seoul
