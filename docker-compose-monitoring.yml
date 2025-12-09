@@ -3,6 +3,7 @@ version: '3.8'
 networks:
   omisys-network:
     external: true
+    name: omisys-network
 
 services:
   prometheus:

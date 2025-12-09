@@ -355,5 +355,6 @@ volumes:
 
 networks:
   omisys-network:
+    name: omisys-network
     driver: bridge
 
