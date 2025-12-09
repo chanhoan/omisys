@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  config-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        FILE_DIRECTORY: service/config-server
+    container_name: config-server
+
+    env_file:
+      - .env
+
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+
+    ports:
+      - "8888:8888"
+
+    networks:
+      - omisys-network
+
+
+networks:
+  omisys-network:
+    external: true
