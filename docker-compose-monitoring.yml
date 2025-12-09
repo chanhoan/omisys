@@ -1,5 +1,9 @@
 version: '3.8'
 
+networks:
+  omisys-network:
+    external: true
+
 services:
   prometheus:
     image: prom/prometheus:latest
@@ -8,6 +12,8 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - omisys-network
 
   grafana:
     image: grafana/grafana:latest
@@ -16,3 +22,6 @@ services:
       - "3000:3000"
     volumes:
       - ./grafana:/var/lib/grafana
+    networks:
+      - omisys-network
+
