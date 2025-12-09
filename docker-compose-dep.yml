@@ -329,6 +329,23 @@ services:
     networks:
       - omisys-network
 
+  mysql:
+    image: mysql:8.0
+    container_name: omisys-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root1234
+      MYSQL_DATABASE: omisys
+      MYSQL_USER: omisys
+      MYSQL_PASSWORD: omisys1234
+    ports:
+      - "3306:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - omisys-network
+
 volumes:
   cassandra_data:
     driver: local
@@ -351,6 +368,8 @@ volumes:
   metricbeatdata01:
     driver: local
   filebeatdata01:
+    driver: local
+  mysql-data:
     driver: local
 
 networks:
