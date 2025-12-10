@@ -45,9 +45,9 @@ jobs:
 
       - name: Deploy config-server with docker compose
         env:
-          GITHUB_URI: ${{ secrets.GITHUB_URI }}
-          GITHUB_NAME: ${{ secrets.GITHUB_NAME }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_URI: ${{ secrets.GIT_URI }}
+          GITHUB_NAME: ${{ secrets.GIT_NAME }}
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
         run: |
           docker compose up -d config-server
 
