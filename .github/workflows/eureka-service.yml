@@ -41,5 +41,10 @@ jobs:
 
       - name: Deploy eureka-service with docker compose
         run: |
-          docker compose up -d eureka-service
+          # CI 환경용 .env 생성 (포트/프로필까지 명시)
+          cat <<EOF > .env
+          SPRING_PROFILES_ACTIVE=prod
+          SERVER_PORT=19090
+          EOF
 
+          docker compose up -d eureka-service
