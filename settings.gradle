@@ -1,0 +1,5 @@
+rootProject.name = 'omisys'
+
+include(':common:domain')
+
+include(':service:eureka:server')
