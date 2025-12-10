@@ -45,10 +45,18 @@ jobs:
 
       - name: Deploy config-server with docker compose
         env:
-          GIT_URI: ${{ secrets.GIT_URI }}
-          GIT_NAME: ${{ secrets.GIT_NAME }}
+          GIT_URI:   ${{ secrets.GIT_URI }}
+          GIT_NAME:  ${{ secrets.GIT_NAME }}
           GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
         run: |
-          docker compose up -d config-server
+          # CI 환경용 .env 생성 (포트/프로필까지 명시)
+          cat <<EOF > .env
+          GIT_URI=${GIT_URI}
+          GIT_NAME=${GIT_NAME}
+          GIT_TOKEN=${GIT_TOKEN}
+          SPRING_PROFILES_ACTIVE=prod
+          SERVER_PORT=8888
+          EOF
 
+          docker compose up -d config-server
 
