@@ -43,16 +43,12 @@ jobs:
             --build-arg FILE_DIRECTORY=service/config/server \
             .
 
-      - name: Create .env file for docker compose
-        run: |
-          cat <<EOF > .env
-          GITHUB_URI=${{ secrets.GITHUB_URI }}
-          GITHUB_NAME=${{ secrets.GITHUB_NAME }}
-          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          EOF
-
-      # 3) Docker compose로 config-server만 재시작
       - name: Deploy config-server with docker compose
+        env:
+          GIT_URI:   ${{ secrets.GIT_URI }}
+          GIT_NAME:  ${{ secrets.GIT_NAME }}
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
         run: |
+          cd /home/chanhoan/projects/omisys
           docker compose up -d config-server
 
