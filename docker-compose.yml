@@ -2,16 +2,13 @@ version: "3.8"
 
 services:
   config-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - FILE_DIRECTORY=./service/config/server
+    image: omisys-config-server:latest
     container_name: config-server
     env_file:
       - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=8888
       - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=${GIT_URI}
       - SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME=${GIT_NAME}
       - SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD=${GIT_TOKEN}
@@ -26,16 +23,16 @@ services:
       - omisys-network
 
   eureka-service:
+    image: omisys-eureka-service:latest
     container_name: eureka-service
     depends_on:
       config-server:
         condition: service_healthy
     env_file:
       - .env
-    build:
-      dockerfile: Dockerfile
-      args:
-        - FILE_DIRECTORY=./service/eureka/server
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SERVER_PORT=19090
     networks:
       - omisys-network
     ports:

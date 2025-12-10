@@ -1,0 +1,19 @@
+# Git 관련
+.git
+.gitignore
+
+# Docker / Compose 설정
+docker-compose*.yml
+Dockerfile
+
+# 모니터링/로그 스택 (이미지에 불필요)
+grafana
+filebeat_ingest_data
+logstash_ingest_data
+logstash.conf
+filebeat.yml
+metricbeat.yml
+prometheus.yml
+
+# 기타 불필요한 것들 있으면 여기 추가
+
