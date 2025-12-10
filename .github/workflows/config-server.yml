@@ -43,6 +43,14 @@ jobs:
             --build-arg FILE_DIRECTORY=service/config/server \
             .
 
+      - name: Create .env file for docker compose
+        run: |
+          cat <<EOF > .env
+          GITHUB_URI=${{ secrets.GITHUB_URI }}
+          GITHUB_NAME=${{ secrets.GITHUB_NAME }}
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          EOF
+
       # 3) Docker compose로 config-server만 재시작
       - name: Deploy config-server with docker compose
         run: |

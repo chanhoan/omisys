@@ -12,9 +12,9 @@ services:
       - .env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=${GITHUB_URI}
-      - SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME=${GITHUB_NAME}
-      - SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD=${GITHUB_TOKEN}
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=${GIT_URI}
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME=${GIT_NAME}
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD=${GIT_TOKEN}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
       interval: 10s
