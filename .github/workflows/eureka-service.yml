@@ -1,16 +1,16 @@
-name: Eureka Server CI/CD
+name: Eureka Service CI/CD
 
 on:
   push:
     branches: [ "main" ]
     paths:
       # eureka 서버 코드 경로에 맞게 수정
-      - "service/eureka-server/**"
+      - "service/eureka/service/**"
       - "Dockerfile"
       - "docker-compose.yml"
 
 jobs:
-  build-and-deploy-eureka-server:
+  build-and-deploy-eureka-service:
     runs-on: self-hosted
 
     steps:
@@ -23,23 +23,23 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Build eureka-server jar
+      - name: Build eureka-service jar
         run: |
           # [옵션 1] 서비스 폴더 안에 gradlew
-          cd service/eureka-server
+          cd service/eureka/service
           ./gradlew clean bootJar
 
           # [옵션 2] 루트 멀티모듈 (예시)
           # ./gradlew :eureka-server:clean :eureka-server:bootJar
 
-      - name: Build Docker image for eureka-server
+      - name: Build Docker image for eureka-service
         run: |
           docker build \
-            -t omisys-eureka-server:latest \
-            --build-arg FILE_DIRECTORY=service/eureka-server \
+            -t omisys-eureka-service:latest \
+            --build-arg FILE_DIRECTORY=service/eureka/service \
             .
 
-      - name: Deploy eureka-server with docker compose
+      - name: Deploy eureka-service with docker compose
         run: |
-          docker compose up -d eureka-server
+          docker compose up -d eureka-service
 
