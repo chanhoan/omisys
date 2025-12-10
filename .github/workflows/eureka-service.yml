@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
     paths:
       # eureka 서버 코드 경로에 맞게 수정
-      - "service/eureka/service/**"
+      - "service/eureka/server/**"
       - "Dockerfile"
       - "docker-compose.yml"
 
@@ -26,7 +26,7 @@ jobs:
       - name: Build eureka-service jar
         run: |
           # [옵션 1] 서비스 폴더 안에 gradlew
-          cd service/eureka/service
+          cd service/eureka/server
           ./gradlew clean bootJar
 
           # [옵션 2] 루트 멀티모듈 (예시)
@@ -36,7 +36,7 @@ jobs:
         run: |
           docker build \
             -t omisys-eureka-service:latest \
-            --build-arg FILE_DIRECTORY=service/eureka/service \
+            --build-arg FILE_DIRECTORY=service/eureka/server \
             .
 
       - name: Deploy eureka-service with docker compose
