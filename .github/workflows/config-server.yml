@@ -1,0 +1,50 @@
+name: Config Server CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      # config 서버 코드가 있는 경로에 맞게 수정
+      - "service/config/server/**"
+      # Dockerfile이나 compose 바뀔 때도 같이 배포하고 싶으면 유지
+      - "Dockerfile"
+      - "docker-compose.yml"
+
+jobs:
+  build-and-deploy-config-server:
+    runs-on: self-hosted   # WSL에 설치한 runner
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # 1) Config Server JAR 빌드
+      # 구조에 따라 둘 중 하나 골라서 쓰면 됨 (하나는 주석 처리)
+      - name: Build config-server jar
+        run: |
+          # [옵션 1] 서비스 폴더 안에 gradlew가 있는 구조면:
+          cd service/config/server
+          ./gradlew clean bootJar
+
+          # [옵션 2] 루트 멀티모듈이라면 (예시):
+          # ./gradlew :config-server:clean :config-server:bootJar
+
+      # 2) Docker 이미지 빌드 (루트 Dockerfile 사용)
+      - name: Build Docker image for config-server
+        run: |
+          docker build \
+            -t omisys-config-server:latest \
+            --build-arg FILE_DIRECTORY=service/config/server \
+            .
+
+      # 3) Docker compose로 config-server만 재시작
+      - name: Deploy config-server with docker compose
+        run: |
+          docker compose up -d config-server
+
