@@ -1,0 +1,20 @@
+package com.omisys.user_dto.infrastructure;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class PointHistoryDto {
+
+    private Long userId;
+    private Long orderId;
+    private BigDecimal point;
+    private String type;
+    private String description;
+
+}

@@ -1,5 +1,12 @@
-rootProject.name = 'omisys'
+rootProject.name = "omisys"
 
 include(':common:domain')
 
+include(':service:auth:auth_dto')
+
+include(':service:config:server')
+
 include(':service:eureka:server')
+
+include(':service:user:user_dto')
+include(':service:user:server')
