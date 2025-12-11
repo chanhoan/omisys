@@ -3,13 +3,13 @@ spring:
     name: user
 
   config:
-    import: "configserver:http://localhost:8888"
+    import: "configserver:http://config-server:8888"
 
 eureka:
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:19090/eureka/
+      defaultZone: http://eureka-service:19090/eureka/
   instance:
     prefer-ip-address: true
