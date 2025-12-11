@@ -33,6 +33,7 @@ jobs:
 
       - name: Build Docker image for user-service
         run: |
+          cd /home/chanhoan/projects/omisys
           docker build \
             -t omisys-user-service:latest \
             --build-arg FILE_DIRECTORY=service/user/server \

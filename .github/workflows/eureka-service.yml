@@ -31,6 +31,7 @@ jobs:
 
       - name: Build Docker image for eureka-service
         run: |
+          cd /home/chanhoan/projects/omisys
           docker build \
             -t omisys-eureka-service:latest \
             --build-arg FILE_DIRECTORY=service/eureka/server \
