@@ -25,6 +25,7 @@ jobs:
       - name: Build user-service jar
         run: |
           cd /home/chanhoan/projects/omisys
+          chmod +x gradlew
           ./gradlew :service:user:server:clean :service:user:server:bootJar
 
       - name: Build Docker image for user-service
