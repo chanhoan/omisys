@@ -1,0 +1,40 @@
+name: User Service CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "service/user/server/**"
+      - "Dockerfile"
+      - "docker-compose.yml"
+
+jobs:
+  build-and-deploy-user-service:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build user-service jar
+        run: |
+          cd /home/chanhoan/projects/omisys
+          ./gradlew :service:user:server:clean :service:user:server:bootJar
+
+      - name: Build Docker image for user-service
+        run: |
+          docker build \
+            -t omisys-user-service:latest \
+            --build-arg FILE_DIRECTORY=service/user/server \
+            .
+
+      - name: Deploy user-service with docker compose
+        run: |
+          cd /home/chanhoan/projects/omisys
+          docker compose up -d user-service

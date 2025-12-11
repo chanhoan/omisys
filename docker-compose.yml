@@ -38,6 +38,18 @@ services:
     ports:
       - "19090:19090"
 
+  user-service:
+    image: omisys-user-service:latest
+    container_name: user-service
+    depends_on:
+      - eureka-service
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - omisys-network
+
 networks:
   omisys-network:
     external: true
