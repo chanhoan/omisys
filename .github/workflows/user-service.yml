@@ -35,7 +35,7 @@ jobs:
         run: |
           docker build \
             -t omisys-user-service:latest \
-            --build-arg FILE_DIRECTORY=service/user/server \
+            --build-arg FILE_DIRECTORY=./service/user/server \
             .
 
       - name: Deploy user-service with docker compose
