@@ -31,13 +31,11 @@ jobs:
           cd /home/chanhoan/projects/omisys
           chmod +x gradlew
           ./gradlew :service:config:server:clean :service:config:server:bootJar
-          pwd
-          ls
-          ls -R service/config/server/build || echo "NO_BUILD_DIR"
 
       # 2) Docker 이미지 빌드 (루트 Dockerfile 사용)
       - name: Build Docker image for config-server
         run: |
+          cd /home/chanhoan/projects/omisys
           docker build \
             -t omisys-config-server:latest \
             --build-arg FILE_DIRECTORY=service/config/server \
