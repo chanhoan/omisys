@@ -329,15 +329,15 @@ services:
     networks:
       - omisys-network
 
-  mysql:
+  user_mysql:
     image: mysql:8.0
-    container_name: omisys-mysql
+    container_name: omisys-mysql-user
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root1234
-      MYSQL_DATABASE: omisys
-      MYSQL_USER: omisys
-      MYSQL_PASSWORD: omisys1234
+      MYSQL_ROOT_PASSWORD: ${USER_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${USER_MYSQL_DATABASE}
+      MYSQL_USER: ${USER_MYSQL_USER}
+      MYSQL_PASSWORD: ${USER_MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     command: --default-authentication-plugin=mysql_native_password
