@@ -4,6 +4,9 @@ on:
   push:
     branches: [ "main" ]
     paths:
+      - "common/domain/**"
+      - "service/auth/auth_dto/**"
+      - "service/user/user_dto/**"
       - "service/user/server/**"
       - "Dockerfile"
       - "docker-compose.yml"
