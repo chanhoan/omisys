@@ -25,12 +25,9 @@ jobs:
 
       - name: Build eureka-service jar
         run: |
-          # [옵션 1] 서비스 폴더 안에 gradlew
-          cd service/eureka/server
-          ./gradlew clean bootJar
-
-          # [옵션 2] 루트 멀티모듈 (예시)
-          # ./gradlew :eureka-server:clean :eureka-server:bootJar
+          cd /home/chanhoan/projects/omisys
+          chmod +x gradlew
+          ./gradlew :service:eureka:server:clean :service:eureka:server:bootJar
 
       - name: Build Docker image for eureka-service
         run: |

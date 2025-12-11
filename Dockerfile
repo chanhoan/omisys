@@ -11,6 +11,6 @@ ENV SPRING_PROFILES_ACTIVE=prod
 
 ARG FILE_DIRECTORY
 
-COPY $FILE_DIRECTORY/build/libs/*.jar /app/app.jar
+COPY ${FILE_DIRECTORY}/build/libs/*.jar /app/app.jar
 
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
