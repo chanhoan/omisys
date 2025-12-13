@@ -1,4 +1,4 @@
-package com.omisys.auth.auth_dto.jwt;
+package com.omisys.auth.server.auth_dto.jwt;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

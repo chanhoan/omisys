@@ -50,6 +50,18 @@ services:
     networks:
       - omisys-network
 
+  auth-service:
+    image: omisys-auth-service:latest
+    container_name: auth-service
+    depends_on:
+      - eureka-service
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - omisys-network
+
 networks:
   omisys-network:
     external: true

@@ -1,4 +1,4 @@
-package com.omisys.auth.auth_dto;
+package com.omisys.auth.server.auth_dto;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

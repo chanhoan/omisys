@@ -1,6 +1,6 @@
 package com.omisys.user.infrastructure.filter;
 
-import com.omisys.auth.auth_dto.jwt.JwtClaim;
+import com.omisys.auth.server.auth_dto.jwt.JwtClaim;
 import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.Authentication;

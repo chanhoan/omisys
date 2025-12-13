@@ -1,0 +1,45 @@
+name: Auth Service CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "common/domain/**"
+      - "service/auth/auth_dto/**"
+      - "service/user/user_dto/**"
+      - "service/auth/server/**"
+      - "Dockerfile"
+      - "docker-compose.yml"
+
+jobs:
+  build-and-deploy-auth-service:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build auth-service jar
+        run: |
+          cd /home/chanhoan/projects/omisys
+          chmod +x gradlew
+          ./gradlew :service:auth:server:clean :service:auth:server:bootJar
+
+      - name: Build Docker image for auth-service
+        run: |
+          cd /home/chanhoan/projects/omisys
+          docker build \
+            -t omisys-auth-service:latest \
+            --build-arg FILE_DIRECTORY=service/auth/server \
+            .
+
+      - name: Deploy auth-service with docker compose
+        run: |
+          cd /home/chanhoan/projects/omisys
+          docker compose up -d auth-service

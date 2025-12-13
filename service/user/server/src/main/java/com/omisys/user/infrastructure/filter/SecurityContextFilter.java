@@ -2,7 +2,7 @@ package com.omisys.user.infrastructure.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.omisys.auth.auth_dto.jwt.JwtClaim;
+import com.omisys.auth.server.auth_dto.jwt.JwtClaim;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
