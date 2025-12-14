@@ -4,14 +4,13 @@ services:
   config-server:
     image: omisys-config-server:latest
     container_name: config-server
-    env_file:
-      - .env
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SERVER_PORT=8888
-      - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=${GIT_URI}
-      - SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME=${GIT_NAME}
-      - SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD=${GIT_TOKEN}
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8888
+
+      SPRING_CLOUD_CONFIG_SERVER_GIT_URI: ${GIT_URI}
+      SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME: ${GIT_NAME}
+      SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD: ${GIT_TOKEN}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
       interval: 10s
@@ -28,11 +27,9 @@ services:
     depends_on:
       config-server:
         condition: service_healthy
-    env_file:
-      - .env
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SERVER_PORT=19090
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 19090
     networks:
       - omisys-network
     ports:
@@ -43,10 +40,14 @@ services:
     container_name: user-service
     depends_on:
       - eureka-service
-    env_file:
-      - .env
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      SPRING_PROFILES_ACTIVE: prod
+
+      USER_MYSQL_DATABASE: ${USER_MYSQL_DATABASE}
+      USER_MYSQL_USER: ${USER_MYSQL_USER}
+      USER_MYSQL_PASSWORD: ${USER_MYSQL_PASSWORD}
+      USER_MYSQL_ROOT_PASSWORD: ${USER_MYSQL_ROOT_PASSWORD}
+
     networks:
       - omisys-network
 
@@ -55,12 +56,13 @@ services:
     container_name: auth-service
     depends_on:
       - eureka-service
-    env_file:
-      - .env
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      SPRING_PROFILES_ACTIVE: prod
+
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     networks:
       - omisys-network
+
 
 networks:
   omisys-network:
