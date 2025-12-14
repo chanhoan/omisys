@@ -44,7 +44,7 @@ jobs:
 
           JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
           
-          MAX_ACTIVE_USERS=${{ MAX_ACTIVE_USERS }}
+          MAX_ACTIVE_USERS=${{ secrets.MAX_ACTIVE_USERS }}
           EOF
 
       - name: Set up JDK
