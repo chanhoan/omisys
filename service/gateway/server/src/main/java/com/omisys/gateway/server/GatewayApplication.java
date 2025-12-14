@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@EnableFeignClients
 @EnableScheduling
+@EnableFeignClients
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 public class GatewayApplication {
 
