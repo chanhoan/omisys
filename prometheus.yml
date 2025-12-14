@@ -4,7 +4,7 @@ scrape_configs:
   - job_name: eureka-services
     metrics_path: /actuator/prometheus
     eureka_sd_configs:
-      - server: http://eureka-service:19090     # <- 여기부터 바꾸고 검증
+      - server: http://eureka-service:19090/eureka
         refresh_interval: 30s
 
     relabel_configs:
