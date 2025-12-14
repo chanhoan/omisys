@@ -8,13 +8,10 @@ scrape_configs:
         refresh_interval: 30s
 
     relabel_configs:
-      - source_labels: [__meta_eureka_app_instance_status]
+      - source_labels: [ '__meta_eureka_app_name' ]
+        target_label: 'job'
+      - source_labels: [ '__meta_eureka_instance_ip_addr' ]
+        target_label: 'instance'
+      - source_labels: [ '__meta_eureka_app_instance_status' ]
         action: keep
-        regex: UP
-
-      - source_labels: [__meta_eureka_app_name]
-        target_label: job
-
-      - source_labels: [__meta_eureka_instance_ip_addr, __meta_eureka_instance_port]
-        separator: ':'
-        target_label: __address__
+        regex: 'UP'  # 서비스 상태가 "UP"인 인스턴스만 스크랩
