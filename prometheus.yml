@@ -3,13 +3,20 @@ global:
 scrape_configs:
   - job_name: 'eureka-services'
     eureka_sd_configs:
-      - server: 'http://eureka-service:19090/eureka/'   # Eureka 서버 주소
+      - server: 'http://eureka-service:19090/eureka/'
     metrics_path: '/actuator/prometheus'
+
     relabel_configs:
-      - source_labels: [ '__meta_eureka_app_name' ]
-        target_label: 'job'
-      - source_labels: [ '__meta_eureka_instance_ip_addr' ]
-        target_label: 'instance'
-      - source_labels: [ '__meta_eureka_app_instance_status' ]
+      # UP 상태만 수집
+      - source_labels: [__meta_eureka_instance_status]
         action: keep
-        regex: 'UP'  # 서비스 상태가 "UP"인 인스턴스만 스크랩
+        regex: UP
+
+      # job 라벨 = 서비스명
+      - source_labels: [__meta_eureka_app_name]
+        target_label: job
+
+      # ★ 핵심: hostname + port 로 address 구성
+      - source_labels: [__meta_eureka_instance_hostname, __meta_eureka_instance_port]
+        separator: ':'
+        target_label: __address__
