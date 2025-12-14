@@ -63,7 +63,7 @@ services:
     networks:
       - omisys-network
 
-  gateway:
+  gateway-service:
     image: omisys-gateway-service:latest
     container_name: gateway-service
     depends_on:
