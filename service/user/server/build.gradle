@@ -1,7 +1,11 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.5.8'
+	id 'org.springframework.boot' version '3.3.4'
 	id 'io.spring.dependency-management' version '1.1.6'
+}
+
+ext {
+	springCloudVersion = "2023.0.3"
 }
 
 group = 'com.omisys.user'
@@ -17,10 +21,6 @@ java {
 
 repositories {
 	mavenCentral()
-}
-
-ext {
-	set('springCloudVersion', "2024.0.3")
 }
 
 dependencies {
@@ -39,8 +39,9 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	implementation 'org.springframework.cloud:spring-cloud-starter-config'
 	implementation 'net.logstash.logback:logstash-logback-encoder:8.0'
+	implementation 'org.springframework.cloud:spring-cloud-starter-config'
+	compileOnly 'org.jspecify:jspecify:1.0.0'
 }
 
 dependencyManagement {
