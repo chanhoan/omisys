@@ -63,6 +63,17 @@ services:
     networks:
       - omisys-network
 
+  gateway:
+    image: omisys-gateway-service:latest
+    container_name: gateway-service
+    depends_on:
+      - eureka-service
+    environment:
+      MAX_ACTIVE_USERS: ${MAX_ACTIVE_USERS}
+    ports:
+      - "19091:19091"
+    networks:
+      - omisys-network
 
 networks:
   omisys-network:
