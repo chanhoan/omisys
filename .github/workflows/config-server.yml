@@ -2,21 +2,46 @@ name: Config Server CI/CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      # config 서버 코드가 있는 경로에 맞게 수정
       - "service/config/server/**"
-      # Dockerfile이나 compose 바뀔 때도 같이 배포하고 싶으면 유지
       - "Dockerfile"
       - "docker-compose.yml"
 
 jobs:
   build-and-deploy-config-server:
-    runs-on: self-hosted   # WSL에 설치한 runner
+    runs-on: self-hosted
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Create .env.cicd from GitHub Secrets
+        shell: bash
+        run: |
+          cat > .env.cicd << 'EOF'
+          STACK_VERSION=${{ secrets.STACK_VERSION }}
+
+          ES_PORT=${{ secrets.ES_PORT }}
+          KIBANA_PORT=${{ secrets.KIBANA_PORT }}
+          CLUSTER_NAME=${{ secrets.CLUSTER_NAME }}
+          LICENSE=${{ secrets.LICENSE }}
+          MEM_LIMIT=${{ secrets.MEM_LIMIT }}
+
+          ELASTIC_PASSWORD=${{ secrets.ELASTIC_PASSWORD }}
+          KIBANA_PASSWORD=${{ secrets.KIBANA_PASSWORD }}
+
+          GIT_URI=${{ secrets.GIT_URI }}
+          GIT_NAME=${{ secrets.GIT_NAME }}
+          GIT_TOKEN=${{ secrets.GIT_TOKEN }}
+
+          USER_MYSQL_ROOT_PASSWORD=${{ secrets.USER_MYSQL_ROOT_PASSWORD }}
+          USER_MYSQL_DATABASE=${{ secrets.USER_MYSQL_DATABASE }}
+          USER_MYSQL_USER=${{ secrets.USER_MYSQL_USER }}
+          USER_MYSQL_PASSWORD=${{ secrets.USER_MYSQL_PASSWORD }}
+
+          JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+          EOF
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -24,29 +49,18 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # 1) Config Server JAR 빌드
-      # 구조에 따라 둘 중 하나 골라서 쓰면 됨 (하나는 주석 처리)
       - name: Build config-server jar
         run: |
-          cd /home/chanhoan/projects/omisys
           chmod +x gradlew
           ./gradlew :service:config:server:clean :service:config:server:bootJar
 
-      # 2) Docker 이미지 빌드 (루트 Dockerfile 사용)
       - name: Build Docker image for config-server
         run: |
-          cd /home/chanhoan/projects/omisys
           docker build --no-cache \
             -t omisys-config-server:latest \
             --build-arg FILE_DIRECTORY=service/config/server \
             .
 
       - name: Deploy config-server with docker compose
-        env:
-          GIT_URI:   ${{ secrets.GIT_URI }}
-          GIT_NAME:  ${{ secrets.GIT_NAME }}
-          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
         run: |
-          cd /home/chanhoan/projects/omisys
-          docker compose up -d --force-recreate --no-deps config-server
-
+          docker compose --env-file .env.cicd up -d --force-recreate --no-deps config-server
