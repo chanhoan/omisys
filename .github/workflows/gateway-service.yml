@@ -11,7 +11,7 @@ on:
       - "docker-compose.yml"
 
 jobs:
-  build-and-deploy-user-service:
+  build-and-deploy-gateway-service:
     runs-on: self-hosted
 
     steps:
