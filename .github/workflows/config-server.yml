@@ -36,7 +36,7 @@ jobs:
       - name: Build Docker image for config-server
         run: |
           cd /home/chanhoan/projects/omisys
-          docker build \
+          docker build --no-cache \
             -t omisys-config-server:latest \
             --build-arg FILE_DIRECTORY=service/config/server \
             .
@@ -48,5 +48,5 @@ jobs:
           GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
         run: |
           cd /home/chanhoan/projects/omisys
-          docker compose up -d config-server
+          docker compose up -d --force-recreate --no-deps config-server
 

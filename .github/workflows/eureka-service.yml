@@ -32,7 +32,7 @@ jobs:
       - name: Build Docker image for eureka-service
         run: |
           cd /home/chanhoan/projects/omisys
-          docker build \
+          docker build --no-cache \
             -t omisys-eureka-service:latest \
             --build-arg FILE_DIRECTORY=service/eureka/server \
             .
@@ -40,4 +40,4 @@ jobs:
       - name: Deploy eureka-service with docker compose
         run: |
           cd /home/chanhoan/projects/omisys
-          docker compose up -d eureka-service
+          docker compose up -d --force-recreate --no-deps eureka-service

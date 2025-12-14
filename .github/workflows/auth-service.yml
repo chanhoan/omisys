@@ -34,7 +34,7 @@ jobs:
       - name: Build Docker image for auth-service
         run: |
           cd /home/chanhoan/projects/omisys
-          docker build \
+          docker build --no-cache \
             -t omisys-auth-service:latest \
             --build-arg FILE_DIRECTORY=service/auth/server \
             .
@@ -42,4 +42,4 @@ jobs:
       - name: Deploy auth-service with docker compose
         run: |
           cd /home/chanhoan/projects/omisys
-          docker compose up -d auth-service
+          docker compose up -d --force-recreate --no-deps auth-service
