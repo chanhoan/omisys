@@ -356,7 +356,7 @@ services:
       MYSQL_USER: ${PRODUCT_MYSQL_USER}
       MYSQL_PASSWORD: ${PRODUCT_MYSQL_PASSWORD}
     ports:
-      - "3307:3307"
+      - "3307:3306"
     command: --default-authentication-plugin=mysql_native_password
     volumes:
       - mysql-data:/var/lib/mysql
