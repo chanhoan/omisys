@@ -13,3 +13,8 @@ include(':service:user:user_dto')
 include(':service:user:server')
 
 include(':service:gateway:server')
+
+include(':service:product:product_dto')
+include(':service:product:server')
+
+include(':service:order:order_dto')
