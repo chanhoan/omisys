@@ -75,6 +75,19 @@ services:
     networks:
       - omisys-network
 
+  product-service:
+    image: omisys-product-service:latest
+    container_name: product-service
+    depends_on:
+      - eureka-service
+    environment:
+      ELASTIC_FINGERPRINT: ${ELASTIC_FINGERPRINT}
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+    ports:
+      - "19091:19091"
+    networks:
+      - omisys-network
+
 networks:
   omisys-network:
     external: true
