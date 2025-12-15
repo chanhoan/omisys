@@ -1,0 +1,72 @@
+name: Product Service CI/CD
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "common/domain/**"
+      - "service/auth/auth_dto/**"
+      - "service/order/order_dto/**"
+      - "service/product/product_dto/**"
+      - "service/product/server/**"
+      - "Dockerfile"
+      - "docker-compose.yml"
+
+jobs:
+  build-and-deploy-product-service:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env.cicd from GitHub Secrets
+        shell: bash
+        run: |
+          cat > .env.cicd << 'EOF'
+          STACK_VERSION=${{ secrets.STACK_VERSION }}
+
+          ES_PORT=${{ secrets.ES_PORT }}
+          KIBANA_PORT=${{ secrets.KIBANA_PORT }}
+          CLUSTER_NAME=${{ secrets.CLUSTER_NAME }}
+          LICENSE=${{ secrets.LICENSE }}
+          MEM_LIMIT=${{ secrets.MEM_LIMIT }}
+
+          ELASTIC_PASSWORD=${{ secrets.ELASTIC_PASSWORD }}
+          KIBANA_PASSWORD=${{ secrets.KIBANA_PASSWORD }}
+
+          GIT_URI=${{ secrets.GIT_URI }}
+          GIT_NAME=${{ secrets.GIT_NAME }}
+          GIT_TOKEN=${{ secrets.GIT_TOKEN }}
+
+          USER_MYSQL_ROOT_PASSWORD=${{ secrets.USER_MYSQL_ROOT_PASSWORD }}
+          USER_MYSQL_DATABASE=${{ secrets.USER_MYSQL_DATABASE }}
+          USER_MYSQL_USER=${{ secrets.USER_MYSQL_USER }}
+          USER_MYSQL_PASSWORD=${{ secrets.USER_MYSQL_PASSWORD }}
+
+          JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+          
+          ELASTIC_FINGERPRINT=${{ secrets.ELASTIC_FINGERPRINT }}
+          EOF
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build product-service jar
+        run: |
+          chmod +x gradlew
+          ./gradlew :service:product:server:clean :service:product:server:bootJar
+
+      - name: Build Docker image for product-service
+        run: |
+          docker build --no-cache \
+            -t omisys-product-service:latest \
+            --build-arg FILE_DIRECTORY=service/product/server \
+            .
+
+      - name: Deploy product-service with docker compose
+        run: |
+          docker compose --env-file .env.cicd up -d --force-recreate --no-deps product-service
