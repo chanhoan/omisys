@@ -346,6 +346,23 @@ services:
     networks:
       - omisys-network
 
+  product_mysql:
+    image: mysql:8.0
+    container_name: omisys-mysql-product
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PRODUCT_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${PRODUCT_MYSQL_DATABASE}
+      MYSQL_USER: ${PRODUCT_MYSQL_USER}
+      MYSQL_PASSWORD: ${PRODUCT_MYSQL_PASSWORD}
+    ports:
+      - "3307:3307"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - omisys-network
+
 volumes:
   cassandra_data:
     driver: local
