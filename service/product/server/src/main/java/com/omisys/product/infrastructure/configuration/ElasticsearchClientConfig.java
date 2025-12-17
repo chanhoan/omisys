@@ -1,20 +1,27 @@
 package com.omisys.product.infrastructure.configuration;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.TransportUtils;
+import co.elastic.clients.transport.rest_client.RestClientTransport;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.elasticsearch.client.RestClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.elasticsearch.client.ClientConfiguration;
-import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
+import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
 import javax.net.ssl.SSLContext;
 
 @Configuration
-// 리포지토리 인터페이스가 있는 패키지 경로를 지정하세요
 @EnableElasticsearchRepositories(basePackages = "com.omisys.product.domain.repository")
-public class ElasticsearchClientConfig extends ElasticsearchConfiguration {
+public class ElasticsearchClientConfig {
 
     @Value("${spring.elasticsearch.rest.host}")
     private String host;
@@ -33,24 +40,40 @@ public class ElasticsearchClientConfig extends ElasticsearchConfiguration {
 
     @Bean
     @Primary
-    @Override
-    public ClientConfiguration clientConfiguration() {
-
-        String rawFingerprint = fingerprint.trim();
-        if (rawFingerprint.contains("=")) {
-            rawFingerprint = rawFingerprint.split("=")[1].trim();
+    public RestClient restClient() {
+        // 1. Fingerprint 정제 및 SSLContext 생성
+        String cleanedFingerprint = fingerprint.trim();
+        if (cleanedFingerprint.contains("=")) {
+            cleanedFingerprint = cleanedFingerprint.split("=")[1].trim();
         }
 
-        SSLContext sslContext = TransportUtils.sslContextFromCaFingerprint(rawFingerprint);
+        SSLContext sslContext = TransportUtils.sslContextFromCaFingerprint(cleanedFingerprint);
 
-         System.out.println("Applying Fingerprint: " + rawFingerprint);
+        // 2. 물리적인 RestClient 생성 (모든 보안 필터 주입)
+        BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(AuthScope.ANY,
+                new UsernamePasswordCredentials(account, password));
 
-        return ClientConfiguration.builder()
-                .connectedTo(host + ":" + port)
-                .usingSsl(sslContext, ((hostname, session) -> true))
-                // 2. 중요: 호스트네임 검증기 추가
-                // Fingerprint로 신뢰는 확보했지만, CN=es01과 실제 접속 주소 간의 검증을 통과시킵니다.
-                .withBasicAuth(account, password)
+        return RestClient.builder(new HttpHost(host, port, "https"))
+                .setHttpClientConfigCallback(hc -> hc
+                        .setSSLContext(sslContext)
+                        .setSSLHostnameVerifier((hostname, session) -> true) // Hostname 검증 우회
+                        .setDefaultCredentialsProvider(credentialsProvider))
                 .build();
+    }
+
+    @Bean
+    @Primary
+    public ElasticsearchClient elasticsearchClient(RestClient restClient) {
+        // 3. Jackson 매퍼와 함께 트랜스포트 계층 생성
+        RestClientTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
+        return new ElasticsearchClient(transport);
+    }
+
+    @Bean(name = "elasticsearchOperations") // 이 이름이 리포지토리 자동 주입의 핵심입니다
+    @Primary
+    public ElasticsearchOperations elasticsearchOperations(ElasticsearchClient elasticsearchClient) {
+        // 4. 리포지토리가 실제로 사용하는 Operations 빈을 우리가 만든 클라이언트로 생성
+        return new ElasticsearchTemplate(elasticsearchClient);
     }
 }
