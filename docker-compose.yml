@@ -81,7 +81,6 @@ services:
     depends_on:
       - eureka-service
     environment:
-      JAVA_TOOL_OPTIONS: --add-opens=java.base/java.math=ALL-UNNAMED
 
       SPRING_PROFILES_ACTIVE: prod
 
