@@ -23,7 +23,7 @@ public class ProductControllerAdvice {
                 .body(ApiResponse.error(errorCode.getStatus().name(), errorCode.getMessage()));
     }
 
-    @ExceptionHandler(ProductException.class)
+    @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<?> accessDeniedException(AccessDeniedException e) {
         log.error("Access Denied Exception : {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
