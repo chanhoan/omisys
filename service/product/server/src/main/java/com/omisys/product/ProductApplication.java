@@ -6,10 +6,7 @@ import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDa
 import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-@SpringBootApplication(exclude = {
-        ElasticsearchRestClientAutoConfiguration.class,
-        ElasticsearchDataAutoConfiguration.class
-})
+@SpringBootApplication
 @EnableAsync
 public class ProductApplication {
 

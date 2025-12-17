@@ -82,7 +82,7 @@ services:
       - eureka-service
     environment:
       JAVA_TOOL_OPTIONS: --add-opens=java.base/java.math=ALL-UNNAMED
-      
+
       SPRING_PROFILES_ACTIVE: prod
 
       ELASTIC_FINGERPRINT: ${ELASTIC_FINGERPRINT}
