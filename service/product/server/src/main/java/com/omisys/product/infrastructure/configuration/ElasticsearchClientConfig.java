@@ -2,7 +2,9 @@ package com.omisys.product.infrastructure.configuration;
 
 import co.elastic.clients.transport.TransportUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
@@ -29,6 +31,8 @@ public class ElasticsearchClientConfig extends ElasticsearchConfiguration {
     @Value("${spring.elasticsearch.password}")
     private String password;
 
+    @Bean
+    @Primary
     @Override
     public ClientConfiguration clientConfiguration() {
         // 1. Fingerprint로 SSLContext 생성 (이미 확인하신 그 값 그대로 사용)
