@@ -59,5 +59,4 @@ public class ElasticsearchClientConfig {
                 new RestClientTransport(restClient, new JacksonJsonpMapper());
         return new ElasticsearchClient(transport);
     }
-
 }

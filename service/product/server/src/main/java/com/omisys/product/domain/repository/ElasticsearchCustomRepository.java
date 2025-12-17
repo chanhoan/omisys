@@ -10,6 +10,10 @@ import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import co.elastic.clients.json.JsonData;
 import com.omisys.product.domain.model.SortOption;
 import com.omisys.product.infrastructure.utils.ProductSearchDto;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,17 +22,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-
 @Repository
 @RequiredArgsConstructor
-@Slf4j(topic = "ElasticSearchCustomRepository")
-public class ElasticSearchCustomRepository {
-
-    private final ElasticsearchClient elasticsearchClient;
+@Slf4j(topic = "ElasticsearchCustomRepository")
+public class ElasticsearchCustomRepository {
+    private final ElasticsearchClient esClient;
 
     @Value("${product.search-index}")
     private String searchIndex;
@@ -43,7 +41,8 @@ public class ElasticSearchCustomRepository {
             int page,
             int pageSize,
             Pageable pageable,
-            SortOption sortOption) throws IOException {
+            SortOption sortOption)
+            throws IOException {
 
         List<Query> mustQueries = new ArrayList<>();
 
@@ -70,7 +69,7 @@ public class ElasticSearchCustomRepository {
         }
 
         SearchResponse<ProductSearchDto> response =
-                elasticsearchClient.search(
+                esClient.search(
                         s ->
                                 s.index(searchIndex)
                                         .query(q -> q.bool(b -> b.must(mustQueries)))
