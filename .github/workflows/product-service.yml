@@ -35,18 +35,17 @@ jobs:
           ELASTIC_PASSWORD=${{ secrets.ELASTIC_PASSWORD }}
           KIBANA_PASSWORD=${{ secrets.KIBANA_PASSWORD }}
 
-          GIT_URI=${{ secrets.GIT_URI }}
-          GIT_NAME=${{ secrets.GIT_NAME }}
-          GIT_TOKEN=${{ secrets.GIT_TOKEN }}
-
-          USER_MYSQL_ROOT_PASSWORD=${{ secrets.USER_MYSQL_ROOT_PASSWORD }}
-          USER_MYSQL_DATABASE=${{ secrets.USER_MYSQL_DATABASE }}
-          USER_MYSQL_USER=${{ secrets.USER_MYSQL_USER }}
-          USER_MYSQL_PASSWORD=${{ secrets.USER_MYSQL_PASSWORD }}
-
-          JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+          PRODUCT_MYSQL_ROOT_PASSWORD=${{ secrets.PRODUCT_MYSQL_ROOT_PASSWORD }}
+          PRODUCT_MYSQL_DATABASE=${{ secrets.PRODUCT_MYSQL_DATABASE }}
+          PRODUCT_MYSQL_USER=${{ secrets.PRODUCT_MYSQL_USER }}
+          PRODUCT_MYSQL_PASSWORD=${{ secrets.PRODUCT_MYSQL_PASSWORD }}
           
           ELASTIC_FINGERPRINT=${{ secrets.ELASTIC_FINGERPRINT }}
+          
+          AWS_S3_ACCESS_KEY=${{ secrets.AWS_S3_ACCESS_KEY }}
+          AWS_S3_SECRET_KEY=${{ secrets.AWS_S3_SECRET_KEY }}
+          AWS_S3_REGION=${{ secrets.AWS_S3_REGION }}
+          
           EOF
 
       - name: Set up JDK
