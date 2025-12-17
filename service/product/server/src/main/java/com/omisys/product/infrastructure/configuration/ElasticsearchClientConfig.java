@@ -38,6 +38,8 @@ public class ElasticsearchClientConfig extends ElasticsearchConfiguration {
         // 1. Fingerprint로 SSLContext 생성 (이미 확인하신 그 값 그대로 사용)
         SSLContext sslContext = TransportUtils.sslContextFromCaFingerprint(fingerprint.trim());
 
+         System.out.println("Applying Fingerprint: " + sslContext);
+
         return ClientConfiguration.builder()
                 .connectedTo(host + ":" + port)
                 .usingSsl(sslContext, ((hostname, session) -> true))
