@@ -2,7 +2,6 @@ package com.omisys.product.infrastructure.configuration;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
-import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.TransportUtils;
 import co.elastic.clients.transport.rest_client.RestClientOptions;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
@@ -36,27 +35,28 @@ public class ElasticsearchClientConfig {
     String password;
 
     @Bean
-    RestClientTransport restClientTransport(
-            RestClient restClient, ObjectProvider<RestClientOptions> restClientOptions) {
-        return new RestClientTransport(
-                restClient, new JacksonJsonpMapper(), restClientOptions.getIfAvailable());
-    }
-
-    @Bean
-    public ElasticsearchClient elasticsearchClientWithSSL() {
+    public RestClient restClient() {
         SSLContext sslContext = TransportUtils.sslContextFromCaFingerprint(fingerprint);
 
         BasicCredentialsProvider credsProv = new BasicCredentialsProvider();
         credsProv.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(account, password));
 
-        RestClient restClient =
-                RestClient.builder(new HttpHost(host, port, "https"))
-                        .setHttpClientConfigCallback(
-                                hc -> hc.setSSLContext(sslContext).setDefaultCredentialsProvider(credsProv))
-                        .build();
+        return RestClient.builder(new HttpHost(host, port, "https"))
+                .setHttpClientConfigCallback(hc ->
+                        hc.setSSLContext(sslContext)
+                                .setDefaultCredentialsProvider(credsProv))
+                .build();
+    }
 
-        ElasticsearchTransport transport =
-                new RestClientTransport(restClient, new JacksonJsonpMapper());
+    @Bean
+    public RestClientTransport restClientTransport(RestClient restClient,
+                                                   ObjectProvider<RestClientOptions> restClientOptions) {
+        return new RestClientTransport(
+                restClient, new JacksonJsonpMapper(), restClientOptions.getIfAvailable());
+    }
+
+    @Bean
+    public ElasticsearchClient elasticsearchClient(RestClientTransport transport) {
         return new ElasticsearchClient(transport);
     }
 }
