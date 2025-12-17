@@ -1,62 +1,44 @@
 package com.omisys.product.infrastructure.configuration;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.TransportUtils;
-import co.elastic.clients.transport.rest_client.RestClientOptions;
-import co.elastic.clients.transport.rest_client.RestClientTransport;
-import javax.net.ssl.SSLContext;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.elasticsearch.client.RestClient;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.elasticsearch.client.ClientConfiguration;
+import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
+
+import javax.net.ssl.SSLContext;
 
 @Configuration
-public class ElasticsearchClientConfig {
+// 리포지토리 인터페이스가 있는 패키지 경로를 지정하세요
+@EnableElasticsearchRepositories(basePackages = "com.omisys.product.domain.repository")
+public class ElasticsearchClientConfig extends ElasticsearchConfiguration {
 
     @Value("${spring.elasticsearch.rest.host}")
-    String host;
+    private String host;
 
     @Value("${spring.elasticsearch.rest.port}")
-    int port;
+    private int port;
 
     @Value("${spring.elasticsearch.fingerprint}")
-    String fingerprint;
+    private String fingerprint;
 
     @Value("${spring.elasticsearch.account}")
-    String account;
+    private String account;
 
     @Value("${spring.elasticsearch.password}")
-    String password;
+    private String password;
 
-    @Bean
-    public RestClient restClient() {
+    @Override
+    public ClientConfiguration clientConfiguration() {
+        // 1. Fingerprint를 사용하여 보안이 강화된 SSLContext 생성
         SSLContext sslContext = TransportUtils.sslContextFromCaFingerprint(fingerprint);
 
-        BasicCredentialsProvider credsProv = new BasicCredentialsProvider();
-        credsProv.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(account, password));
-
-        return RestClient.builder(new HttpHost(host, port, "https"))
-                .setHttpClientConfigCallback(hc ->
-                        hc.setSSLContext(sslContext)
-                                .setDefaultCredentialsProvider(credsProv))
+        // 2. ClientConfiguration을 통해 모든 설정 통합
+        return ClientConfiguration.builder()
+                .connectedTo(host + ":" + port)
+                .usingSsl(sslContext) // SSL 및 Fingerprint 적용 (검증 유지)
+                .withBasicAuth(account, password) // 인증 정보 적용
                 .build();
-    }
-
-    @Bean
-    public RestClientTransport restClientTransport(RestClient restClient,
-                                                   ObjectProvider<RestClientOptions> restClientOptions) {
-        return new RestClientTransport(
-                restClient, new JacksonJsonpMapper(), restClientOptions.getIfAvailable());
-    }
-
-    @Bean
-    public ElasticsearchClient elasticsearchClient(RestClientTransport transport) {
-        return new ElasticsearchClient(transport);
     }
 }
