@@ -31,14 +31,15 @@ public class ElasticsearchClientConfig extends ElasticsearchConfiguration {
 
     @Override
     public ClientConfiguration clientConfiguration() {
-        // 1. Fingerprint를 사용하여 보안이 강화된 SSLContext 생성
-        SSLContext sslContext = TransportUtils.sslContextFromCaFingerprint(fingerprint);
+        // 1. Fingerprint로 SSLContext 생성 (이미 확인하신 그 값 그대로 사용)
+        SSLContext sslContext = TransportUtils.sslContextFromCaFingerprint(fingerprint.trim());
 
-        // 2. ClientConfiguration을 통해 모든 설정 통합
         return ClientConfiguration.builder()
                 .connectedTo(host + ":" + port)
-                .usingSsl(sslContext) // SSL 및 Fingerprint 적용 (검증 유지)
-                .withBasicAuth(account, password) // 인증 정보 적용
+                .usingSsl(sslContext, ((hostname, session) -> true))
+                // 2. 중요: 호스트네임 검증기 추가
+                // Fingerprint로 신뢰는 확보했지만, CN=es01과 실제 접속 주소 간의 검증을 통과시킵니다.
+                .withBasicAuth(account, password)
                 .build();
     }
 }
