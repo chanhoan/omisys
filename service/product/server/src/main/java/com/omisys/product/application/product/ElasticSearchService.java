@@ -1,8 +1,8 @@
 package com.omisys.product.application.product;
 
 import com.omisys.product.domain.model.SortOption;
-import com.omisys.product.domain.repository.ElasticSearchCustomRepository;
 import com.omisys.product.domain.repository.ElasticSearchRepository;
+import com.omisys.product.domain.repository.ElasticsearchCustomRepository;
 import com.omisys.product.infrastructure.utils.ProductSearchDto;
 import com.omisys.product.presentation.response.ProductResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import java.io.IOException;
 public class ElasticSearchService {
 
     private final ElasticSearchRepository elasticSearchRepository;
-    private final ElasticSearchCustomRepository elasticSearchCustomRepository;
+    private final ElasticsearchCustomRepository elasticsearchCustomRepository;
 
     @Async
     public void saveProduct(ProductResponse response) {
@@ -57,7 +57,7 @@ public class ElasticSearchService {
             String sortOption) throws IOException {
         SortOption sort = SortOption.valueOf(sortOption.toUpperCase());
         Pageable pageable = PageRequest.of(page, size, Sort.by(sort.getField()));
-        return elasticSearchCustomRepository.searchProductList(
+        return elasticsearchCustomRepository.searchProductList(
                 categoryId,
                 brandName,
                 minPrice,
