@@ -41,7 +41,6 @@ public class ElasticsearchClientConfig {
     @Bean
     @Primary
     public RestClient restClient() {
-        // 1. Fingerprint 정제 및 SSLContext 생성
         String cleanedFingerprint = fingerprint.trim();
         if (cleanedFingerprint.contains("=")) {
             cleanedFingerprint = cleanedFingerprint.split("=")[1].trim();
@@ -49,7 +48,6 @@ public class ElasticsearchClientConfig {
 
         SSLContext sslContext = TransportUtils.sslContextFromCaFingerprint(cleanedFingerprint);
 
-        // 2. 물리적인 RestClient 생성 (모든 보안 필터 주입)
         BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY,
                 new UsernamePasswordCredentials(account, password));
@@ -57,7 +55,7 @@ public class ElasticsearchClientConfig {
         return RestClient.builder(new HttpHost(host, port, "https"))
                 .setHttpClientConfigCallback(hc -> hc
                         .setSSLContext(sslContext)
-                        .setSSLHostnameVerifier((hostname, session) -> true) // Hostname 검증 우회
+                        .setSSLHostnameVerifier((hostname, session) -> true)
                         .setDefaultCredentialsProvider(credentialsProvider))
                 .build();
     }
@@ -65,15 +63,13 @@ public class ElasticsearchClientConfig {
     @Bean
     @Primary
     public ElasticsearchClient elasticsearchClient(RestClient restClient) {
-        // 3. Jackson 매퍼와 함께 트랜스포트 계층 생성
         RestClientTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         return new ElasticsearchClient(transport);
     }
 
-    @Bean(name = "elasticsearchOperations") // 이 이름이 리포지토리 자동 주입의 핵심입니다
+    @Bean(name = {"elasticsearchOperations", "elasticsearchTemplate"})
     @Primary
     public ElasticsearchOperations elasticsearchOperations(ElasticsearchClient elasticsearchClient) {
-        // 4. 리포지토리가 실제로 사용하는 Operations 빈을 우리가 만든 클라이언트로 생성
         return new ElasticsearchTemplate(elasticsearchClient);
     }
 }
