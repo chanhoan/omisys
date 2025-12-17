@@ -95,8 +95,6 @@ services:
       AWS_S3_SECRET_KEY: ${AWS_S3_SECRET_KEY}
       AWS_S3_REGION: ${AWS_S3_REGION}
 
-    ports:
-      - "19091:19091"
     networks:
       - omisys-network
 
