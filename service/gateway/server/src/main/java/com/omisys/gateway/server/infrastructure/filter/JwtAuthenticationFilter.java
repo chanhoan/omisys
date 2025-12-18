@@ -18,6 +18,10 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import static com.omisys.common.domain.jwt.JwtGlobalConstant.AUTHORIZATION;
+import static com.omisys.common.domain.jwt.JwtGlobalConstant.BEARER_PREFIX;
+import static com.omisys.common.domain.jwt.JwtGlobalConstant.X_USER_CLAIMS;
+
 @Slf4j
 @Component
 @Order(-1)
