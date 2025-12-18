@@ -99,6 +99,21 @@ services:
     networks:
       - omisys-network
 
+  order-service:
+    image: omisys-order-service:latest
+    container_name: order-service
+    depends_on:
+      - eureka-service
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      ORDER_MYSQL_DATABASE: ${ORDER_MYSQL_DATABASE}
+      ORDER_MYSQL_USER: ${ORDER_MYSQL_USER}
+      ORDER_MYSQL_PASSWORD: ${ORDER_MYSQL_PASSWORD}
+      ORDER_MYSQL_ROOT_PASSWORD: ${ORDER_MYSQL_ROOT_PASSWORD}
+    networks:
+      - omisys-network
+
 networks:
   omisys-network:
     external: true

@@ -1,6 +1,6 @@
 package com.omisys.product.presentation.controller;
 
-import com.omisys.common.domain.domain.response.ApiResponse;
+import com.omisys.common.domain.response.ApiResponse;
 import com.omisys.product.application.product.ProductFacadeService;
 import com.omisys.product.application.product.ProductService;
 import com.omisys.product.presentation.request.ProductRequest;

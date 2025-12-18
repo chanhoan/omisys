@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
-import static com.omisys.common.domain.domain.jwt.JwtGlobalConstant.X_USER_CLAIMS;
+import static com.omisys.common.domain.jwt.JwtGlobalConstant.X_USER_CLAIMS;
 
 @Slf4j
 @Component

@@ -1,6 +1,5 @@
 package com.omisys.product.infrastructure.messaging;
 
-import com.omisys.common.domain.domain.entity.KafkaTopicConstant;
 import com.omisys.order.order_dto.dto.OrderCreateRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

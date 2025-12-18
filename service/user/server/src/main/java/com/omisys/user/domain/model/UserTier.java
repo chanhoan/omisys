@@ -1,6 +1,6 @@
 package com.omisys.user.domain.model;
 
-import com.omisys.common.domain.domain.entity.BaseEntity;
+import com.omisys.common.domain.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

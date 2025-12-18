@@ -1,6 +1,6 @@
 package com.omisys.user.presentation.controller;
 
-import com.omisys.common.domain.domain.response.ApiResponse;
+import com.omisys.common.domain.response.ApiResponse;
 import com.omisys.user.application.dto.TierResponse;
 import com.omisys.user.application.service.TierService;
 import com.omisys.user.presentation.request.TierRequest;

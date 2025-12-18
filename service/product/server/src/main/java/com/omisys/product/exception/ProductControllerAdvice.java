@@ -1,6 +1,6 @@
 package com.omisys.product.exception;
 
-import com.omisys.common.domain.domain.response.ApiResponse;
+import com.omisys.common.domain.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,6 +1,6 @@
 package com.omisys.product.application.preorder;
 
-import com.omisys.common.domain.domain.entity.KafkaTopicConstant;
+import com.omisys.common.domain.entity.KafkaTopicConstant;
 import com.omisys.order.order_dto.dto.OrderCreateRequest;
 import com.omisys.order.order_dto.dto.OrderProductInfo;
 import com.omisys.product.infrastructure.messaging.PreOrderProducer;

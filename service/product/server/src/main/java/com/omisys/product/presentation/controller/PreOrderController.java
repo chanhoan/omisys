@@ -1,7 +1,7 @@
 package com.omisys.product.presentation.controller;
 
 import com.omisys.auth.server.auth_dto.jwt.JwtClaim;
-import com.omisys.common.domain.domain.response.ApiResponse;
+import com.omisys.common.domain.response.ApiResponse;
 import com.omisys.product.application.preorder.PreOrderFacadeService;
 import com.omisys.product.application.preorder.PreOrderService;
 import com.omisys.product.domain.model.PreOrderState;

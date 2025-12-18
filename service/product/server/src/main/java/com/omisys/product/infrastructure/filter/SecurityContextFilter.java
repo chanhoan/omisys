@@ -16,9 +16,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
-import static com.omisys.common.domain.domain.jwt.JwtGlobalConstant.X_USER_CLAIMS;
+import static com.omisys.common.domain.jwt.JwtGlobalConstant.X_USER_CLAIMS;
 
 @Slf4j
 @RequiredArgsConstructor

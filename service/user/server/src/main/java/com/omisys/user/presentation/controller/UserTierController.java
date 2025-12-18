@@ -1,7 +1,7 @@
 package com.omisys.user.presentation.controller;
 
 import com.omisys.auth.server.auth_dto.jwt.JwtClaim;
-import com.omisys.common.domain.domain.response.ApiResponse;
+import com.omisys.common.domain.response.ApiResponse;
 import com.omisys.user.application.dto.UserTierResponse;
 import com.omisys.user.application.service.UserService;
 import com.omisys.user.presentation.request.UserRequest;

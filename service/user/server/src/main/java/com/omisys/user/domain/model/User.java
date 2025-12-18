@@ -1,6 +1,6 @@
 package com.omisys.user.domain.model;
 
-import com.omisys.common.domain.domain.entity.BaseEntity;
+import com.omisys.common.domain.entity.BaseEntity;
 import com.omisys.user.domain.model.vo.UserRole;
 import com.omisys.user.presentation.request.UserRequest;
 import jakarta.persistence.*;

@@ -18,3 +18,6 @@ include(':service:product:product_dto')
 include(':service:product:server')
 
 include(':service:order:order_dto')
+include(':service:order:server')
+
+include(':service:payment:payment_dto')

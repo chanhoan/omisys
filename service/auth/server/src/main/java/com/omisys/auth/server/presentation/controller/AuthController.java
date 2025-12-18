@@ -3,7 +3,7 @@ package com.omisys.auth.server.presentation.controller;
 import com.omisys.auth.server.application.dto.AuthResponse;
 import com.omisys.auth.server.application.service.AuthService;
 import com.omisys.auth.server.presentation.request.AuthRequest;
-import com.omisys.common.domain.domain.response.ApiResponse;
+import com.omisys.common.domain.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

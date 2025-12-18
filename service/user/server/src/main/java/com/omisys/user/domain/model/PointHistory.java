@@ -1,6 +1,6 @@
 package com.omisys.user.domain.model;
 
-import com.omisys.common.domain.domain.entity.BaseEntity;
+import com.omisys.common.domain.entity.BaseEntity;
 import com.omisys.user.domain.model.vo.PointHistoryType;
 import com.omisys.user_dto.infrastructure.PointHistoryDto;
 import jakarta.persistence.*;

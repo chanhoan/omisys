@@ -1,6 +1,6 @@
 package com.omisys.auth.server.exception;
 
-import com.omisys.common.domain.domain.exception.BusinessException;
+import com.omisys.common.domain.exception.BusinessException;
 import lombok.Getter;
 
 @Getter
