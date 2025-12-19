@@ -379,6 +379,23 @@ services:
     networks:
       - omisys-network
 
+  payment_mysql:
+    image: mysql:8.0
+    container_name: omisys-mysql-payment
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PAYMENT_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${PAYMENT_MYSQL_DATABASE}
+      MYSQL_USER: ${PAYMENT_MYSQL_USER}
+      MYSQL_PASSWORD: ${PAYMENT_MYSQL_PASSWORD}
+    ports:
+      - "3309:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-payment-data:/var/lib/mysql
+    networks:
+      - omisys-network
+
 volumes:
   cassandra_data:
     driver: local
@@ -408,7 +425,9 @@ volumes:
     driver: local
   mysql-order-data:
     driver: local
-    
+  mysql-payment-data:
+    driver: local
+
 networks:
   omisys-network:
     name: omisys-network
