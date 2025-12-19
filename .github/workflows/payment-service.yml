@@ -40,7 +40,7 @@ jobs:
           PAYMENT_MYSQL_PASSWORD=${{ secrets.PAYMENT_MYSQL_PASSWORD }}
           
           TOSS_SECRET_KEY=${{ secrets.TOSS_SECRET_KEY }}
-          WSL_HOST=${{ secrets.WSL_HOST }}
+          PUBLIC_BASE_URL=${{ secrets.PUBLIC_BASE_URL }}
           
           EOF
 
