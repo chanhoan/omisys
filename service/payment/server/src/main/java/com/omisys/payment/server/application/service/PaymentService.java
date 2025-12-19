@@ -96,6 +96,7 @@ public class PaymentService {
                 .build();
     }
 
+    @Transactional
     public PaymentResponse.Get paymentFail(String paymentKey) {
         Payment payment = paymentRepository.findByPaymentKey(paymentKey)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));

@@ -19,6 +19,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Base64;
@@ -56,6 +57,7 @@ public class PaymentInternalService {
         this.messageClient = messageClient;
     }
 
+    @Transactional
     public void createPayment(PaymentRequest.Create request) {
 
         String secretKey = Base64.getEncoder().encodeToString(originalKey.getBytes());
@@ -89,6 +91,7 @@ public class PaymentInternalService {
 
     }
 
+    @Transactional
     public void cancelPayment(PaymentRequest.Cancel request) {
         Payment payment = paymentRepository.findByOrderId(request.getOrderId())
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
