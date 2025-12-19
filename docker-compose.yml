@@ -114,6 +114,25 @@ services:
     networks:
       - omisys-network
 
+  payment-service:
+    image: omisys-payment-service:latest
+    container_name: payment-service
+    depends_on:
+      - eureka-service
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      MYSQL_ROOT_PASSWORD: ${PAYMENT_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${PAYMENT_MYSQL_DATABASE}
+      MYSQL_USER: ${PAYMENT_MYSQL_USER}
+      MYSQL_PASSWORD: ${PAYMENT_MYSQL_PASSWORD}
+
+      TOSS_SECRET_KEY: ${TOSS_SECRET_KEY}
+
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+    networks:
+      - omisys-network
+
 networks:
   omisys-network:
     external: true
