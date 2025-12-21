@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   config-server:
     image: omisys-config-server:latest
