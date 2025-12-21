@@ -24,3 +24,4 @@ include(':service:payment:payment_dto')
 include(':service:payment:server')
 
 include(':service:slack:slack_dto')
+include(':service:slack:server')
