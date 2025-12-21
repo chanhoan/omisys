@@ -133,6 +133,23 @@ services:
     networks:
       - omisys-network
 
+  slack-service:
+    image: omisys-slack-service:latest
+    container_name: slack-service
+    depends_on:
+      - eureka-service
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      SLACK_MYSQL_ROOT_PASSWORD: ${SLACK_MYSQL_ROOT_PASSWORD}
+      SLACK_MYSQL_DATABASE: ${SLACK_MYSQL_DATABASE}
+      SLACK_MYSQL_USER: ${SLACK_MYSQL_USER}
+      SLACK_MYSQL_PASSWORD: ${SLACK_MYSQL_PASSWORD}
+
+      SLACK_TOKEN: ${SLACK_TOKEN}
+    networks:
+      - omisys-network
+
 networks:
   omisys-network:
     external: true
