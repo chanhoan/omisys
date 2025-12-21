@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDa
 import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
 import org.springframework.scheduling.annotation.EnableAsync;
 
-@SpringBootApplication
 @EnableAsync
+@SpringBootApplication
 public class ProductApplication {
 
     public static void main(String[] args) {
