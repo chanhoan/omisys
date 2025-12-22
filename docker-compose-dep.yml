@@ -413,6 +413,23 @@ services:
     networks:
       - omisys-network
 
+  promotion_mysql:
+    image: mysql:8.0
+    container_name: omisys-mysql-promotion
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PROMOTION_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${PROMOTION_MYSQL_DATABASE}
+      MYSQL_USER: ${PROMOTION_MYSQL_USER}
+      MYSQL_PASSWORD: ${PROMOTION_MYSQL_PASSWORD}
+    ports:
+      - "3311:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-promotion-data:/var/lib/mysql
+    networks:
+      - omisys-network
+
 volumes:
   cassandra_data:
     driver: local
@@ -445,6 +462,8 @@ volumes:
   mysql-payment-data:
     driver: local
   mysql-slack-data:
+    driver: local
+  mysql-promotion-data:
     driver: local
 
 networks:
