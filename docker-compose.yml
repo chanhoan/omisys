@@ -138,7 +138,7 @@ services:
       - eureka-service
     environment:
       SPRING_PROFILES_ACTIVE: prod
-
+      
       SLACK_MYSQL_ROOT_PASSWORD: ${SLACK_MYSQL_ROOT_PASSWORD}
       SLACK_MYSQL_DATABASE: ${SLACK_MYSQL_DATABASE}
       SLACK_MYSQL_USER: ${SLACK_MYSQL_USER}
