@@ -1,0 +1,64 @@
+name: Promotion Service CI/CD
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "common/domain/**"
+      - "service/user/user_dto/**"
+      - "service/auth/auth_dto/**"
+      - "service/promotion/server/**"
+      - "Dockerfile"
+      - "docker-compose.yml"
+
+jobs:
+  build-and-deploy-promotion-service:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env.cicd from GitHub Secrets
+        shell: bash
+        run: |
+          cat > .env.cicd << 'EOF'
+          STACK_VERSION=${{ secrets.STACK_VERSION }}
+
+          ES_PORT=${{ secrets.ES_PORT }}
+          KIBANA_PORT=${{ secrets.KIBANA_PORT }}
+          CLUSTER_NAME=${{ secrets.CLUSTER_NAME }}
+          LICENSE=${{ secrets.LICENSE }}
+          MEM_LIMIT=${{ secrets.MEM_LIMIT }}
+
+          ELASTIC_PASSWORD=${{ secrets.ELASTIC_PASSWORD }}
+          KIBANA_PASSWORD=${{ secrets.KIBANA_PASSWORD }}
+
+          PROMOTION_MYSQL_ROOT_PASSWORD=${{ secrets.PROMOTION_MYSQL_ROOT_PASSWORD }}
+          PROMOTION_MYSQL_DATABASE=${{ secrets.PROMOTION_MYSQL_DATABASE }}
+          PROMOTION_MYSQL_USER=${{ secrets.PROMOTION_MYSQL_USER }}
+          PROMOTION_MYSQL_PASSWORD=${{ secrets.PROMOTION_MYSQL_PASSWORD }}
+          
+          EOF
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build promotion-service jar
+        run: |
+          chmod +x gradlew
+          ./gradlew :service:promotion:server:clean :service:promotion:server:bootJar
+
+      - name: Build Docker image for promotion-service
+        run: |
+          docker build --no-cache \
+            -t omisys-promotion-service:latest \
+            --build-arg FILE_DIRECTORY=service/promotion/server \
+            .
+
+      - name: Deploy promotion-service with docker compose
+        run: |
+          docker compose --env-file .env.cicd up -d --force-recreate --no-deps promotion-service

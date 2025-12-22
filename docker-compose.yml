@@ -138,13 +138,28 @@ services:
       - eureka-service
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      
+
       SLACK_MYSQL_ROOT_PASSWORD: ${SLACK_MYSQL_ROOT_PASSWORD}
       SLACK_MYSQL_DATABASE: ${SLACK_MYSQL_DATABASE}
       SLACK_MYSQL_USER: ${SLACK_MYSQL_USER}
       SLACK_MYSQL_PASSWORD: ${SLACK_MYSQL_PASSWORD}
 
       SLACK_TOKEN: ${SLACK_TOKEN}
+    networks:
+      - omisys-network
+
+  promotion-service:
+    image: omisys-promotion-service:latest
+    container_name: promotion-service
+    depends_on:
+      - eureka-service
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      PROMOTION_MYSQL_ROOT_PASSWORD: ${PROMOTION_MYSQL_ROOT_PASSWORD}
+      PROMOTION_MYSQL_DATABASE: ${PROMOTION_MYSQL_DATABASE}
+      PROMOTION_MYSQL_USER: ${PROMOTION_MYSQL_USER}
+      PROMOTION_MYSQL_PASSWORD: ${PROMOTION_MYSQL_PASSWORD}
     networks:
       - omisys-network
 
