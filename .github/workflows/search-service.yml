@@ -1,0 +1,64 @@
+name: Search Service CI/CD
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "common/domain/**"
+      - "service/search/server/**"
+      - "Dockerfile"
+      - "docker-compose.yml"
+
+jobs:
+  build-and-deploy-search-service:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create .env.cicd from GitHub Secrets
+        shell: bash
+        run: |
+          cat > .env.cicd << 'EOF'
+          STACK_VERSION=${{ secrets.STACK_VERSION }}
+
+          ES_PORT=${{ secrets.ES_PORT }}
+          KIBANA_PORT=${{ secrets.KIBANA_PORT }}
+          CLUSTER_NAME=${{ secrets.CLUSTER_NAME }}
+          LICENSE=${{ secrets.LICENSE }}
+          MEM_LIMIT=${{ secrets.MEM_LIMIT }}
+
+          ELASTIC_PASSWORD=${{ secrets.ELASTIC_PASSWORD }}
+          KIBANA_PASSWORD=${{ secrets.KIBANA_PASSWORD }}
+
+          PRODUCT_MYSQL_ROOT_PASSWORD=${{ secrets.PRODUCT_MYSQL_ROOT_PASSWORD }}
+          PRODUCT_MYSQL_DATABASE=${{ secrets.PRODUCT_MYSQL_DATABASE }}
+          PRODUCT_MYSQL_USER=${{ secrets.PRODUCT_MYSQL_USER }}
+          PRODUCT_MYSQL_PASSWORD=${{ secrets.PRODUCT_MYSQL_PASSWORD }}
+          
+          ELASTIC_FINGERPRINT=${{ secrets.ELASTIC_FINGERPRINT }}
+          
+          EOF
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build search-service jar
+        run: |
+          chmod +x gradlew
+          ./gradlew :service:search:server:clean :service:search:server:bootJar
+
+      - name: Build Docker image for search-service
+        run: |
+          docker build --no-cache \
+            -t omisys-search-service:latest \
+            --build-arg FILE_DIRECTORY=service/search/server \
+            .
+
+      - name: Deploy search-service with docker compose
+        run: |
+          docker compose --env-file .env.cicd up -d --force-recreate --no-deps search-service
