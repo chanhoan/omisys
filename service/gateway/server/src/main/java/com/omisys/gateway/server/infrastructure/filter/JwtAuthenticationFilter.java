@@ -28,26 +28,22 @@ import static com.omisys.common.domain.jwt.JwtGlobalConstant.X_USER_CLAIMS;
 public class JwtAuthenticationFilter implements GlobalFilter {
 
     private final AuthService authService;
+    private final ObjectMapper objectMapper;
 
-    public JwtAuthenticationFilter(@Lazy AuthService authService) {
+    public JwtAuthenticationFilter(@Lazy AuthService authService, ObjectMapper objectMapper) {
         this.authService = authService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
-        if (path.startsWith("/api/auth/")
-                || path.startsWith("/api/users/sign-up")
-                || path.startsWith("/api/search")
-                || path.startsWith("/api/products/search")
-                || path.startsWith("/api/preorder/search")
-                || path.startsWith("/api/categories/search")) {
+        if (isPublicPath(path)) {
             return chain.filter(exchange);
         }
 
-        Optional<String> token = this.extractToken(exchange);
-
+        Optional<String> token = extractToken(exchange);
         if (token.isEmpty()) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
@@ -55,27 +51,41 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 
         try {
             JwtClaim claims = authService.verifyToken(token.get());
-            this.addUserClaimsToHeaders(exchange, claims);
+
+            ServerWebExchange mutatedExchange = addUserClaimsToHeaders(exchange, claims);
+            return chain.filter(mutatedExchange);
+
         } catch (Exception e) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
-        return chain.filter(exchange);
     }
 
-    private void addUserClaimsToHeaders(ServerWebExchange exchange, JwtClaim claims) {
-        if (claims != null) {
-            try {
-                ObjectMapper objectMapper = new ObjectMapper();
-                String jsonClaims = objectMapper.writeValueAsString(claims);
-                exchange
-                        .getRequest()
-                        .mutate()
-                        .header(X_USER_CLAIMS, URLEncoder.encode(jsonClaims, StandardCharsets.UTF_8))
-                        .build();
-            } catch (JsonProcessingException e) {
-                log.error("Error processing JSON: {}", e.getMessage());
-            }
+    private boolean isPublicPath(String path) {
+        return path.startsWith("/api/auth/")
+                || path.startsWith("/api/users/sign-up")
+                || path.startsWith("/api/search")
+                || path.startsWith("/api/products/search")
+                || path.startsWith("/api/preorder/search")
+                || path.startsWith("/api/categories/search");
+    }
+
+    private ServerWebExchange addUserClaimsToHeaders(ServerWebExchange exchange, JwtClaim claims) {
+        if (claims == null) {
+            return exchange;
+        }
+
+        try {
+            String jsonClaims = objectMapper.writeValueAsString(claims);
+            String encoded = URLEncoder.encode(jsonClaims, StandardCharsets.UTF_8);
+
+            return exchange.mutate()
+                    .request(req -> req.headers(headers -> headers.set(X_USER_CLAIMS, encoded)))
+                    .build();
+
+        } catch (JsonProcessingException e) {
+            log.error("Error processing JSON: {}", e.getMessage());
+            return exchange;
         }
     }
 
@@ -84,7 +94,6 @@ public class JwtAuthenticationFilter implements GlobalFilter {
         if (header != null && header.startsWith(BEARER_PREFIX)) {
             return Optional.of(header.substring(BEARER_PREFIX.length()));
         }
-
         return Optional.empty();
     }
 }

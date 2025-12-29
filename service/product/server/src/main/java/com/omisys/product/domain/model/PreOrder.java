@@ -42,15 +42,18 @@ public class PreOrder extends BaseEntity {
 
     @Column
     @Enumerated(EnumType.STRING)
+    @Builder.Default
     private PreOrderState state = PreOrderState.INITIALIZED;
 
     @Column(nullable = false)
     private Integer availableQuantity;
 
     @Column
+    @Builder.Default
     private boolean isPublic = true;
 
     @Column
+    @Builder.Default
     private boolean isDeleted = false;
 
     public static PreOrder create(PreOrderRequest.Create request) {

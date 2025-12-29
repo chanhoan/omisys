@@ -84,7 +84,7 @@ public class GlobalQueueFilter implements GlobalFilter, Ordered {
                                 if (response.getRank() == 0) {
                                     return chain.filter(exchange);
                                 }
-                                var responseHeaders = exchange.getRequest().getHeaders();
+                                var responseHeaders = exchange.getResponse().getHeaders();
                                 responseHeaders.add("X-Queue-Rank", String.valueOf(response.getRank()));
                                 exchange.getResponse().setStatusCode(HttpStatus.OK);
                                 return exchange.getResponse().setComplete();
