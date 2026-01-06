@@ -19,13 +19,16 @@ public class PaymentRequest {
 
     @Getter
     @Setter
-    public static class CreateExt extends Create {
+    public static class CreateExt {
 
         private String flowMode = "DIRECT";
         private String easyPay = "토스페이";
         private String method = "";
         private String successUrl;
         private String failUrl;
+        private String orderId;
+        private String orderName;
+        private Long amount;
 
     }
 
@@ -34,7 +37,7 @@ public class PaymentRequest {
     public static class Confirm {
 
         private String paymentKey;
-        private Long orderId;
+        private String orderId;
         private Long amount;
 
     }

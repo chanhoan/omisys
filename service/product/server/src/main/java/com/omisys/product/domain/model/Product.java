@@ -1,23 +1,21 @@
 package com.omisys.product.domain.model;
 
-import com.omisys.common.domain.entity.BaseEntity;
-import jakarta.persistence.Column;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.cassandra.core.mapping.PrimaryKey;
-import org.springframework.data.cassandra.core.mapping.Table;
-import org.springframework.data.domain.Persistable;
-
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-@Getter
-@Table("P_PRODUCT")
-public class Product extends BaseEntity implements Persistable {
+import com.omisys.common.domain.entity.BaseEntity;
+import lombok.Builder;
+import lombok.Getter;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.Table;
+import org.springframework.data.domain.Persistable;
 
+@Table("P_PRODUCT")
+@Getter
+public class Product extends BaseEntity implements Persistable {
     @PrimaryKey private UUID productId = UUID.randomUUID();
     @Column private Long categoryId;
     @Column private String productName;
@@ -37,16 +35,14 @@ public class Product extends BaseEntity implements Persistable {
 
     @Column private int limitCountPerUser = 0;
     @Column private double averageRating = 0.0;
-    @Column private long reviewCount = 0L;
-    @Column private long salesCount = 0L;
+    @Column private long reviewCount = 0;
+    @Column private long salesCount = 0;
 
     @Column private boolean isPublic = true;
-    @Setter @Column private boolean soldout = false;
+    @Column private boolean soldout = false;
     @Column private boolean isDeleted = false;
     @Column private List<String> tags;
-
-    @Setter @Transient
-    private boolean isNew = false;
+    @Transient private boolean isNew = false;
 
     @Override
     public Object getId() {
@@ -60,7 +56,7 @@ public class Product extends BaseEntity implements Persistable {
     }
 
     @Builder
-    public Product(
+    private Product(
             Long categoryId,
             String productName,
             String brandName,
@@ -82,7 +78,7 @@ public class Product extends BaseEntity implements Persistable {
         this.size = size;
         this.originalPrice = originalPrice;
         this.discountPercent = discountPercent;
-        this.applyDiscount(discountPercent);
+        applyDiscount(discountPercent);
         this.stock = stock;
         this.description = description;
         this.originImgUrl = originImgUrl;
@@ -126,6 +122,22 @@ public class Product extends BaseEntity implements Persistable {
         this.isPublic = isPublic;
     }
 
+    public UUID getProductId() {
+        return productId;
+    }
+
+    public void setIsNew(boolean isNew) {
+        this.isNew = isNew;
+    }
+
+    public void isDelete() {
+        this.isDeleted = true;
+    }
+
+    public void setSoldout(boolean status) {
+        this.soldout = status;
+    }
+
     public void applyDiscount(Double discountPercent) {
         if (discountPercent != null) {
             BigDecimal discountPercentBD = BigDecimal.valueOf(discountPercent);
@@ -137,16 +149,11 @@ public class Product extends BaseEntity implements Persistable {
         }
     }
 
-    public void isDelete() {
-        this.isDeleted = true;
-    }
-
     public void updateStock(int reduceCount) {
         this.stock -= reduceCount;
     }
 
-    public void rollbackStock(int reduceCount) {
-        this.stock += reduceCount;
+    public void rollbackStock(int rollbackCount) {
+        this.stock += rollbackCount;
     }
-
 }

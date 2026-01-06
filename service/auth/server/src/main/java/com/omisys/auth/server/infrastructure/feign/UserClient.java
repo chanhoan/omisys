@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(name = "user", configuration = UserFeignConfig.class)
 public interface UserClient extends UserService {
 
-    @GetMapping
+    @GetMapping("/internal/users")
     UserDto getUserByUsername(@RequestParam(value = "username") String username);
 
 }

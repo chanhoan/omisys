@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Base64;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -54,25 +55,62 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentResponse.Get paymentSuccess(String paymentKey) {
+    public void paymentSuccessMock(String paymentKey) {
+
+        log.info("[MOCK] Payment success for key {}", paymentKey);
+
         Payment payment = paymentRepository.findByPaymentKey(paymentKey)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        // ✅ Toss confirm 호출 생략
+
+        PaymentCompletedEvent event = PaymentCompletedEvent.builder()
+                .paymentId(payment.getPaymentId())
+                .orderId(payment.getOrderId())
+                .amount(payment.getAmount())
+                .userId(payment.getUserId())
+                .success(true)
+                .build();
+
+        kafkaTemplateSend(event);
+
+        payment.setState(PaymentState.PAYMENT);
+        paymentHistoryRepository.save(PaymentHistory.create(payment));
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> findLatestKeys(int limit) {
+        return paymentRepository.findLatestKeys(limit);
+    }
+
+    @Transactional
+    public PaymentResponse.Get paymentSuccess(String paymentKey) {
+
+        log.info("Payment success for key {}", paymentKey);
+
+        Payment payment = paymentRepository.findByPaymentKey(paymentKey)
+                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
+
+        log.info("OrderId: {}", payment.getOrderId());
+        log.info("Amount: {}", payment.getAmount());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBasicAuth(Base64.getEncoder().encodeToString(originalKey.getBytes()));
 
         PaymentRequest.Confirm body = new PaymentRequest.Confirm();
         body.setPaymentKey(paymentKey);
-        body.setOrderId(payment.getOrderId());
+        body.setOrderId(payment.getTossOrderId());
         body.setAmount(payment.getAmount());
 
         HttpEntity<PaymentRequest.Confirm> entity = new HttpEntity<>(body, headers);
 
-        restTemplate.exchange(
+        Object response = restTemplate.exchange(
                 tossPaymentUrl + "/confirm",
                 HttpMethod.POST,
                 entity,
-                PaymentRequest.Confirm.class);
+                Object.class);
+
+        log.info("response: {}", response);
 
         PaymentCompletedEvent event = PaymentCompletedEvent.builder()
                 .paymentId(payment.getPaymentId())

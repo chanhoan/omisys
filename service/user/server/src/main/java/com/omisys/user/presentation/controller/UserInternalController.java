@@ -25,7 +25,7 @@ public class UserInternalController {
         return userInternalService.getUserByUserId(userId);
     }
 
-    @PostMapping
+    @PostMapping("/point")
     public Long createPointHistory(@RequestBody PointHistoryDto request) {
         return pointHistoryInternalService.createPointHistory(request);
     }

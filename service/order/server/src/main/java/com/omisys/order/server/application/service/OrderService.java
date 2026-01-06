@@ -28,7 +28,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.management.Notification;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +64,7 @@ public class OrderService {
             cancelPayment(orderId);
         }
 
+        // TODO 쿠폰 사용 롤백
         order.cancel();
         return orderId;
     }
@@ -135,11 +135,8 @@ public class OrderService {
         return new PageImpl<>(responses, pageable, orders.getTotalElements());
     }
 
-    public Page<OrderResponse.AllOrderGetResponse> getAllOrder(
-            Pageable pageable,
-            Long userId,
-            Long orderUserId,
-            String productId) {
+    public Page<OrderResponse.AllOrderGetResponse> getAllOrder(Pageable pageable, Long userId, Long orderUserId,
+                                                               String productId) {
         UserDto user = userClient.getUser(userId);
         Page<Order> orders = orderRepository.getAllOrder(pageable, orderUserId, productId);
 
@@ -165,6 +162,7 @@ public class OrderService {
         order.delete();
     }
 
+
     public Order validateOrderExists(Long orderId) {
         return orderRepository.findById(orderId).orElseThrow(
                 () -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND)
@@ -182,20 +180,15 @@ public class OrderService {
     }
 
     private void refundPoint(Long userId, Long orderId, BigDecimal pointPrice) {
-        PointHistoryDto pointHistory = new PointHistoryDto(
-                userId,
-                orderId,
-                pointPrice,
-                POINT_HISTORY_TYPE_REFUND,
-                POINT_DESCRIPTION_ORDER_CANCEL);
-
+        PointHistoryDto pointHistory = new PointHistoryDto(userId, orderId, pointPrice
+                , POINT_HISTORY_TYPE_REFUND, POINT_DESCRIPTION_ORDER_CANCEL);
         userClient.createPointHistory(pointHistory);
     }
 
     private void rollbackStock(Order order) {
         List<OrderProduct> orderProducts = orderProductRepository.findByOrder(order);
-        Map<String, Integer> orderProductQuantities = orderProducts.stream()
-                .collect(Collectors.toMap(OrderProduct::getProductId, OrderProduct::getQuantity));
+        Map<String, Integer> orderProductQuantities = orderProducts.stream().collect(Collectors.toMap(
+                OrderProduct::getProductId, OrderProduct::getQuantity));
 
         productClient.rollbackStock(orderProductQuantities);
     }
@@ -204,4 +197,6 @@ public class OrderService {
         PaymentInternalDto.Cancel paymentCancel = new Cancel(orderId, CANCEL_REASON);
         paymentClient.cancelPayment(paymentCancel);
     }
+
+
 }

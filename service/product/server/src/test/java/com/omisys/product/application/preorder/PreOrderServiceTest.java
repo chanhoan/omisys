@@ -151,7 +151,7 @@ class PreOrderServiceTest {
         // JPA ID는 private 필드라 테스트에서 reflection으로 세팅
         ReflectionTestUtils.setField(preOrder, "preOrderId", preOrderId);
 
-        when(preOrderRepository.findByPreOrderIdAndIsPublicTrue(preOrderId)).thenReturn(Optional.of(preOrder));
+        when(preOrderRepository.findByPreOrderId(preOrderId)).thenReturn(Optional.of(preOrder));
 
         // when
         PreOrderResponse response = preOrderService.updateState(preOrderId, PreOrderState.OPEN_FOR_ORDER);
@@ -177,7 +177,7 @@ class PreOrderServiceTest {
         ));
         ReflectionTestUtils.setField(preOrder, "preOrderId", preOrderId);
 
-        when(preOrderRepository.findByPreOrderIdAndIsPublicTrue(preOrderId)).thenReturn(Optional.of(preOrder));
+        when(preOrderRepository.findByPreOrderId(preOrderId)).thenReturn(Optional.of(preOrder));
 
         // when
         PreOrderResponse response = preOrderService.updateState(preOrderId, PreOrderState.CANCELED);

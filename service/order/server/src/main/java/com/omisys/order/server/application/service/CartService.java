@@ -23,19 +23,17 @@ import java.util.concurrent.TimeUnit;
 public class CartService {
 
     private final RedisTemplate<String, Map<String, Integer>> cartTemplate;
-    private final HashOperations<String, String , Integer> cartOps;
+    private final HashOperations<String, String, Integer> cartOps;
     private final ProductClient productClient;
     private final UserClient userClient;
-    private static final long CART_EXPRIRE_TIME = 30 * 24 * 60 * 60;
+    private static final long CART_EXPIRE_TIME = 30 * 24 * 60 * 60;
 
-    public CartService(
-            RedisTemplate<String, Map<String, Integer>> cartTemplate,
-            ProductClient productClient,
-            UserClient userClient) {
+    public CartService(RedisTemplate<String, Map<String, Integer>> cartTemplate,
+                       ProductClient productClient, UserClient userClient) {
         this.cartTemplate = cartTemplate;
         this.cartOps = cartTemplate.opsForHash();
-        this.productClient = productClient;
         this.userClient = userClient;
+        this.productClient = productClient;
     }
 
     @Transactional
@@ -51,9 +49,10 @@ public class CartService {
             existingProductQuantity += cartProductRequest.getQuantity();
             cartOps.put(redisKey, cartProductRequest.getProductId(), existingProductQuantity);
         } else {
-            cartOps.put(redisKey, cartProductRequest.getProductId(), cartProductRequest.getQuantity());
+            cartOps.put(redisKey, cartProductRequest.getProductId(),
+                    cartProductRequest.getQuantity());
         }
-        cartTemplate.expire(redisKey, CART_EXPRIRE_TIME, TimeUnit.SECONDS);
+        cartTemplate.expire(redisKey, CART_EXPIRE_TIME, TimeUnit.SECONDS);
     }
 
     public List<CartProductResponse> getCart(Long userId) {
@@ -64,10 +63,12 @@ public class CartService {
         List<ProductDto> products = productClient.getProductList(
                 productQuantities.keySet().stream().toList());
 
-        return products.stream()
+        List<CartProductResponse> response = products.stream()
                 .map(product -> CartProductResponse.from(product,
                         productQuantities.get(product.getProductId().toString())))
                 .toList();
+
+        return response;
     }
 
     @Transactional
@@ -84,9 +85,10 @@ public class CartService {
         if (existingProductQuantity != null) {
             cartOps.put(redisKey, cartProductRequest.getProductId(),
                     cartProductRequest.getQuantity());
-            cartTemplate.expire(redisKey, CART_EXPRIRE_TIME, TimeUnit.SECONDS);
+            cartTemplate.expire(redisKey, CART_EXPIRE_TIME, TimeUnit.SECONDS);
         } else {
-            throw new CartException(CartErrorCode.PRODUCT_NOT_IN_CART);
+            throw new CartException(
+                    CartErrorCode.PRODUCT_NOT_IN_CART);
         }
     }
 
@@ -124,25 +126,26 @@ public class CartService {
         }
 
         productQuantities.forEach((productId, quantity) -> {
-            Integer existingProductQuantity = cartOps.get(redisKey, productId);
-            if (existingProductQuantity == null) {
-                throw new OrderException(OrderErrorCode.CART_ITEM_ONLY_ORDERABLE);
-            }
-            if (!existingProductQuantity.equals(quantity)) {
-                throw new OrderException(OrderErrorCode.CART_ITEM_QUANTITY_MISMATCH, productId);
-            }
-            cartOps.delete(redisKey, productId, quantity);
-        });
+                    Integer existingProductQuantity = cartOps.get(redisKey, productId);
+                    if (existingProductQuantity == null) {
+                        throw new OrderException(OrderErrorCode.CART_ITEM_ONLY_ORDERABLE);
+                    }
+                    if (!existingProductQuantity.equals(quantity)) {
+                        throw new OrderException(OrderErrorCode.CART_ITEM_QUANTITY_MISMATCH, productId);
+                    }
+                    cartOps.delete(redisKey, productId);
+                }
+        );
+    }
+
+    private String createRedisKey(Long userId) {
+        return "cart:" + userId.toString();
     }
 
     private void validateUserCartExists(String redisKey) {
         if (cartOps.entries(redisKey).isEmpty()) {
             throw new CartException(CartErrorCode.CART_NOT_FOUND);
         }
-    }
-
-    private String createRedisKey(Long userId) {
-        return "cart:" + userId.toString();
     }
 
     private void validateProductExistsAndStock(String productId, Integer quantity) {
@@ -158,4 +161,5 @@ public class CartService {
             throw new CartException(CartErrorCode.USER_NOT_FOUND, userId);
         }
     }
+
 }

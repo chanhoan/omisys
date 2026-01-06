@@ -30,7 +30,7 @@ public class ProductService {
     @Transactional
     public ProductResponse createProduct(ProductRequest.Create request, ImgDto imgDto) {
         Product newProduct = ProductMapper.toEntity(request, imgDto);
-        newProduct.setNew(true);
+        newProduct.setIsNew(true);
         Product savedProduct = productRepository.save(newProduct);
         return ProductResponse.fromEntity(savedProduct);
     }

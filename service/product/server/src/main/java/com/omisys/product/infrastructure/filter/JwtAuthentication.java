@@ -1,14 +1,13 @@
 package com.omisys.product.infrastructure.filter;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import com.omisys.auth.server.auth_dto.jwt.JwtClaim;
 import lombok.Builder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 @Builder
 public class JwtAuthentication implements Authentication {
@@ -47,16 +46,14 @@ public class JwtAuthentication implements Authentication {
 
     @Override
     public boolean isAuthenticated() {
-        return false;
+        return true;
     }
 
     @Override
-    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-
-    }
+    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {}
 
     @Override
     public String getName() {
-        return "";
+        return username;
     }
 }

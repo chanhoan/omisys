@@ -39,6 +39,7 @@ public class SecurityContextFilter extends OncePerRequestFilter {
             try {
                 String decodedClaims = URLDecoder.decode(userClaimsHeader, StandardCharsets.UTF_8);
                 JwtClaim jwtClaim = objectMapper.readValue(decodedClaims, JwtClaim.class);
+                log.info(objectMapper.writeValueAsString(jwtClaim));
                 SecurityContextHolder.getContext().setAuthentication(JwtAuthentication.create(jwtClaim));
             } catch (JsonProcessingException e) {
                 log.error("Failed to parse X-User-Claims header", e);

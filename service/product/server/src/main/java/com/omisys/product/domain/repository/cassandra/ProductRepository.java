@@ -14,6 +14,7 @@ import java.util.UUID;
 @Repository
 public interface ProductRepository extends CassandraRepository<Product, UUID> {
 
+    @Query("SELECT * FROM \"P_PRODUCT\" WHERE productid = ?0 AND isdeleted = false ALLOW FILTERING")
     Optional<Product> findByProductIdAndIsDeletedFalse(UUID productId);
 
     @Query(

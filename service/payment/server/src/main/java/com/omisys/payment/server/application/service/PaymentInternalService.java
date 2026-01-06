@@ -25,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -39,7 +40,7 @@ public class PaymentInternalService {
     @Value("${PAYMENT.FAIL_URL}")
     private String FAIL_URL;
 
-    private final String tossPaymentUrl = "https://api.tosspayments.com/v1/payments";
+    private final String tossPaymentsUrl = "https://api.tosspayments.com/v1/payments";
 
     private final PaymentRepository paymentRepository;
     private final PaymentHistoryRepository paymentHistoryRepository;
@@ -57,16 +58,18 @@ public class PaymentInternalService {
         this.messageClient = messageClient;
     }
 
-    @Transactional
     public void createPayment(PaymentRequest.Create request) {
-
         String secretKey = Base64.getEncoder().encodeToString(originalKey.getBytes());
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setBasicAuth(secretKey);
 
+            String tossOrderId =
+                    "order_" + request.getOrderId() + "_" +
+                            UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+
             PaymentRequest.CreateExt body = new PaymentRequest.CreateExt();
-            body.setOrderId(request.getOrderId());
+            body.setOrderId(tossOrderId);
             body.setOrderName(request.getOrderName());
             body.setAmount(request.getAmount());
             body.setSuccessUrl(SUCCESS_URL);
@@ -74,11 +77,11 @@ public class PaymentInternalService {
 
             HttpEntity<PaymentRequest.CreateExt> entity = new HttpEntity<>(body, headers);
 
-            ResponseEntity<PaymentResponse.Create> response = restTemplate.exchange(
-                    tossPaymentUrl, HttpMethod.POST, entity, PaymentResponse.Create.class
+            ResponseEntity<PaymentResponse.CreateResponse> response = restTemplate.exchange(
+                    tossPaymentsUrl, HttpMethod.POST, entity, PaymentResponse.CreateResponse.class
             );
 
-            Payment payment = Payment.create(request);
+            Payment payment = Payment.create(request, tossOrderId);
             payment.setPaymentKey(Objects.requireNonNull(response.getBody()).getPaymentKey());
 
             sendMessage(response.getBody().getCheckout(), request.getEmail());
@@ -88,7 +91,6 @@ public class PaymentInternalService {
             log.error(e.getMessage());
             throw new PaymentException(PaymentErrorCode.INVALID_PARAMETER);
         }
-
     }
 
     @Transactional
@@ -108,7 +110,7 @@ public class PaymentInternalService {
             HttpEntity<PaymentRequest.Cancel> entity = new HttpEntity<>(body, headers);
 
             restTemplate.exchange(
-                    tossPaymentUrl + "/" + payment.getPaymentKey() + "/cancel",
+                    tossPaymentsUrl + "/" + payment.getPaymentKey() + "/cancel",
                     HttpMethod.POST,
                     entity,
                     Object.class

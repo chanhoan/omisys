@@ -81,7 +81,7 @@ public class PreOrderService {
 
     private PreOrder getPreOrderByPreOrderId(long preOrderId) {
         return preOrderRepository
-                .findByPreOrderIdAndIsPublicTrue(preOrderId)
+                .findByPreOrderId(preOrderId)
                 .orElseThrow(() -> new ProductException(ProductErrorCode.NOT_FOUND_PREORDER));
     }
 

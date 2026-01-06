@@ -12,12 +12,14 @@ import com.omisys.promotion.server.presentation.request.CouponRequest;
 import com.omisys.promotion.server.presentation.response.CouponResponse;
 import com.omisys.user_dto.infrastructure.UserDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CouponService {
@@ -57,6 +59,7 @@ public class CouponService {
     }
 
     public Page<CouponResponse.Get> getCouponListBoyUserId(Long userId, Pageable pageable) {
+        log.info("userId = {}", userId);
         UserDto userData = userService.getUserByUserId(userId);
         if (userData == null) {
             throw new PromotionException(PromotionErrorCode.INTERNAL_SERVER_ERROR);

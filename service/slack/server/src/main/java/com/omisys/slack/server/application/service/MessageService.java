@@ -58,6 +58,8 @@ public class MessageService {
 
         try {
             String apiUrlWithParams = url + "?email=" + email;
+            log.info("apiUrlWithParams = {}", apiUrlWithParams);
+
             ResponseEntity<String> response =
                     restTemplate.exchange(apiUrlWithParams, HttpMethod.GET, request, String.class);
 

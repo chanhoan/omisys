@@ -6,6 +6,7 @@ import com.omisys.product.presentation.request.CategoryRequest;
 import com.omisys.product.presentation.response.CategoryResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
 @RequestMapping("/api/categories")
 @RequiredArgsConstructor
 @Validated
+@Slf4j
 public class CategoryController {
 
     private final CategoryService categoryService;
@@ -23,6 +25,7 @@ public class CategoryController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PostMapping
     public ApiResponse<Long> createCategory(@RequestBody @Validated CategoryRequest.Create request) {
+        log.info("Create category: {}", request.toString());
         return ApiResponse.created(
                 categoryService.createCategory(request.getName(), request.getParentCategoryId()));
     }
@@ -45,6 +48,7 @@ public class CategoryController {
 
     @GetMapping("/search")
     public ApiResponse<List<CategoryResponse>> getCategories() {
+        log.info("Get categories");
         return ApiResponse.ok(categoryService.fetchAndCacheCategories());
     }
 }

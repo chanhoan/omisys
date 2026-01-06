@@ -39,7 +39,7 @@ public class PointHistory extends BaseEntity {
                 .user(user)
                 .orderId(request.getOrderId())
                 .point(request.getPoint())
-                .type(PointHistoryType.valueOf(request.getType()))
+                .type(PointHistoryType.from(request.getType()))
                 .build();
     }
 }

@@ -28,6 +28,21 @@ public class PaymentResponse {
     @Getter
     @Setter
     @Builder
+    public static class CreateResponse {
+
+        private String paymentKey;
+        private String orderId;
+        private String orderName;
+        private String status;
+        private String requestedAt;
+        private Long totalAmount;
+        private Object checkout;
+
+    }
+
+    @Getter
+    @Setter
+    @Builder
     public static class Get {
 
         private Long paymentId;

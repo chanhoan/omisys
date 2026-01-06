@@ -34,7 +34,7 @@ public class PreOrderRedisService {
     }
 
     private boolean availableQuantity(int availableQuantity, long preOrderId) {
-        String key = getRedisKeyOfPreOrder(availableQuantity);
+        String key = getRedisKeyOfPreOrder(preOrderId);
         return availableQuantity > redisRepository.sCard(key);
     }
 

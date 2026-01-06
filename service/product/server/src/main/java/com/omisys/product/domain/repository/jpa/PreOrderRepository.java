@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface PreOrderRepository extends JpaRepository<PreOrder, Long> {
-    Optional<PreOrder> findByPreOrderIdAndIsPublicTrue(Long preOrderId);
+    Optional<PreOrder> findByPreOrderId(Long preOrderId);
 
     Page<PreOrder> findAllByIsPublicTrue(Pageable pageable);
 }
