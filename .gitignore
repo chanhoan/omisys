@@ -76,3 +76,7 @@ out/
 
 .env
 grafana/
+
+# Claude
+CLAUDE.md
+claude/
