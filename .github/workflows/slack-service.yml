@@ -55,6 +55,15 @@ jobs:
           tags: ghcr.io/chanhoan/omisys-slack-service:latest
           build-args: FILE_DIRECTORY=service/slack/server
 
+      - name: Copy docker-compose.yml to EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: docker-compose.yml
+          target: /opt/omisys/
+
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1
         with:
