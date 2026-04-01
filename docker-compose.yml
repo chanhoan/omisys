@@ -1,6 +1,6 @@
 services:
   config-server:
-    image: omisys-config-server:latest
+    image: ghcr.io/chanhoan/omisys-config-server:latest
     container_name: config-server
     environment:
       SPRING_PROFILES_ACTIVE: prod
@@ -20,7 +20,7 @@ services:
       - omisys-network
 
   eureka-service:
-    image: omisys-eureka-service:latest
+    image: ghcr.io/chanhoan/omisys-eureka-service:latest
     container_name: eureka-service
     depends_on:
       config-server:
@@ -34,7 +34,7 @@ services:
       - "19090:19090"
 
   user-service:
-    image: omisys-user-service:latest
+    image: ghcr.io/chanhoan/omisys-user-service:latest
     container_name: user-service
     depends_on:
       - eureka-service
@@ -50,7 +50,7 @@ services:
       - omisys-network
 
   auth-service:
-    image: omisys-auth-service:latest
+    image: ghcr.io/chanhoan/omisys-auth-service:latest
     container_name: auth-service
     depends_on:
       - eureka-service
@@ -62,7 +62,7 @@ services:
       - omisys-network
 
   gateway-service:
-    image: omisys-gateway-service:latest
+    image: ghcr.io/chanhoan/omisys-gateway-service:latest
     container_name: gateway-service
     depends_on:
       - eureka-service
@@ -74,7 +74,7 @@ services:
       - omisys-network
 
   product-service:
-    image: omisys-product-service:latest
+    image: ghcr.io/chanhoan/omisys-product-service:latest
     container_name: product-service
     depends_on:
       - eureka-service
@@ -98,7 +98,7 @@ services:
       - omisys-network
 
   order-service:
-    image: omisys-order-service:latest
+    image: ghcr.io/chanhoan/omisys-order-service:latest
     container_name: order-service
     depends_on:
       - eureka-service
@@ -113,7 +113,7 @@ services:
       - omisys-network
 
   payment-service:
-    image: omisys-payment-service:latest
+    image: ghcr.io/chanhoan/omisys-payment-service:latest
     container_name: payment-service
     depends_on:
       - eureka-service
@@ -132,7 +132,7 @@ services:
       - omisys-network
 
   slack-service:
-    image: omisys-slack-service:latest
+    image: ghcr.io/chanhoan/omisys-slack-service:latest
     container_name: slack-service
     depends_on:
       - eureka-service
@@ -149,7 +149,7 @@ services:
       - omisys-network
 
   promotion-service:
-    image: omisys-promotion-service:latest
+    image: ghcr.io/chanhoan/omisys-promotion-service:latest
     container_name: promotion-service
     depends_on:
       - eureka-service
@@ -164,7 +164,7 @@ services:
       - omisys-network
 
   search-service:
-    image: omisys-search-service:latest
+    image: ghcr.io/chanhoan/omisys-search-service:latest
     container_name: search-service
     depends_on:
       - eureka-service
