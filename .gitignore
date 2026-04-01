@@ -80,3 +80,4 @@ grafana/
 # Claude
 CLAUDE.md
 claude/
+.claude
