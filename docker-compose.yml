@@ -22,6 +22,7 @@ services:
   eureka-service:
     image: ghcr.io/chanhoan/omisys-eureka-service:latest
     container_name: eureka-service
+    restart: on-failure
     depends_on:
       config-server:
         condition: service_healthy
@@ -36,6 +37,7 @@ services:
   user-service:
     image: ghcr.io/chanhoan/omisys-user-service:latest
     container_name: user-service
+    restart: on-failure
     depends_on:
       - eureka-service
     environment:
@@ -52,6 +54,7 @@ services:
   auth-service:
     image: ghcr.io/chanhoan/omisys-auth-service:latest
     container_name: auth-service
+    restart: on-failure
     depends_on:
       - eureka-service
     environment:
@@ -64,6 +67,7 @@ services:
   gateway-service:
     image: ghcr.io/chanhoan/omisys-gateway-service:latest
     container_name: gateway-service
+    restart: on-failure
     depends_on:
       - eureka-service
     environment:
@@ -76,6 +80,7 @@ services:
   product-service:
     image: ghcr.io/chanhoan/omisys-product-service:latest
     container_name: product-service
+    restart: on-failure
     depends_on:
       - eureka-service
     environment:
@@ -100,6 +105,7 @@ services:
   order-service:
     image: ghcr.io/chanhoan/omisys-order-service:latest
     container_name: order-service
+    restart: on-failure
     depends_on:
       - eureka-service
     environment:
@@ -115,6 +121,7 @@ services:
   payment-service:
     image: ghcr.io/chanhoan/omisys-payment-service:latest
     container_name: payment-service
+    restart: on-failure
     depends_on:
       - eureka-service
     environment:
@@ -134,6 +141,7 @@ services:
   slack-service:
     image: ghcr.io/chanhoan/omisys-slack-service:latest
     container_name: slack-service
+    restart: on-failure
     depends_on:
       - eureka-service
     environment:
@@ -151,6 +159,7 @@ services:
   promotion-service:
     image: ghcr.io/chanhoan/omisys-promotion-service:latest
     container_name: promotion-service
+    restart: on-failure
     depends_on:
       - eureka-service
     environment:
@@ -166,6 +175,7 @@ services:
   search-service:
     image: ghcr.io/chanhoan/omisys-search-service:latest
     container_name: search-service
+    restart: on-failure
     depends_on:
       - eureka-service
     environment:
