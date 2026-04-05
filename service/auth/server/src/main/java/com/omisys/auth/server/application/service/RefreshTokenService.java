@@ -19,6 +19,7 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final long ttlSeconds;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public RefreshTokenService(RefreshTokenRepository refreshTokenRepository, JwtProperties jwtProperties) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.ttlSeconds = jwtProperties.getRefreshTokenExpiresIn() / MILLI_TO_SECOND;
