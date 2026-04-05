@@ -1,12 +1,13 @@
 package com.omisys.order.server.infrastructure.client;
 
+import com.omisys.order.server.infrastructure.client.fallback.UserClientFallback;
 import com.omisys.user_dto.infrastructure.AddressDto;
 import com.omisys.user_dto.infrastructure.PointHistoryDto;
 import com.omisys.user_dto.infrastructure.UserDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "user")
+@FeignClient(name = "user", fallback = UserClientFallback.class)
 public interface UserClient {
 
     @GetMapping("/internal/users/user-id")

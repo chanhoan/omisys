@@ -1,5 +1,6 @@
 package com.omisys.order.server.infrastructure.client;
 
+import com.omisys.order.server.infrastructure.client.fallback.ProductClientFallback;
 import com.omisys.product.product_dto.ProductDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "product")
+@FeignClient(name = "product", fallback = ProductClientFallback.class)
 public interface ProductClient {
 
     @GetMapping("/internal/products")

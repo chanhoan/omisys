@@ -1,5 +1,6 @@
 package com.omisys.order.server.infrastructure.client;
 
+import com.omisys.order.server.infrastructure.client.fallback.PaymentClientFallback;
 import com.omisys.payment.payment_dto.dto.PaymentInternalDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "payment")
+@FeignClient(name = "payment", fallback = PaymentClientFallback.class)
 public interface PaymentClient {
 
     @PostMapping("/internal/payments")

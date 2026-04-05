@@ -20,6 +20,7 @@ public enum OrderErrorCode {
     CART_ITEM_ONLY_ORDERABLE(HttpStatus.BAD_REQUEST, "장바구니에 있는 상품만 주문이 가능합니다."),
     CART_ITEM_QUANTITY_MISMATCH(HttpStatus.BAD_REQUEST, "장바구니에 있는 상품과 주문 상품의 수량이 다릅니다. : [%s]"),
     EVENT_PROCESSING_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이벤트 처리에 실패했습니다. 잠시 후 다시 시도해주세요."),
+    SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "일시적으로 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요."),
     ;
 
 

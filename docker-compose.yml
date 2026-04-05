@@ -3,6 +3,7 @@ services:
   config-server:
     image: ghcr.io/chanhoan/omisys-config-server:latest
     container_name: config-server
+    stop_grace_period: 35s
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 8888
@@ -23,6 +24,7 @@ services:
   eureka-service:
     image: ghcr.io/chanhoan/omisys-eureka-service:latest
     container_name: eureka-service
+    stop_grace_period: 35s
     restart: on-failure
     depends_on:
       config-server:
@@ -38,6 +40,7 @@ services:
   user-service:
     image: ghcr.io/chanhoan/omisys-user-service:latest
     container_name: user-service
+    stop_grace_period: 35s
     restart: on-failure
     depends_on:
       - eureka-service
@@ -55,6 +58,7 @@ services:
   auth-service:
     image: ghcr.io/chanhoan/omisys-auth-service:latest
     container_name: auth-service
+    stop_grace_period: 35s
     restart: on-failure
     depends_on:
       - eureka-service
@@ -68,6 +72,7 @@ services:
   gateway-service:
     image: ghcr.io/chanhoan/omisys-gateway-service:latest
     container_name: gateway-service
+    stop_grace_period: 35s
     restart: on-failure
     depends_on:
       - eureka-service
@@ -81,6 +86,7 @@ services:
   product-service:
     image: ghcr.io/chanhoan/omisys-product-service:latest
     container_name: product-service
+    stop_grace_period: 35s
     restart: on-failure
     depends_on:
       - eureka-service
@@ -106,6 +112,7 @@ services:
   order-service:
     image: ghcr.io/chanhoan/omisys-order-service:latest
     container_name: order-service
+    stop_grace_period: 35s
     restart: on-failure
     depends_on:
       - eureka-service
@@ -122,6 +129,7 @@ services:
   payment-service:
     image: ghcr.io/chanhoan/omisys-payment-service:latest
     container_name: payment-service
+    stop_grace_period: 35s
     restart: on-failure
     depends_on:
       - eureka-service
@@ -142,6 +150,7 @@ services:
   slack-service:
     image: ghcr.io/chanhoan/omisys-slack-service:latest
     container_name: slack-service
+    stop_grace_period: 35s
     restart: on-failure
     depends_on:
       - eureka-service
@@ -160,6 +169,7 @@ services:
   promotion-service:
     image: ghcr.io/chanhoan/omisys-promotion-service:latest
     container_name: promotion-service
+    stop_grace_period: 35s
     restart: on-failure
     depends_on:
       - eureka-service
@@ -176,6 +186,7 @@ services:
   search-service:
     image: ghcr.io/chanhoan/omisys-search-service:latest
     container_name: search-service
+    stop_grace_period: 35s
     restart: on-failure
     depends_on:
       - eureka-service
