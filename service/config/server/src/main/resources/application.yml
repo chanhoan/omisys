@@ -1,0 +1,23 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/chanhoan/omisys_config
+          default-label: main
+          search-paths: .
+          clone-on-start: true
+          username: ${GIT_NAME}
+          password: ${GIT_TOKEN}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

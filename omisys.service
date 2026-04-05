@@ -1,0 +1,20 @@
+[Unit]
+Description=omisys application stack
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/omisys/start.sh
+ExecStop=/bin/bash -c 'cd /opt/omisys && \
+  docker compose -f docker-compose-monitoring.yml down 2>/dev/null; \
+  docker compose down; \
+  docker compose -f docker-compose-dep.yml down'
+TimeoutStartSec=600
+StandardOutput=journal
+StandardError=journal
+User=root
+
+[Install]
+WantedBy=multi-user.target

@@ -36,4 +36,5 @@ out/
 ### VS Code ###
 .vscode/
 
-/src/main/resources/*.yml
+# application.yml은 환경변수 참조만 포함 — 트래킹 허용
+

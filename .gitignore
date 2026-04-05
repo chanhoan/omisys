@@ -75,7 +75,8 @@ out/
 .vscode/
 
 .env
-grafana/
+grafana/*
+!grafana/provisioning/
 
 # Claude
 CLAUDE.md
