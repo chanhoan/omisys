@@ -280,6 +280,26 @@ services:
       - "9042:9042"      # CQL 클라이언트 포트
     volumes:
       - cassandra_data:/var/lib/cassandra
+    healthcheck:
+      test: [ "CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1" ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  cassandra-init:
+    image: cassandra:latest
+    depends_on:
+      cassandra:
+        condition: service_healthy
+    networks:
+      - omisys-network
+    restart: on-failure
+    command: >
+      cqlsh cassandra-node-01 -e "
+        CREATE KEYSPACE IF NOT EXISTS product
+          WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+      "
 
   cart-cache:
     container_name: cart-cache
