@@ -9,6 +9,7 @@ import com.omisys.user_dto.infrastructure.UserDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,26 +29,24 @@ class AuthServiceTest {
 
     @Mock private UserService userService;
     @Mock private PasswordEncoder passwordEncoder;
+    @Mock private RefreshTokenService refreshTokenService;
 
-    /**
-     * AuthService는 생성자에서 JwtProperties를 받아 SecretKey를 만들기 때문에
-     * @InjectMocks 대신 "직접 new"로 만드는 것이 테스트 안정성이 좋습니다.
-     */
+    private static final String SECRET = "test-secret-key-test-secret-key-test-secret-key";
+
     private AuthService newAuthService() {
         JwtProperties props = new JwtProperties();
-        // HS256용 secret은 충분히 길어야 함(32바이트 이상 권장)
-        props.setSecretKey("test-secret-key-test-secret-key-test-secret-key");
+        props.setSecretKey(SECRET);
         props.setAccessTokenExpiresIn(60000);
-        return new AuthService(userService, props, passwordEncoder);
+        props.setRefreshTokenExpiresIn(604800000);
+        return new AuthService(userService, props, passwordEncoder, refreshTokenService);
     }
 
     @Test
-    @DisplayName("signIn 성공: matches 통과 → JWT 토큰 발급(클레임 포함)")
+    @DisplayName("signIn 성공: matches 통과 → AT + RT 발급")
     void signIn_success() {
         // given
         AuthService authService = newAuthService();
-
-        AuthRequest.SignIn request = new AuthRequest.SignIn("user1", "pw");
+        when(refreshTokenService.createRefreshToken(1L, "user1", "ROLE_USER")).thenReturn("refresh-token-value");
 
         UserDto userDto = mock(UserDto.class);
         when(userDto.getPassword()).thenReturn("ENCODED");
@@ -59,59 +58,80 @@ class AuthServiceTest {
         when(passwordEncoder.matches("pw", "ENCODED")).thenReturn(true);
 
         // when
-        AuthResponse.SignIn response = authService.signIn(request);
+        AuthResponse.TokenPair response = authService.signIn(new AuthRequest.SignIn("user1", "pw"));
 
         // then
-        assertThat(response.getToken()).isNotBlank();
+        assertThat(response.accessToken()).isNotBlank();
+        assertThat(response.refreshToken()).isEqualTo("refresh-token-value");
 
-        // 토큰이 "정말로" userId/userName/role 클레임을 들고 있는지 검증
-        SecretKey key = Keys.hmacShaKeyFor("test-secret-key-test-secret-key-test-secret-key".getBytes(StandardCharsets.UTF_8));
+        // AT 클레임 검증
+        SecretKey key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        Claims claims = Jwts.parser().verifyWith(key).build()
+                .parseSignedClaims(response.accessToken()).getPayload();
 
-        Claims claims = Jwts.parser()
-                .verifyWith(key)
-                .build()
-                .parseSignedClaims(response.getToken())
-                .getPayload();
-
-        assertThat(claims.get(USER_ID)).isEqualTo(1);      // JSON number로 들어가면 Integer로 파싱될 수 있음
+        assertThat(claims.get(USER_ID)).isEqualTo(1);
         assertThat(claims.get(USER_NAME)).isEqualTo("user1");
         assertThat(claims.get(USER_ROLE)).isEqualTo("ROLE_USER");
+
+        verify(refreshTokenService).createRefreshToken(1L, "user1", "ROLE_USER");
     }
 
     @Test
     @DisplayName("signIn 실패: user가 null이면 SIGN_IN_FAIL")
     void signIn_fail_user_null() {
-        // given
         AuthService authService = newAuthService();
         when(userService.getUserByUsername("user1")).thenReturn(null);
 
-        // when & then
         assertThatThrownBy(() -> authService.signIn(new AuthRequest.SignIn("user1", "pw")))
                 .isInstanceOf(AuthException.class)
-                .satisfies(ex -> {
-                    AuthException ae = (AuthException) ex;
-                    assertThat(ae.getErrorCode()).isEqualTo(AuthErrorCode.SIGN_IN_FAIL);
-                });
+                .satisfies(ex -> assertThat(((AuthException) ex).getErrorCode())
+                        .isEqualTo(AuthErrorCode.SIGN_IN_FAIL));
     }
 
     @Test
     @DisplayName("signIn 실패: password mismatch면 SIGN_IN_FAIL")
     void signIn_fail_password_mismatch() {
-        // given
         AuthService authService = newAuthService();
 
         UserDto userDto = mock(UserDto.class);
         when(userDto.getPassword()).thenReturn("ENCODED");
         when(userService.getUserByUsername("user1")).thenReturn(userDto);
-
         when(passwordEncoder.matches("pw", "ENCODED")).thenReturn(false);
 
-        // when & then
         assertThatThrownBy(() -> authService.signIn(new AuthRequest.SignIn("user1", "pw")))
                 .isInstanceOf(AuthException.class)
-                .satisfies(ex -> {
-                    AuthException ae = (AuthException) ex;
-                    assertThat(ae.getErrorCode()).isEqualTo(AuthErrorCode.SIGN_IN_FAIL);
-                });
+                .satisfies(ex -> assertThat(((AuthException) ex).getErrorCode())
+                        .isEqualTo(AuthErrorCode.SIGN_IN_FAIL));
+    }
+
+    @Test
+    @DisplayName("refresh 성공: 유효한 RT → 새 AT + 새 RT 발급")
+    void refresh_success() {
+        // given
+        AuthService authService = newAuthService();
+        com.omisys.auth.server.domain.RefreshToken newRt =
+                new com.omisys.auth.server.domain.RefreshToken("new-rt", 1L, "user1", "ROLE_USER", "fam-1");
+        when(refreshTokenService.rotateRefreshToken("old-rt")).thenReturn(newRt);
+
+        // when
+        AuthResponse.TokenPair response = authService.refresh("old-rt");
+
+        // then
+        assertThat(response.accessToken()).isNotBlank();
+        assertThat(response.refreshToken()).isEqualTo("new-rt");
+        verify(refreshTokenService).rotateRefreshToken("old-rt");
+    }
+
+    @Test
+    @DisplayName("signOut 성공: userId로 RT 전체 무효화")
+    void signOut_success() {
+        // given
+        AuthService authService = newAuthService();
+
+        // when
+        authService.signOut(1L);
+
+        // then
+        verify(refreshTokenService).revokeAllByUserId(1L);
     }
 }

@@ -17,6 +17,11 @@ public class JwtProperties {
     private String secretKey;
 
     @Min(60000)
-    private int accessTokenExpiresIn;
+    private long accessTokenExpiresIn;
+
+    @Min(60000)
+    private long refreshTokenExpiresIn;
+
+    private boolean cookieSecure = false;
 
 }

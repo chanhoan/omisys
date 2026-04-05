@@ -2,14 +2,12 @@ package com.omisys.auth.server.application.service;
 
 import com.omisys.auth.server.application.dto.AuthResponse;
 import com.omisys.auth.server.auth_dto.jwt.JwtClaim;
+import com.omisys.auth.server.domain.RefreshToken;
 import com.omisys.auth.server.exception.AuthErrorCode;
 import com.omisys.auth.server.exception.AuthException;
 import com.omisys.auth.server.infrastructure.properties.JwtProperties;
 import com.omisys.auth.server.presentation.request.AuthRequest;
 import com.omisys.user_dto.infrastructure.UserDto;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,11 +15,9 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.crypto.Data;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 
 import static com.omisys.auth.server.domain.JwtConstant.*;
 
@@ -33,46 +29,65 @@ public class AuthService {
     private final JwtProperties jwtProperties;
     private final SecretKey secretKey;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
 
-    public AuthService(UserService userService, JwtProperties jwtProperties, PasswordEncoder passwordEncoder) {
+    public AuthService(UserService userService,
+                       JwtProperties jwtProperties,
+                       PasswordEncoder passwordEncoder,
+                       RefreshTokenService refreshTokenService) {
         this.userService = userService;
         this.jwtProperties = jwtProperties;
         this.secretKey = createSecretKey();
         this.passwordEncoder = passwordEncoder;
+        this.refreshTokenService = refreshTokenService;
     }
 
-    public AuthResponse.SignIn signIn(AuthRequest.SignIn request) {
+    public AuthResponse.TokenPair signIn(AuthRequest.SignIn request) {
         UserDto userData = userService.getUserByUsername(request.getUsername());
 
-        if (userData == null
-        || !passwordEncoder.matches(request.getPassword(), userData.getPassword())) {
+        if (userData == null || !passwordEncoder.matches(request.getPassword(), userData.getPassword())) {
             throw new AuthException(AuthErrorCode.SIGN_IN_FAIL);
         }
 
-        return AuthResponse.SignIn.of(
-                this.createToken(
-                        JwtClaim.create(userData.getUserId(), userData.getUserName(), userData.getRole())));
+        JwtClaim jwtClaim = JwtClaim.create(userData.getUserId(), userData.getUserName(), userData.getRole());
+        String accessToken = createAccessToken(jwtClaim);
+        String refreshToken = refreshTokenService.createRefreshToken(
+                userData.getUserId(), userData.getUserName(), userData.getRole());
+
+        return new AuthResponse.TokenPair(accessToken, refreshToken);
     }
 
-    private String createToken(JwtClaim jwtClaim) {
-
-        Map<String, Object> tokenClaims = this.createClaims(jwtClaim);
-        Date now = new Date(System.currentTimeMillis());
-        long accessTokenExpireIn = jwtProperties.getAccessTokenExpiresIn();
-
-        return Jwts.builder()
-                .claims(tokenClaims)
-                .issuedAt(now)
-                .expiration(new Date(now.getTime() + accessTokenExpireIn * MILLI_SECOND))
-                .signWith(secretKey)
-                .compact();
+    public AuthResponse.TokenPair refresh(String oldRefreshToken) {
+        RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(oldRefreshToken);
+        JwtClaim jwtClaim = JwtClaim.create(
+                newRefreshToken.userId(), newRefreshToken.username(), newRefreshToken.role());
+        String newAccessToken = createAccessToken(jwtClaim);
+        return new AuthResponse.TokenPair(newAccessToken, newRefreshToken.tokenValue());
     }
 
-    private Map<String, Object> createClaims(JwtClaim jwtClaim) {
-        return Map.of(
+    public void signOut(Long userId) {
+        refreshTokenService.revokeAllByUserId(userId);
+    }
+
+    public void revokeRefreshToken(String refreshToken) {
+        refreshTokenService.revokeByTokenValue(refreshToken);
+    }
+
+    private String createAccessToken(JwtClaim jwtClaim) {
+        Map<String, Object> claims = Map.of(
                 USER_ID, jwtClaim.getUserId(),
                 USER_NAME, jwtClaim.getUsername(),
                 USER_ROLE, jwtClaim.getRole());
+
+        Date now = new Date(System.currentTimeMillis());
+        long expiresIn = jwtProperties.getAccessTokenExpiresIn() * MILLI_SECOND;
+
+        return Jwts.builder()
+                .claims(claims)
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + expiresIn))
+                .signWith(secretKey)
+                .compact();
     }
 
     private SecretKey createSecretKey() {
