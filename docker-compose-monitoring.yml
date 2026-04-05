@@ -22,8 +22,8 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./grafana:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
       - omisys-network
 
@@ -36,3 +36,6 @@ services:
       - "9411:9411"
     networks:
       - omisys-network
+
+volumes:
+  grafana-data:
