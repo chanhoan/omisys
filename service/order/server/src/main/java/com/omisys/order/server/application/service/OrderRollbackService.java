@@ -21,19 +21,27 @@ public class OrderRollbackService {
             Map<String, Integer> deductedProductsQuantities,
             List<Long> usedCoupons,
             Long pointHistoryId) {
-        try {
-            if (deductedProductsQuantities != null && !deductedProductsQuantities.isEmpty()) {
+
+        if (deductedProductsQuantities != null && !deductedProductsQuantities.isEmpty()) {
+            try {
                 productClient.rollbackStock(deductedProductsQuantities);
+            } catch (Exception e) {
+                // 보상 실패 시 수동 개입 필요 — 재throw하지 않고 다음 보상 단계를 계속 진행
+                log.error("[COMPENSATION-FAIL] 재고 롤백 실패 — 수동 복구 필요. quantities={}", deductedProductsQuantities, e);
             }
-            if (usedCoupons != null && !usedCoupons.isEmpty()) {
-                // TODO usedCoupons 에 대한 롤백 feign 호출
-            }
-            if (pointHistoryId != null) {
+        }
+
+        if (usedCoupons != null && !usedCoupons.isEmpty()) {
+            // TODO usedCoupons 롤백 feign 호출
+            log.warn("[COMPENSATION-SKIP] 쿠폰 롤백 미구현 — 수동 확인 필요. couponIds={}", usedCoupons);
+        }
+
+        if (pointHistoryId != null) {
+            try {
                 userClient.rollbackPoint(pointHistoryId);
+            } catch (Exception e) {
+                log.error("[COMPENSATION-FAIL] 포인트 롤백 실패 — 수동 복구 필요. pointHistoryId={}", pointHistoryId, e);
             }
-        } catch (Exception e) {
-            log.info("===== 보상 트랜잭션 처리 중, 예외 발생 =====");
-            throw new RuntimeException(e);
         }
     }
 

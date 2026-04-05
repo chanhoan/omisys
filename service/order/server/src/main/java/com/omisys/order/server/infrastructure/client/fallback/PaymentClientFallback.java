@@ -19,8 +19,8 @@ public class PaymentClientFallback implements PaymentClient {
 
     @Override
     public void cancelPayment(PaymentInternalDto.Cancel cancelRequest) {
-        log.error("[CB] PaymentClient.cancelPayment 호출 실패 - orderId={}", cancelRequest.getOrderId());
-        throw new OrderException(OrderErrorCode.SERVICE_UNAVAILABLE);
+        // 보상 경로: 예외를 던지지 않음
+        log.error("[CB] PaymentClient.cancelPayment 호출 실패 (CB open) — 수동 복구 필요. orderId={}", cancelRequest.getOrderId());
     }
 
     @Override

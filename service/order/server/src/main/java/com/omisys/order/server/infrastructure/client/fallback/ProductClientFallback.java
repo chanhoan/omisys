@@ -28,7 +28,8 @@ public class ProductClientFallback implements ProductClient {
 
     @Override
     public void rollbackStock(Map<String, Integer> productQuantities) {
-        log.error("[CB] ProductClient.rollbackStock 호출 실패 - quantities={}", productQuantities);
-        throw new OrderException(OrderErrorCode.SERVICE_UNAVAILABLE);
+        // 보상 경로: 예외를 던지면 OrderRollbackService의 후속 보상 단계가 중단됨
+        // 로깅만 하고 반환 — 상위 OrderRollbackService에서 COMPENSATION-FAIL 로그로 기록됨
+        log.error("[CB] ProductClient.rollbackStock 호출 실패 (CB open) — 수동 복구 필요. quantities={}", productQuantities);
     }
 }

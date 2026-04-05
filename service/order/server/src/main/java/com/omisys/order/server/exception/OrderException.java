@@ -11,4 +11,8 @@ public class OrderException extends BusinessException {
         this.errorCode = errorCode;
     }
 
+    public OrderErrorCode getErrorCode() {
+        return errorCode;
+    }
+
 }

@@ -281,11 +281,11 @@ services:
     volumes:
       - cassandra_data:/var/lib/cassandra
     healthcheck:
-      test: [ "CMD-SHELL", "cqlsh -e 'describe cluster' || exit 1" ]
+      test: [ "CMD-SHELL", "nodetool status | grep -E '^UN' || exit 1" ]
       interval: 15s
       timeout: 10s
       retries: 10
-      start_period: 30s
+      start_period: 60s
 
   cassandra-init:
     image: cassandra:latest

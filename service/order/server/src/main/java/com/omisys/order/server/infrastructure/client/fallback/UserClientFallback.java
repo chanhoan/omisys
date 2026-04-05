@@ -27,8 +27,8 @@ public class UserClientFallback implements UserClient {
 
     @Override
     public void rollbackPoint(Long pointHistoryId) {
-        log.error("[CB] UserClient.rollbackPoint 호출 실패 - pointHistoryId={}", pointHistoryId);
-        throw new OrderException(OrderErrorCode.SERVICE_UNAVAILABLE);
+        // 보상 경로: 예외를 던지면 OrderRollbackService의 후속 보상 단계가 중단됨
+        log.error("[CB] UserClient.rollbackPoint 호출 실패 (CB open) — 수동 복구 필요. pointHistoryId={}", pointHistoryId);
     }
 
     @Override
