@@ -295,11 +295,11 @@ services:
     networks:
       - omisys-network
     restart: on-failure
-    command: >
-      cqlsh cassandra-node-01 -e "
-        CREATE KEYSPACE IF NOT EXISTS product
-          WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-      "
+    command:
+      - cqlsh
+      - cassandra
+      - -e
+      - "CREATE KEYSPACE IF NOT EXISTS product WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};"
 
   cart-cache:
     container_name: cart-cache
