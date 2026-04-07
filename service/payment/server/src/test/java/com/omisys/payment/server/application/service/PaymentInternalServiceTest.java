@@ -70,7 +70,7 @@ class PaymentInternalServiceTest {
         request.setAmount(10000L);
 
         // Toss 응답 mock
-        PaymentResponse.Create responseBody = PaymentResponse.Create.builder()
+        PaymentResponse.CreateResponse responseBody = PaymentResponse.CreateResponse.builder()
                 .paymentKey("pay_key_123")
                 .checkout("{url=https://checkout.toss/pay/abc}")
                 .build();
@@ -79,7 +79,7 @@ class PaymentInternalServiceTest {
                 eq("https://api.tosspayments.com/v1/payments"),
                 eq(HttpMethod.POST),
                 any(HttpEntity.class),
-                eq(PaymentResponse.Create.class)
+                eq(PaymentResponse.CreateResponse.class)
         )).thenReturn(ResponseEntity.ok(responseBody));
 
         // when
@@ -122,7 +122,7 @@ class PaymentInternalServiceTest {
         create.setEmail("test@omisys.com");
         create.setAmount(10000L);
 
-        Payment payment = Payment.create(create);
+        Payment payment = Payment.create(create, "toss-order-id-123");
         payment.setPaymentKey("pay_key_123");
 
         when(paymentRepository.findByOrderId(10L)).thenReturn(Optional.of(payment));
@@ -164,8 +164,8 @@ class PaymentInternalServiceTest {
                 .isInstanceOf(PaymentException.class)
                 .satisfies(ex -> {
                     PaymentException pe = (PaymentException) ex;
-                    assertThat(pe.getStatusName()).isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND.getStatus().name());
-                    assertThat(pe.getMessage()).isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND.getMessage());
+                    assertThat(pe.getStatusName()).isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND.getMessage());
+                    assertThat(pe.getMessage()).isEqualTo(PaymentErrorCode.PAYMENT_NOT_FOUND.getStatus().name());
                 });
     }
 }

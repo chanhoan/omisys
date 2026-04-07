@@ -1,10 +1,13 @@
 package com.omisys.payment.server.application.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omisys.common.domain.entity.KafkaTopicConstant;
 import com.omisys.payment.server.domain.model.Payment;
 import com.omisys.payment.server.domain.model.PaymentHistory;
 import com.omisys.payment.server.domain.model.PaymentState;
+import com.omisys.payment.server.domain.model.outbox.OutboxEvent;
+import com.omisys.payment.server.domain.repository.OutboxEventRepository;
 import com.omisys.payment.server.domain.repository.PaymentHistoryRepository;
 import com.omisys.payment.server.domain.repository.PaymentRepository;
 import com.omisys.payment.server.exception.PaymentErrorCode;
@@ -20,7 +23,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -37,32 +39,31 @@ public class PaymentService {
 
     private final String tossPaymentUrl = "https://api.tosspayments.com/v1/payments";
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
-
     private final PaymentRepository paymentRepository;
     private final PaymentHistoryRepository paymentHistoryRepository;
+    private final OutboxEventRepository outboxEventRepository;
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
     public PaymentService(
-            KafkaTemplate<String, Object> kafkaTemplate,
             PaymentRepository paymentRepository,
             PaymentHistoryRepository paymentHistoryRepository,
-            RestTemplateBuilder restTemplateBuilder) {
-        this.kafkaTemplate = kafkaTemplate;
+            OutboxEventRepository outboxEventRepository,
+            RestTemplateBuilder restTemplateBuilder,
+            ObjectMapper objectMapper) {
         this.paymentRepository = paymentRepository;
         this.paymentHistoryRepository = paymentHistoryRepository;
+        this.outboxEventRepository = outboxEventRepository;
         this.restTemplate = restTemplateBuilder.build();
+        this.objectMapper = objectMapper;
     }
 
     @Transactional
     public void paymentSuccessMock(String paymentKey) {
-
         log.info("[MOCK] Payment success for key {}", paymentKey);
 
         Payment payment = paymentRepository.findByPaymentKey(paymentKey)
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-
-        // ✅ Toss confirm 호출 생략
 
         PaymentCompletedEvent event = PaymentCompletedEvent.builder()
                 .paymentId(payment.getPaymentId())
@@ -72,7 +73,7 @@ public class PaymentService {
                 .success(true)
                 .build();
 
-        kafkaTemplateSend(event);
+        saveOutboxEvent(payment, event);
 
         payment.setState(PaymentState.PAYMENT);
         paymentHistoryRepository.save(PaymentHistory.create(payment));
@@ -85,7 +86,6 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponse.Get paymentSuccess(String paymentKey) {
-
         log.info("Payment success for key {}", paymentKey);
 
         Payment payment = paymentRepository.findByPaymentKey(paymentKey)
@@ -120,7 +120,7 @@ public class PaymentService {
                 .success(true)
                 .build();
 
-        kafkaTemplateSend(event);
+        saveOutboxEvent(payment, event);
 
         payment.setState(PaymentState.PAYMENT);
         PaymentHistory history = PaymentHistory.create(payment);
@@ -147,7 +147,7 @@ public class PaymentService {
                 .success(false)
                 .build();
 
-        kafkaTemplateSend(event);
+        saveOutboxEvent(payment, event);
 
         payment.setState(PaymentState.CANCEL);
         paymentRepository.save(payment);
@@ -179,20 +179,22 @@ public class PaymentService {
         return payments.map(this::convertToPaymentDto);
     }
 
-    private void kafkaTemplateSend(PaymentCompletedEvent event) {
+    private void saveOutboxEvent(Payment payment, PaymentCompletedEvent event) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String jsonMessage = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send(KafkaTopicConstant.PAYMENT_COMPLETED, jsonMessage);
-
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            throw new PaymentException(PaymentErrorCode.INVALID_PARAMETER);
+            String payload = objectMapper.writeValueAsString(event);
+            outboxEventRepository.save(OutboxEvent.pending(
+                    "Payment",
+                    String.valueOf(payment.getPaymentId()),
+                    KafkaTopicConstant.PAYMENT_COMPLETED,
+                    String.valueOf(payment.getOrderId()),
+                    payload
+            ));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("OutboxEvent payload 직렬화 실패", e);
         }
     }
 
     private PaymentResponse.Get convertToPaymentDto(Payment payment) {
-
         return PaymentResponse.Get.builder()
                 .paymentId(payment.getPaymentId())
                 .orderId(payment.getOrderId())
@@ -202,5 +204,4 @@ public class PaymentService {
                 .createdAt(payment.getCreatedAt())
                 .build();
     }
-
 }
