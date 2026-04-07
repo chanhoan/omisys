@@ -1,0 +1,39 @@
+name: Dep Stack Deploy
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "docker-compose-dep.yml"
+      - "start.sh"
+
+jobs:
+  deploy-dep-stack:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify Discord - Started
+        run: |
+          curl -s -H "Content-Type: application/json" -X POST \
+            -d "{\"content\":\"🔨 **${{ github.workflow }}** 배포 시작 (\`${{ github.ref_name }}\`)\"}" \
+            "${{ secrets.DISCORD_WEBHOOK_URL }}"
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /opt/omisys
+            git pull origin main
+            chmod +x start.sh
+            docker compose -f docker-compose-dep.yml up -d
+
+      - name: Notify Discord - Result
+        if: always()
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: ${{ job.status }}
+          title: ${{ github.workflow }}
