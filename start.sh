@@ -46,12 +46,26 @@ fi
 sed -i "s|ELASTIC_FINGERPRINT=.*|ELASTIC_FINGERPRINT=${FINGERPRINT}|" "$COMPOSE_DIR/.env"
 log "Updated ELASTIC_FINGERPRINT=${FINGERPRINT}"
 
-# 4. 앱 서비스 스택 기동
+# 4. Kafka 헬스체크 대기 (최대 3분)
+log "Waiting for Kafka..."
+for i in $(seq 1 36); do
+  if docker exec kafka kafka-topics.sh --bootstrap-server kafka:9092 --list > /dev/null 2>&1; then
+    log "Kafka ready (attempt $i)."
+    break
+  fi
+  if [ "$i" -eq 36 ]; then
+    log "ERROR: Kafka not ready after 3 minutes. Aborting."
+    exit 1
+  fi
+  sleep 5
+done
+
+# 5. 앱 서비스 스택 기동
 log "Starting app stack..."
 docker compose up -d
 log "App stack started."
 
-# 5. Config Server 헬스체크 대기 (최대 3분)
+# 6. Config Server 헬스체크 대기 (최대 3분)
 log "Waiting for Config Server..."
 for i in $(seq 1 36); do
   if docker exec config-server curl -sf http://localhost:8888/actuator/health > /dev/null 2>&1; then
@@ -65,7 +79,7 @@ for i in $(seq 1 36); do
   sleep 5
 done
 
-# 6. Eureka Server 헬스체크 대기 (최대 3분)
+# 7. Eureka Server 헬스체크 대기 (최대 3분)
 log "Waiting for Eureka Server..."
 for i in $(seq 1 36); do
   if docker exec eureka-service curl -sf http://localhost:19090/actuator/health > /dev/null 2>&1; then
@@ -79,7 +93,7 @@ for i in $(seq 1 36); do
   sleep 5
 done
 
-# 7. 모니터링 스택 기동
+# 8. 모니터링 스택 기동
 if [ -f "$COMPOSE_DIR/docker-compose-monitoring.yml" ]; then
   log "Starting monitoring stack..."
   docker compose -f docker-compose-monitoring.yml up -d
