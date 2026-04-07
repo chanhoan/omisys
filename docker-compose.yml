@@ -32,6 +32,12 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: 19090
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:19090/actuator/health" ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 60s
     networks:
       - omisys-network
     ports:
@@ -43,7 +49,8 @@ services:
     stop_grace_period: 45s
     restart: on-failure
     depends_on:
-      - eureka-service
+      eureka-service:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
 
@@ -61,7 +68,8 @@ services:
     stop_grace_period: 45s
     restart: on-failure
     depends_on:
-      - eureka-service
+      eureka-service:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
 
@@ -75,7 +83,8 @@ services:
     stop_grace_period: 45s
     restart: on-failure
     depends_on:
-      - eureka-service
+      eureka-service:
+        condition: service_healthy
     environment:
       MAX_ACTIVE_USERS: ${MAX_ACTIVE_USERS}
     ports:
@@ -89,7 +98,8 @@ services:
     stop_grace_period: 45s
     restart: on-failure
     depends_on:
-      - eureka-service
+      eureka-service:
+        condition: service_healthy
     environment:
 
       SPRING_PROFILES_ACTIVE: prod
@@ -115,7 +125,8 @@ services:
     stop_grace_period: 45s
     restart: on-failure
     depends_on:
-      - eureka-service
+      eureka-service:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
 
@@ -132,7 +143,8 @@ services:
     stop_grace_period: 45s
     restart: on-failure
     depends_on:
-      - eureka-service
+      eureka-service:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
 
@@ -153,7 +165,8 @@ services:
     stop_grace_period: 45s
     restart: on-failure
     depends_on:
-      - eureka-service
+      eureka-service:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
 
@@ -172,7 +185,8 @@ services:
     stop_grace_period: 45s
     restart: on-failure
     depends_on:
-      - eureka-service
+      eureka-service:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
 
@@ -189,7 +203,8 @@ services:
     stop_grace_period: 45s
     restart: on-failure
     depends_on:
-      - eureka-service
+      eureka-service:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
 

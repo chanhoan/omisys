@@ -51,7 +51,35 @@ log "Starting app stack..."
 docker compose up -d
 log "App stack started."
 
-# 5. 모니터링 스택 기동
+# 5. Config Server 헬스체크 대기 (최대 3분)
+log "Waiting for Config Server..."
+for i in $(seq 1 36); do
+  if docker exec config-server curl -sf http://localhost:8888/actuator/health > /dev/null 2>&1; then
+    log "Config Server ready (attempt $i)."
+    break
+  fi
+  if [ "$i" -eq 36 ]; then
+    log "ERROR: Config Server not ready after 3 minutes. Aborting."
+    exit 1
+  fi
+  sleep 5
+done
+
+# 6. Eureka Server 헬스체크 대기 (최대 3분)
+log "Waiting for Eureka Server..."
+for i in $(seq 1 36); do
+  if docker exec eureka-service curl -sf http://localhost:19090/actuator/health > /dev/null 2>&1; then
+    log "Eureka Server ready (attempt $i)."
+    break
+  fi
+  if [ "$i" -eq 36 ]; then
+    log "ERROR: Eureka Server not ready after 3 minutes. Aborting."
+    exit 1
+  fi
+  sleep 5
+done
+
+# 7. 모니터링 스택 기동
 if [ -f "$COMPOSE_DIR/docker-compose-monitoring.yml" ]; then
   log "Starting monitoring stack..."
   docker compose -f docker-compose-monitoring.yml up -d
