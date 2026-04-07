@@ -65,6 +65,7 @@ services:
 
   es01:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    restart: always
     env_file:
       - .env
     depends_on:
@@ -235,6 +236,7 @@ services:
   kafka:
     container_name: kafka
     image: wurstmeister/kafka:latest
+    restart: always
     platform: linux/amd64
     depends_on:
       - zookeeper
