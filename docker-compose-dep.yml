@@ -70,7 +70,7 @@ services:
       - .env
     depends_on:
       setup:
-        condition: service_completed_successfully
+        condition: service_healthy
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata01:/usr/share/elasticsearch/data
