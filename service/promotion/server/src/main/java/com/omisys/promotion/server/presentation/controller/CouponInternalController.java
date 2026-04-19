@@ -4,6 +4,8 @@ import com.omisys.promotion.server.application.service.CouponInternalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/internal/coupons")
@@ -23,6 +25,14 @@ public class CouponInternalController {
             @PathVariable(name = "couponId") Long couponId,
             @RequestParam(name = "userId") Long userId) {
         couponInternalService.refundCoupon(couponId, userId);
+    }
+
+    @PatchMapping("/{couponId}/apply")
+    public BigDecimal applyUserCoupon(
+            @PathVariable(name = "couponId") Long couponId,
+            @RequestParam(name = "userId") Long userId,
+            @RequestParam(name = "productPrice") BigDecimal productPrice) {
+        return couponInternalService.applyAndGetDiscount(couponId, userId, productPrice);
     }
 
 }

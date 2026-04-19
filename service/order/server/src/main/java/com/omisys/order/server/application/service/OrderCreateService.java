@@ -11,6 +11,7 @@ import com.omisys.order.server.exception.OrderErrorCode;
 import com.omisys.order.server.exception.OrderException;
 import com.omisys.order.server.infrastructure.client.PaymentClient;
 import com.omisys.order.server.infrastructure.client.ProductClient;
+import com.omisys.order.server.infrastructure.client.PromotionClient;
 import com.omisys.order.server.infrastructure.client.UserClient;
 import com.omisys.payment.payment_dto.dto.PaymentInternalDto;
 import com.omisys.product.product_dto.ProductDto;
@@ -18,6 +19,7 @@ import com.omisys.user_dto.infrastructure.AddressDto;
 import com.omisys.user_dto.infrastructure.PointHistoryDto;
 import com.omisys.user_dto.infrastructure.UserDto;
 import feign.FeignException.FeignClientException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,14 +48,15 @@ public class OrderCreateService {
     private final OrderRepository orderRepository;
     private final ProductClient productClient;
     private final PaymentClient paymentClient;
+    private final PromotionClient promotionClient;
     private final OrderRollbackService orderRollbackService;
 
     @Transactional
     public Long createOrder(Long userId, OrderCreateRequest request) {
 
         Map<String, Integer> deductedProductsQuantities = new HashMap<>();
-        List<Long> usedCoupons = new ArrayList<>(); // 사용 쿠폰 목록
-        Long pointHistoryId = null; // 포인트 내역 ID
+        List<Long> usedCoupons = new ArrayList<>();
+        Long pointHistoryId = null;
 
         try {
             UserDto user = userClient.getUser(userId);
@@ -72,16 +75,29 @@ public class OrderCreateService {
             productClient.updateStock(productQuantities);
             deductedProductsQuantities = productQuantities;
 
-            // 각 상품에 달린 사용자 쿠폰 API 통해 쿠폰 ID 얻어오기
-            // 쿠폰 조회 API
-            // 임시 쿠폰가 적용
+            Map<String, BigDecimal> productPrices = new HashMap<>();
+            Map<String, String> productNames = new HashMap<>();
+            products.forEach(p -> {
+                String pid = p.getProductId().toString();
+                productPrices.put(pid, p.getDiscountedPrice());
+                productNames.put(pid, p.getProductName());
+            });
+
             BigDecimal couponPrice = BigDecimal.ZERO;
-            // 사용자 쿠폰 사용 API
+            for (OrderProductInfo info : request.getOrderProductInfos()) {
+                if (info.getUserCouponId() != null) {
+                    BigDecimal linePrice = productPrices.get(info.getProductId())
+                            .multiply(BigDecimal.valueOf(info.getQuantity()));
+                    BigDecimal discount = promotionClient.applyUserCoupon(
+                            info.getUserCouponId(), userId, linePrice);
+                    couponPrice = couponPrice.add(discount);
+                    usedCoupons.add(info.getUserCouponId());
+                }
+            }
 
             Order order = createUniqueOrder(userId, request, products, couponPrice, address);
             Long savedOrderId = orderRepository.save(order).getOrderId();
 
-            // 포인트 유효성 검사 및 사용
             if (request.getPointPrice() != null
                     && request.getPointPrice().compareTo(BigDecimal.ZERO) > 0) {
                 PointHistoryDto pointHistoryRequest = new PointHistoryDto(userId, savedOrderId,
@@ -91,21 +107,12 @@ public class OrderCreateService {
                         pointHistoryRequest);
             }
 
-            Map<String, BigDecimal> productPrices = new HashMap<>();
-            Map<String, String> productNames = new HashMap<>();
-
-            products.forEach(product -> {
-                String productId = product.getProductId().toString();
-                productPrices.put(productId, product.getDiscountedPrice());
-                productNames.put(productId, product.getProductName());
-            });
-
-            // 주문 상품 하나씩 생성 TODO couponDto
             request.getOrderProductInfos()
-                    .forEach(
-                            productInfo -> createAndSaveOrderProduct(productInfo, null,
-                                    productPrices.get(productInfo.getProductId()),
-                                    productNames.get(productInfo.getProductId()), order));
+                    .forEach(productInfo -> createAndSaveOrderProduct(
+                            productInfo, null,
+                            productPrices.get(productInfo.getProductId()),
+                            productNames.get(productInfo.getProductId()),
+                            order));
 
             if (order.getType().equals(OrderType.STANDARD)) {
                 cartService.orderCartProduct(userId, productQuantities);
@@ -114,11 +121,8 @@ public class OrderCreateService {
             payment(userId, order, user.getEmail());
             return savedOrderId;
 
-        } catch (FeignClientException | OrderException e) {
-            orderRollbackService.rollbackTransaction(
-                    deductedProductsQuantities,
-                    usedCoupons,
-                    pointHistoryId);
+        } catch (FeignClientException | OrderException | CallNotPermittedException e) {
+            orderRollbackService.rollbackTransaction(userId, deductedProductsQuantities, usedCoupons, pointHistoryId);
             throw e;
         }
     }

@@ -1,3 +1,4 @@
+
 package com.omisys.order.server.application.service;
 
 import com.omisys.order.order_dto.dto.OrderCreateRequest;
@@ -8,6 +9,7 @@ import com.omisys.order.server.exception.OrderErrorCode;
 import com.omisys.order.server.exception.OrderException;
 import com.omisys.order.server.infrastructure.client.PaymentClient;
 import com.omisys.order.server.infrastructure.client.ProductClient;
+import com.omisys.order.server.infrastructure.client.PromotionClient;
 import com.omisys.order.server.infrastructure.client.UserClient;
 import com.omisys.order.server.domain.repository.OrderProductRepository;
 import com.omisys.order.server.domain.repository.OrderRepository;
@@ -22,6 +24,7 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,6 +44,7 @@ class OrderCreateServiceTest {
     @Mock private OrderRepository orderRepository;
     @Mock private ProductClient productClient;
     @Mock private PaymentClient paymentClient;
+    @Mock private PromotionClient promotionClient;
     @Mock private OrderRollbackService orderRollbackService;
 
     @InjectMocks private OrderCreateService orderCreateService;
@@ -108,7 +112,7 @@ class OrderCreateServiceTest {
         inOrder.verify(cartService).orderCartProduct(userId, Map.of(productIdStr, 2));
         inOrder.verify(paymentClient).payment(any(PaymentInternalDto.Create.class));
 
-        verify(orderRollbackService, never()).rollbackTransaction(anyMap(), anyList(), any());
+        verify(orderRollbackService, never()).rollbackTransaction(anyLong(), anyMap(), anyList(), any());
     }
 
     @Test
@@ -157,7 +161,7 @@ class OrderCreateServiceTest {
         verify(cartService, never()).orderCartProduct(anyLong(), anyMap());
         verify(paymentClient).payment(any(PaymentInternalDto.Create.class));
 
-        verify(orderRollbackService, never()).rollbackTransaction(anyMap(), anyList(), any());
+        verify(orderRollbackService, never()).rollbackTransaction(anyLong(), anyMap(), anyList(), any());
     }
 
     @Test
@@ -199,7 +203,7 @@ class OrderCreateServiceTest {
         verify(paymentClient, never()).payment(any());
 
         // 현재 구현이 catch에서 rollbackTransaction 호출한다면 여기서 호출되는 것이 정상
-        verify(orderRollbackService).rollbackTransaction(anyMap(), anyList(), any());
+        verify(orderRollbackService).rollbackTransaction(anyLong(), anyMap(), anyList(), any());
     }
 
     @Test
@@ -244,7 +248,7 @@ class OrderCreateServiceTest {
         verify(productClient, never()).updateStock(anyMap());
         verify(paymentClient, never()).payment(any());
 
-        verify(orderRollbackService).rollbackTransaction(anyMap(), anyList(), any());
+        verify(orderRollbackService).rollbackTransaction(anyLong(), anyMap(), anyList(), any());
     }
 
     @Test
@@ -294,6 +298,172 @@ class OrderCreateServiceTest {
                 });
 
         verify(paymentClient, never()).payment(any());
-        verify(orderRollbackService).rollbackTransaction(anyMap(), anyList(), any());
+        verify(orderRollbackService).rollbackTransaction(eq(userId), anyMap(), anyList(), any());
+    }
+
+    @Test
+    @DisplayName("createOrder 성공: userCouponId 있는 상품 → promotionClient.applyUserCoupon 호출 후 쿠폰 할인 반영")
+    void createOrder_success_with_coupon_applies_discount() {
+        // given
+        long userId = 1L;
+
+        UUID productId = UUID.randomUUID();
+        String productIdStr = productId.toString();
+        Long userCouponId = 77L;
+        BigDecimal couponDiscount = BigDecimal.valueOf(1000);
+
+        OrderCreateRequest request = new OrderCreateRequest(
+                OrderType.STANDARD.name(),
+                List.of(new OrderProductInfo(productIdStr, 1, userCouponId)),
+                BigDecimal.ZERO,
+                100L
+        );
+
+        UserDto user = mock(UserDto.class);
+        when(userClient.getUser(userId)).thenReturn(user);
+
+        AddressDto address = mock(AddressDto.class);
+        when(address.getUserId()).thenReturn(userId);
+        when(userClient.getAddress(100L)).thenReturn(address);
+
+        ProductDto product = mock(ProductDto.class);
+        when(product.getProductId()).thenReturn(productId);
+        when(product.getStock()).thenReturn(10);
+        when(product.getDiscountedPrice()).thenReturn(BigDecimal.valueOf(5000));
+        when(product.getTags()).thenReturn(List.of("COUPON"));
+        when(productClient.getProductList(List.of(productIdStr))).thenReturn(List.of(product));
+
+        when(promotionClient.applyUserCoupon(userCouponId, userId, BigDecimal.valueOf(5000)))
+                .thenReturn(couponDiscount);
+
+        when(orderRepository.existsByOrderNo(anyString())).thenReturn(false);
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order saved = invocation.getArgument(0, Order.class);
+            ReflectionTestUtils.setField(saved, "orderId", 777L);
+            return saved;
+        });
+
+        // when
+        Long orderId = orderCreateService.createOrder(userId, request);
+
+        // then
+        assertThat(orderId).isEqualTo(777L);
+        verify(promotionClient).applyUserCoupon(userCouponId, userId, BigDecimal.valueOf(5000));
+        verify(orderRollbackService, never()).rollbackTransaction(eq(userId), anyMap(), anyList(), any());
+    }
+
+    @Test
+    @DisplayName("createOrder 성공: userCouponId + 수량 2 → promotionClient에 행금액(단가×수량)이 전달된다")
+    void createOrder_coupon_applied_with_line_price() {
+        // given
+        long userId = 1L;
+        UUID productId = UUID.randomUUID();
+        String productIdStr = productId.toString();
+        Long userCouponId = 77L;
+
+        OrderCreateRequest request = new OrderCreateRequest(
+                OrderType.STANDARD.name(),
+                List.of(new OrderProductInfo(productIdStr, 2, userCouponId)), // qty=2
+                BigDecimal.ZERO, 100L);
+
+        UserDto user = mock(UserDto.class);
+        when(userClient.getUser(userId)).thenReturn(user);
+        AddressDto address = mock(AddressDto.class);
+        when(address.getUserId()).thenReturn(userId);
+        when(userClient.getAddress(100L)).thenReturn(address);
+
+        ProductDto product = mock(ProductDto.class);
+        when(product.getProductId()).thenReturn(productId);
+        when(product.getStock()).thenReturn(10);
+        when(product.getDiscountedPrice()).thenReturn(BigDecimal.valueOf(5000));
+        when(product.getTags()).thenReturn(List.of("COUPON"));
+        when(productClient.getProductList(anyList())).thenReturn(List.of(product));
+
+        when(promotionClient.applyUserCoupon(anyLong(), anyLong(), any())).thenReturn(BigDecimal.valueOf(500));
+        when(orderRepository.existsByOrderNo(anyString())).thenReturn(false);
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> {
+            Order saved = inv.getArgument(0, Order.class);
+            ReflectionTestUtils.setField(saved, "orderId", 888L);
+            return saved;
+        });
+
+        // when
+        orderCreateService.createOrder(userId, request);
+
+        // then: 행금액 = 5000 × 2 = 10000 이 promotionClient에 전달되어야 한다
+        ArgumentCaptor<BigDecimal> priceCaptor = ArgumentCaptor.forClass(BigDecimal.class);
+        verify(promotionClient).applyUserCoupon(eq(userCouponId), eq(userId), priceCaptor.capture());
+        assertThat(priceCaptor.getValue()).isEqualByComparingTo(BigDecimal.valueOf(10000));
+    }
+
+    @Test
+    @DisplayName("createOrder 실패: CB open(CallNotPermittedException) → rollbackTransaction 호출")
+    void createOrder_fail_cb_open_triggers_rollback() {
+        // given
+        long userId = 1L;
+        UUID productId = UUID.randomUUID();
+        String productIdStr = productId.toString();
+
+        OrderCreateRequest request = new OrderCreateRequest(
+                OrderType.STANDARD.name(),
+                List.of(new OrderProductInfo(productIdStr, 1, null)),
+                BigDecimal.ZERO, 100L);
+
+        UserDto user = mock(UserDto.class);
+        when(userClient.getUser(userId)).thenReturn(user);
+        AddressDto address = mock(AddressDto.class);
+        when(address.getUserId()).thenReturn(userId);
+        when(userClient.getAddress(100L)).thenReturn(address);
+
+        CallNotPermittedException cbException = mock(CallNotPermittedException.class);
+        when(productClient.getProductList(anyList())).thenThrow(cbException);
+
+        // when & then
+        assertThatThrownBy(() -> orderCreateService.createOrder(userId, request))
+                .isInstanceOf(CallNotPermittedException.class);
+
+        verify(orderRollbackService).rollbackTransaction(eq(userId), anyMap(), anyList(), any());
+    }
+
+    @Test
+    @DisplayName("createOrder 실패: promotionClient.applyUserCoupon 예외 → rollbackTransaction에 usedCoupons 포함")
+    void createOrder_fail_coupon_apply_throws_rollback_with_coupons() {
+        // given
+        long userId = 1L;
+
+        UUID productId = UUID.randomUUID();
+        String productIdStr = productId.toString();
+        Long userCouponId = 77L;
+
+        OrderCreateRequest request = new OrderCreateRequest(
+                OrderType.STANDARD.name(),
+                List.of(new OrderProductInfo(productIdStr, 1, userCouponId)),
+                BigDecimal.ZERO,
+                100L
+        );
+
+        UserDto user = mock(UserDto.class);
+        when(userClient.getUser(userId)).thenReturn(user);
+
+        AddressDto address = mock(AddressDto.class);
+        when(address.getUserId()).thenReturn(userId);
+        when(userClient.getAddress(100L)).thenReturn(address);
+
+        ProductDto product = mock(ProductDto.class);
+        when(product.getProductId()).thenReturn(productId);
+        when(product.getStock()).thenReturn(10);
+        when(product.getDiscountedPrice()).thenReturn(BigDecimal.valueOf(5000));
+        when(product.getTags()).thenReturn(List.of("COUPON"));
+        when(productClient.getProductList(List.of(productIdStr))).thenReturn(List.of(product));
+
+        when(promotionClient.applyUserCoupon(anyLong(), anyLong(), any(BigDecimal.class)))
+                .thenThrow(new OrderException(OrderErrorCode.SERVICE_UNAVAILABLE));
+
+        // when & then
+        assertThatThrownBy(() -> orderCreateService.createOrder(userId, request))
+                .isInstanceOf(OrderException.class);
+
+        verify(productClient).updateStock(anyMap());
+        verify(orderRollbackService).rollbackTransaction(eq(userId), anyMap(), anyList(), any());
     }
 }
