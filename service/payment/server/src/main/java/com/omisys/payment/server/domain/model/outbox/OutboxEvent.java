@@ -9,11 +9,18 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "outbox_events",
-        indexes = @Index(name = "idx_outbox_status_created", columnList = "status, created_at"))
+@Table(
+    name = "outbox_events",
+    indexes = {
+        @Index(name = "idx_outbox_status_retry", columnList = "status, next_retry_at, created_at")
+    }
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OutboxEvent {
+
+    public static final int MAX_RETRY = 5;
+    private static final long[] BACKOFF_SECONDS = {10, 30, 60, 120, 300};
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,10 +45,17 @@ public class OutboxEvent {
     @Column(nullable = false, length = 20)
     private OutboxStatus status;
 
+    @Column(nullable = false)
+    private int retryCount = 0;
+
+    @Column
+    private LocalDateTime nextRetryAt;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column
     private LocalDateTime publishedAt;
 
     public static OutboxEvent pending(String aggregateType, String aggregateId,
@@ -53,6 +67,7 @@ public class OutboxEvent {
         event.messageKey = messageKey;
         event.payload = payload;
         event.status = OutboxStatus.PENDING;
+        event.retryCount = 0;
         return event;
     }
 
@@ -61,7 +76,14 @@ public class OutboxEvent {
         this.publishedAt = LocalDateTime.now();
     }
 
-    public void markFailed() {
-        this.status = OutboxStatus.FAILED;
+    public void markRetryOrFailed() {
+        this.retryCount++;
+        if (this.retryCount >= MAX_RETRY) {
+            this.status = OutboxStatus.FAILED;
+            this.nextRetryAt = null;
+        } else {
+            long backoff = BACKOFF_SECONDS[Math.min(retryCount - 1, BACKOFF_SECONDS.length - 1)];
+            this.nextRetryAt = LocalDateTime.now().plusSeconds(backoff);
+        }
     }
 }
