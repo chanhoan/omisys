@@ -112,6 +112,7 @@ services:
 
   kibana:
     image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
+    restart: always
     env_file:
       - .env
     depends_on:
@@ -143,6 +144,7 @@ services:
 
   logstash01:
     image: docker.elastic.co/logstash/logstash:${STACK_VERSION}
+    restart: always
     env_file:
       - .env
     depends_on:
@@ -173,6 +175,7 @@ services:
 
   metricbeat01:
     image: docker.elastic.co/beats/metricbeat:${STACK_VERSION}
+    restart: always
     env_file:
       - .env
     depends_on:
@@ -200,6 +203,7 @@ services:
 
   filebeat01:
     image: docker.elastic.co/beats/filebeat:${STACK_VERSION}
+    restart: always
     env_file:
       - .env
     depends_on:
@@ -233,6 +237,12 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     networks:
       - omisys-network
+    healthcheck:
+      test: [ "CMD-SHELL", "echo ruok | nc localhost 2181 | grep -q imok" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   kafka:
     container_name: kafka
@@ -240,7 +250,8 @@ services:
     restart: always
     platform: linux/amd64
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     ports:
       - "29092:29092"   # 호스트(윈도우/WSL)에서 접속용
     environment:
