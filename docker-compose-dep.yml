@@ -45,8 +45,29 @@ services:
         chown -R root:root config/certs;
         find . -type d -exec chmod 750 {} \;;
         find . -type f -exec chmod 640 {} \;;
+        echo "Certs ready.";
+      '
+    healthcheck:
+      test: [ "CMD-SHELL", "[ -f config/certs/es01/es01.crt ]" ]
+      interval: 1s
+      timeout: 5s
+      retries: 120
+
+  kibana-init:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    env_file:
+      - .env
+    depends_on:
+      es01:
+        condition: service_healthy
+    volumes:
+      - certs:/usr/share/elasticsearch/config/certs
+    user: "0"
+    networks:
+      - omisys-network
+    command: >
+      bash -c '
         echo "Waiting for Elasticsearch availability";
-        # ES 8.x 인증 실패 메시지도 잡아내도록 security_exception 추가
         until curl -s --cacert config/certs/ca/ca.crt https://es01:9200 \
               | grep -Eq "(missing authentication credentials|security_exception)"; do sleep 10; done;
         echo "Setting kibana_system password";
@@ -55,13 +76,8 @@ services:
           -H "Content-Type: application/json" \
           https://es01:9200/_security/user/kibana_system/_password \
           -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
-        echo "All done!";
+        echo "kibana_system password set.";
       '
-    healthcheck:
-      test: [ "CMD-SHELL", "[ -f config/certs/es01/es01.crt ]" ]
-      interval: 1s
-      timeout: 5s
-      retries: 120
 
   es01:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
@@ -70,7 +86,7 @@ services:
       - .env
     depends_on:
       setup:
-        condition: service_healthy
+        condition: service_completed_successfully
     volumes:
       - certs:/usr/share/elasticsearch/config/certs
       - esdata01:/usr/share/elasticsearch/data
@@ -118,6 +134,8 @@ services:
     depends_on:
       es01:
         condition: service_healthy
+      kibana-init:
+        condition: service_completed_successfully
     volumes:
       - certs:/usr/share/kibana/config/certs
       - kibanadata:/usr/share/kibana/data
