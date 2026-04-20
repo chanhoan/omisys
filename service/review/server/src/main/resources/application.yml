@@ -1,6 +1,6 @@
 spring:
   application:
-    name: review-service
+    name: review
   config:
     import: "configserver:"
   cloud:

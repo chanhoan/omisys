@@ -230,6 +230,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
+      SPRING_APPLICATION_NAME: review
 
       REVIEW_MYSQL_DATABASE: ${REVIEW_MYSQL_DATABASE}
       REVIEW_MYSQL_USER: ${REVIEW_MYSQL_USER}
