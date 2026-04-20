@@ -220,6 +220,24 @@ services:
     networks:
       - omisys-network
 
+  review-service:
+    image: ghcr.io/chanhoan/omisys-review-service:latest
+    container_name: review-service
+    stop_grace_period: 45s
+    restart: always
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      REVIEW_MYSQL_DATABASE: ${REVIEW_MYSQL_DATABASE}
+      REVIEW_MYSQL_USER: ${REVIEW_MYSQL_USER}
+      REVIEW_MYSQL_PASSWORD: ${REVIEW_MYSQL_PASSWORD}
+      REVIEW_MYSQL_ROOT_PASSWORD: ${REVIEW_MYSQL_ROOT_PASSWORD}
+    networks:
+      - omisys-network
+
 networks:
   omisys-network:
     external: true
