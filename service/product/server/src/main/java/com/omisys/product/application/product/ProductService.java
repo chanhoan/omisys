@@ -6,7 +6,9 @@ import com.omisys.product.domain.model.SortOption;
 import com.omisys.product.domain.repository.cassandra.ProductRepository;
 import com.omisys.product.exception.ProductErrorCode;
 import com.omisys.product.exception.ProductException;
+import com.omisys.product.infrastructure.client.ReviewClient;
 import com.omisys.product.presentation.request.ProductRequest;
+import com.omisys.product.presentation.response.ProductDetailResponse;
 import com.omisys.product.presentation.response.ProductResponse;
 import com.omisys.product.product_dto.ProductDto;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import java.util.UUID;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ReviewClient reviewClient;
 
     @Transactional
     public ProductResponse createProduct(ProductRequest.Create request, ImgDto imgDto) {
@@ -81,6 +84,12 @@ public class ProductService {
             product.rollbackStock(rollbackCount);
             productRepository.save(product);
         });
+    }
+
+    public ProductDetailResponse getProductDetail(UUID productId) {
+        ProductResponse product = ProductResponse.fromEntity(getSavedProduct(productId));
+        var reviews = reviewClient.getReviews(productId.toString(), 0, 10);
+        return ProductDetailResponse.of(product, reviews);
     }
 
     public ProductResponse getProduct(UUID productId) {

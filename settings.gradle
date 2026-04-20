@@ -29,3 +29,5 @@ include(':service:slack:server')
 include(':service:promotion:server')
 
 include(':service:search:server')
+
+include(':service:review:server')

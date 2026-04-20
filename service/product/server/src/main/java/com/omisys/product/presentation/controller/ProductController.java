@@ -4,6 +4,7 @@ import com.omisys.common.domain.response.ApiResponse;
 import com.omisys.product.application.product.ProductFacadeService;
 import com.omisys.product.application.product.ProductService;
 import com.omisys.product.presentation.request.ProductRequest;
+import com.omisys.product.presentation.response.ProductDetailResponse;
 import com.omisys.product.presentation.response.ProductResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -70,6 +71,12 @@ public class ProductController {
     public ApiResponse<ProductResponse> getProduct(
             @PathVariable("productId") @NotNull UUID productId) {
         return ApiResponse.ok(productService.getProduct(productId));
+    }
+
+    @GetMapping("/detail/{productId}")
+    public ApiResponse<ProductDetailResponse> getProductDetail(
+            @PathVariable("productId") @NotNull UUID productId) {
+        return ApiResponse.ok(productService.getProductDetail(productId));
     }
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")

@@ -22,4 +22,9 @@ public class OrderInternalController {
         return orderService.getNotificationOrder(orderId);
     }
 
+    @GetMapping("/purchase-confirmed")
+    public boolean isPurchaseConfirmed(@RequestParam Long orderId, @RequestParam Long userId) {
+        return orderService.isPurchaseConfirmed(orderId, userId);
+    }
+
 }

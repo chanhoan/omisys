@@ -163,6 +163,13 @@ public class OrderService {
     }
 
 
+    public boolean isPurchaseConfirmed(Long orderId, Long userId) {
+        return orderRepository.findById(orderId)
+                .filter(o -> o.getUserId().equals(userId))
+                .filter(o -> o.getState().equals(OrderState.PURCHASE_CONFIRMED))
+                .isPresent();
+    }
+
     public Order validateOrderExists(Long orderId) {
         return orderRepository.findById(orderId).orElseThrow(
                 () -> new OrderException(OrderErrorCode.ORDER_NOT_FOUND)
