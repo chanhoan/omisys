@@ -1,5 +1,6 @@
 package com.omisys.review.server.domain.repository;
 
+import com.omisys.review.server.application.dto.RatingSummary;
 import com.omisys.review.server.domain.model.Review;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +12,6 @@ public interface ReviewRepository {
     Optional<Review> findById(Long id);
     boolean existsByProductIdAndUserId(String productId, Long userId);
     Page<Review> findAllByProductId(String productId, Pageable pageable);
-    double sumRatingByProductId(String productId);
-    long countByProductId(String productId);
+    RatingSummary findRatingSummary(String productId);
     void delete(Review review);
 }

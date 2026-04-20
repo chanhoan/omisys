@@ -18,7 +18,7 @@ public class ReviewRatingConsumer {
 
     private final ProductRepository productRepository;
 
-    @KafkaListener(topics = KafkaTopicConstant.REVIEW_RATING, groupId = "product-review-rating-group")
+    @KafkaListener(topics = KafkaTopicConstant.REVIEW_RATING, groupId = "product-review-rating-group", concurrency = "1")
     public void consume(Map<String, Object> payload) {
         try {
             UUID productId = UUID.fromString(payload.get("productId").toString());

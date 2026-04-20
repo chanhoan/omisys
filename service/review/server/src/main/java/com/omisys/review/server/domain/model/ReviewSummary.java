@@ -12,6 +12,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Getter
 @Builder(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -27,8 +29,8 @@ public class ReviewSummary {
     @Column(nullable = false, unique = true, length = 36)
     private String productId;
 
-    @Column(nullable = false)
-    private Double avgRating;
+    @Column(nullable = false, precision = 3, scale = 1)
+    private BigDecimal avgRating;
 
     @Column(nullable = false)
     private Long reviewCount;
@@ -36,13 +38,13 @@ public class ReviewSummary {
     public static ReviewSummary init(String productId) {
         return ReviewSummary.builder()
                 .productId(productId)
-                .avgRating(0.0)
+                .avgRating(BigDecimal.ZERO)
                 .reviewCount(0L)
                 .build();
     }
 
-    public void recalculate(double totalRating, long count) {
+    public void recalculate(BigDecimal avgRating, long count) {
         this.reviewCount = count;
-        this.avgRating = count == 0 ? 0.0 : Math.round((totalRating / count) * 10.0) / 10.0;
+        this.avgRating = avgRating;
     }
 }

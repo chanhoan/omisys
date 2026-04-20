@@ -1,19 +1,18 @@
 package com.omisys.review.server.application.service;
 
+import com.omisys.review.server.application.event.ReviewRatingChangedEvent;
 import com.omisys.review.server.domain.model.Review;
-import com.omisys.review.server.domain.model.ReviewSummary;
 import com.omisys.review.server.domain.repository.ReviewRepository;
-import com.omisys.review.server.domain.repository.ReviewSummaryRepository;
 import com.omisys.review.server.exception.ReviewErrorCode;
 import com.omisys.review.server.exception.ReviewException;
 import com.omisys.review.server.infrastructure.client.OrderClient;
-import com.omisys.review.server.infrastructure.messaging.ReviewRatingProducer;
 import com.omisys.review.server.presentation.request.ReviewRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -21,15 +20,16 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("unchecked")
+
 @ExtendWith(MockitoExtension.class)
 class ReviewServiceTest {
 
     private static final String PRODUCT_ID = "550e8400-e29b-41d4-a716-446655440000";
 
     @Mock private ReviewRepository reviewRepository;
-    @Mock private ReviewSummaryRepository reviewSummaryRepository;
     @Mock private OrderClient orderClient;
-    @Mock private ReviewRatingProducer reviewRatingProducer;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks private ReviewService reviewService;
 
@@ -75,7 +75,7 @@ class ReviewServiceTest {
     }
 
     @Test
-    @DisplayName("createReview: 정상 작성 시 Review 저장 후 Kafka 이벤트 발행")
+    @DisplayName("createReview: 정상 작성 시 Review 저장 후 RatingChangedEvent 발행")
     void createReview_success() {
         Long userId = 1L;
         ReviewRequest.Create request = ReviewRequest.Create.builder()
@@ -86,17 +86,18 @@ class ReviewServiceTest {
                 .build();
 
         Review savedReview = Review.create(userId, request);
-        ReviewSummary summary = ReviewSummary.init(PRODUCT_ID);
 
         when(orderClient.isPurchaseConfirmed(request.getOrderId(), userId)).thenReturn(true);
         when(reviewRepository.existsByProductIdAndUserId(request.getProductId(), userId)).thenReturn(false);
         when(reviewRepository.save(any(Review.class))).thenReturn(savedReview);
-        when(reviewSummaryRepository.findByProductId(request.getProductId())).thenReturn(Optional.of(summary));
 
         reviewService.createReview(userId, request);
 
         verify(reviewRepository).save(any(Review.class));
-        verify(reviewRatingProducer).publish(eq(PRODUCT_ID), anyDouble(), anyLong());
+        ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        assertThat(captor.getValue()).isInstanceOf(ReviewRatingChangedEvent.class);
+        assertThat(((ReviewRatingChangedEvent) captor.getValue()).productId()).isEqualTo(PRODUCT_ID);
     }
 
     // ───── updateReview ─────
@@ -134,16 +135,14 @@ class ReviewServiceTest {
 
         Review review = Review.create(userId, ReviewRequest.Create.builder()
                 .productId(PRODUCT_ID).orderId(100L).rating(5).content("원본").build());
-        ReviewSummary summary = ReviewSummary.init(PRODUCT_ID);
 
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
-        when(reviewSummaryRepository.findByProductId(review.getProductId())).thenReturn(Optional.of(summary));
 
         reviewService.updateReview(userId, reviewId, request);
 
         assertThat(review.getRating()).isEqualTo(3);
         assertThat(review.getContent()).isEqualTo("수정된 내용");
-        verify(reviewRatingProducer).publish(eq(PRODUCT_ID), anyDouble(), anyLong());
+        verify(eventPublisher).publishEvent(any(ReviewRatingChangedEvent.class));
     }
 
     // ───── deleteReview ─────
@@ -166,22 +165,20 @@ class ReviewServiceTest {
     }
 
     @Test
-    @DisplayName("deleteReview: 본인이면 삭제 후 Kafka 이벤트 발행")
+    @DisplayName("deleteReview: 본인이면 삭제 후 RatingChangedEvent 발행")
     void deleteReview_success() {
         Long userId = 1L;
         Long reviewId = 1L;
 
         Review review = Review.create(userId, ReviewRequest.Create.builder()
                 .productId(PRODUCT_ID).orderId(100L).rating(5).content("내용").build());
-        ReviewSummary summary = ReviewSummary.init(PRODUCT_ID);
 
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(review));
-        when(reviewSummaryRepository.findByProductId(review.getProductId())).thenReturn(Optional.of(summary));
 
         reviewService.deleteReview(userId, reviewId);
 
         verify(reviewRepository).delete(review);
-        verify(reviewRatingProducer).publish(eq(PRODUCT_ID), anyDouble(), anyLong());
+        verify(eventPublisher).publishEvent(any(ReviewRatingChangedEvent.class));
     }
 
     // ───── REVIEW_NOT_FOUND ─────

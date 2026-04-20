@@ -1,5 +1,6 @@
 package com.omisys.review.server.infrastructure.repository;
 
+import com.omisys.review.server.application.dto.RatingSummary;
 import com.omisys.review.server.domain.model.Review;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,8 +12,7 @@ public interface JpaReviewRepository extends JpaRepository<Review, Long> {
     boolean existsByProductIdAndUserId(String productId, Long userId);
     Page<Review> findAllByProductId(String productId, Pageable pageable);
 
-    @Query("SELECT COALESCE(SUM(r.rating), 0) FROM Review r WHERE r.productId = :productId")
-    double sumRatingByProductId(@Param("productId") String productId);
-
-    long countByProductId(String productId);
+    @Query("SELECT new com.omisys.review.server.application.dto.RatingSummary(COUNT(r), COALESCE(SUM(r.rating), 0)) " +
+           "FROM Review r WHERE r.productId = :productId")
+    RatingSummary findRatingSummary(@Param("productId") String productId);
 }

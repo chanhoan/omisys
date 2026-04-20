@@ -1,5 +1,6 @@
 package com.omisys.review.server.infrastructure.repository;
 
+import com.omisys.review.server.application.dto.RatingSummary;
 import com.omisys.review.server.domain.model.Review;
 import com.omisys.review.server.domain.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,13 +37,8 @@ public class ReviewRepositoryImpl implements ReviewRepository {
     }
 
     @Override
-    public double sumRatingByProductId(String productId) {
-        return jpa.sumRatingByProductId(productId);
-    }
-
-    @Override
-    public long countByProductId(String productId) {
-        return jpa.countByProductId(productId);
+    public RatingSummary findRatingSummary(String productId) {
+        return jpa.findRatingSummary(productId);
     }
 
     @Override
