@@ -494,6 +494,23 @@ services:
     networks:
       - omisys-network
 
+  review_mysql:
+    image: mysql:8.0
+    container_name: omisys-mysql-review
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${REVIEW_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${REVIEW_MYSQL_DATABASE}
+      MYSQL_USER: ${REVIEW_MYSQL_USER}
+      MYSQL_PASSWORD: ${REVIEW_MYSQL_PASSWORD}
+    ports:
+      - "3312:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-review-data:/var/lib/mysql
+    networks:
+      - omisys-network
+
 volumes:
   cassandra_data:
     driver: local
@@ -530,6 +547,8 @@ volumes:
   mysql-slack-data:
     driver: local
   mysql-promotion-data:
+    driver: local
+  mysql-review-data:
     driver: local
 
 networks:
