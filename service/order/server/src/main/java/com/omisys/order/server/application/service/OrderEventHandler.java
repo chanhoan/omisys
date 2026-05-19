@@ -22,8 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class OrderEventHandler {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
+    private final ObjectMapper objectMapper;
     private final OrderService orderService;
     private final OutboxEventRepository outboxEventRepository;
 
@@ -31,7 +30,7 @@ public class OrderEventHandler {
     @KafkaListener(topics = KafkaTopicConstant.PAYMENT_COMPLETED, groupId = "order-service-group")
     public void handlePaymentCompleteEvent(String event) {
         try {
-            PaymentCompletedEvent paymentCompletedEvent = OBJECT_MAPPER.readValue(event,
+            PaymentCompletedEvent paymentCompletedEvent = objectMapper.readValue(event,
                     PaymentCompletedEvent.class);
             Boolean success = paymentCompletedEvent.getSuccess();
 
@@ -59,10 +58,9 @@ public class OrderEventHandler {
                 OrderState.COMPLETED.getDescription(), displayProductName, order.getTotalQuantity());
         String payload;
         try {
-            payload = OBJECT_MAPPER.writeValueAsString(dto);
+            payload = objectMapper.writeValueAsString(dto);
         } catch (JsonProcessingException e) {
-            log.warn("Failed to serialize NotificationOrderDto for orderId={}", order.getOrderId(), e);
-            return;
+            throw new RuntimeException("Failed to serialize outbox payload for orderId=" + order.getOrderId(), e);
         }
         outboxEventRepository.save(OutboxEvent.pending(
                 "ORDER", String.valueOf(order.getOrderId()),

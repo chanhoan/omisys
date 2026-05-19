@@ -49,8 +49,8 @@ public class OrderService {
     private static final Set<OrderState> NOTIFIABLE_STATES = EnumSet.of(
             OrderState.COMPLETED, OrderState.SHIPPING, OrderState.DELIVERED,
             OrderState.PURCHASE_CONFIRMED, OrderState.CANCELED);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    private final ObjectMapper objectMapper;
     private final OrderRepository orderRepository;
     private final UserClient userClient;
     private final PaymentClient paymentClient;
@@ -113,10 +113,9 @@ public class OrderService {
                 state.getDescription(), displayProductName, order.getTotalQuantity());
         String payload;
         try {
-            payload = OBJECT_MAPPER.writeValueAsString(dto);
+            payload = objectMapper.writeValueAsString(dto);
         } catch (JsonProcessingException e) {
-            log.warn("Failed to serialize NotificationOrderDto for orderId={}", order.getOrderId(), e);
-            return;
+            throw new RuntimeException("Failed to serialize outbox payload for orderId=" + order.getOrderId(), e);
         }
         OutboxEvent event = OutboxEvent.pending(
                 "ORDER", String.valueOf(order.getOrderId()),

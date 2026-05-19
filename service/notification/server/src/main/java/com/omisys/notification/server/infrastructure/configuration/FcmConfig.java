@@ -34,7 +34,7 @@ public class FcmConfig {
             FirebaseApp.initializeApp(options);
             log.info("Firebase initialized");
         } catch (IOException e) {
-            log.error("Failed to initialize Firebase: {}", e.getMessage());
+            throw new IllegalStateException("Firebase initialization failed for path: " + credentialsPath, e);
         }
     }
 }

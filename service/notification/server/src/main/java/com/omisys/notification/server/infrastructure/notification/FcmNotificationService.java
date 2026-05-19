@@ -17,7 +17,7 @@ public class FcmNotificationService {
             return;
         }
         if (FirebaseApp.getApps().isEmpty()) {
-            log.warn("Firebase not initialized — skipping FCM for token={}", fcmToken.substring(0, 10));
+            log.warn("Firebase not initialized — skipping FCM notification");
             return;
         }
         try {
