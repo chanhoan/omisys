@@ -1,8 +1,10 @@
 package com.omisys.payment.server.infrastructure.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.omisys.common.domain.security.InternalSecretFilter;
 import com.omisys.payment.server.infrastructure.filter.SecurityContextFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -23,7 +25,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain httpSecurity(HttpSecurity http, ObjectMapper objectMapper)
+    public SecurityFilterChain httpSecurity(
+            HttpSecurity http,
+            ObjectMapper objectMapper,
+            @Value("${internal.secret:}") String internalSecret)
             throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -41,6 +46,9 @@ public class SecurityConfig {
                                         .requestMatchers("/resources/templates/**").permitAll()
                                         .anyRequest()
                                         .authenticated())
+                .addFilterBefore(
+                        new InternalSecretFilter(internalSecret),
+                        UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(
                         new SecurityContextFilter(objectMapper), UsernamePasswordAuthenticationFilter.class);
 

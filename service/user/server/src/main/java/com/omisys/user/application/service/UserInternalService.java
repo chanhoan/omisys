@@ -21,14 +21,17 @@ public class UserInternalService {
                 .findByUsername(username)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
-        return new UserDto(
-                user.getId(),
-                user.getUsername(),
-                user.getPassword(),
-                user.getEmail(),
-                user.getRole().name(),
-                user.getPoint()
-        );
+        return toDto(user);
+
+    }
+
+    public UserDto getUserByEmail(String email) {
+
+        User user = userRepository
+                .findByEmail(email)
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        return toDto(user);
 
     }
 
@@ -38,6 +41,11 @@ public class UserInternalService {
                 .findById(userId)
                 .orElseThrow(() -> new UserException(USER_NOT_FOUND));
 
+        return toDto(user);
+
+    }
+
+    private UserDto toDto(User user) {
         return new UserDto(
                 user.getId(),
                 user.getUsername(),
@@ -46,6 +54,5 @@ public class UserInternalService {
                 user.getRole().name(),
                 user.getPoint()
         );
-
     }
 }

@@ -57,6 +57,21 @@ public class AuthService {
         return new AuthResponse.TokenPair(accessToken, refreshToken);
     }
 
+    public AuthResponse.TokenPair signInByOAuth2Email(String email) {
+        UserDto userData = userService.getUserByEmail(email);
+
+        if (userData == null) {
+            throw new AuthException(AuthErrorCode.SIGN_IN_FAIL);
+        }
+
+        JwtClaim jwtClaim = JwtClaim.create(userData.getUserId(), userData.getUserName(), userData.getRole());
+        String accessToken = createAccessToken(jwtClaim);
+        String refreshToken = refreshTokenService.createRefreshToken(
+                userData.getUserId(), userData.getUserName(), userData.getRole());
+
+        return new AuthResponse.TokenPair(accessToken, refreshToken);
+    }
+
     public AuthResponse.TokenPair refresh(String oldRefreshToken) {
         RefreshToken newRefreshToken = refreshTokenService.rotateRefreshToken(oldRefreshToken);
         JwtClaim jwtClaim = JwtClaim.create(
