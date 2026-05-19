@@ -511,6 +511,23 @@ services:
     networks:
       - omisys-network
 
+  notification_mysql:
+    image: mysql:8.0
+    container_name: omisys-mysql-notification
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${NOTIFICATION_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${NOTIFICATION_MYSQL_DATABASE}
+      MYSQL_USER: ${NOTIFICATION_MYSQL_USER}
+      MYSQL_PASSWORD: ${NOTIFICATION_MYSQL_PASSWORD}
+    ports:
+      - "3313:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-notification-data:/var/lib/mysql
+    networks:
+      - omisys-network
+
 volumes:
   cassandra_data:
     driver: local
@@ -549,6 +566,8 @@ volumes:
   mysql-promotion-data:
     driver: local
   mysql-review-data:
+    driver: local
+  mysql-notification-data:
     driver: local
 
 networks:

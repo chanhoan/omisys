@@ -3,6 +3,7 @@ package com.omisys.user.application.service;
 import com.omisys.user.domain.model.User;
 import com.omisys.user.domain.repository.UserRepository;
 import com.omisys.user.exception.UserException;
+import com.omisys.user.presentation.response.UserNotificationInfoResponse;
 import com.omisys.user_dto.infrastructure.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,13 @@ public class UserInternalService {
 
         return toDto(user);
 
+    }
+
+    public UserNotificationInfoResponse getNotificationInfo(Long userId) {
+        User user = userRepository
+                .findById(userId)
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+        return new UserNotificationInfoResponse(user.getEmail(), user.getFcmToken());
     }
 
     private UserDto toDto(User user) {

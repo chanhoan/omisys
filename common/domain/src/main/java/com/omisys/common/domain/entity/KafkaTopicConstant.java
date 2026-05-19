@@ -11,6 +11,7 @@ public class KafkaTopicConstant {
     // DeadLetterPublishingRecoverer가 원본토픽 + ".DLT" 규칙으로 자동 라우팅하므로
     // 이 상수들은 DLT Consumer 또는 모니터링 구성 시 참조값으로 사용한다.
     public static final String REVIEW_RATING = "review-rating-topic";
+    public static final String ORDER_STATUS_CHANGED = "order-status-changed";
 
     // Dead Letter Topics — 재시도 소진 후 메시지가 라우팅되는 토픽
     // DeadLetterPublishingRecoverer가 원본토픽 + ".DLT" 규칙으로 자동 라우팅하므로
@@ -18,5 +19,6 @@ public class KafkaTopicConstant {
     public static final String PROCESS_PREORDER_DLT = PROCESS_PREORDER + ".DLT";
     public static final String PROVIDE_EVENT_COUPON_DLT = PROVIDE_EVENT_COUPON + ".DLT";
     public static final String REVIEW_RATING_DLT = REVIEW_RATING + ".DLT";
+    public static final String ORDER_STATUS_CHANGED_DLT = ORDER_STATUS_CHANGED + ".DLT";
 
 }
