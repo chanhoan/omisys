@@ -1,10 +1,13 @@
 package com.omisys.order.server.application.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.omisys.common.domain.entity.KafkaTopicConstant;
 import com.omisys.order.order_dto.dto.NotificationOrderDto;
 import com.omisys.order.server.application.service.mapper.OrderMapper;
 import com.omisys.order.server.domain.model.Order;
 import com.omisys.order.server.domain.model.OrderProduct;
+import com.omisys.order.server.domain.model.outbox.OutboxEvent;
 import com.omisys.order.server.domain.model.vo.OrderState;
 import com.omisys.order.server.domain.repository.OrderProductRepository;
 import com.omisys.order.server.domain.repository.OrderRepository;
@@ -13,6 +16,7 @@ import com.omisys.order.server.exception.OrderException;
 import com.omisys.order.server.infrastructure.client.PaymentClient;
 import com.omisys.order.server.infrastructure.client.ProductClient;
 import com.omisys.order.server.infrastructure.client.UserClient;
+import com.omisys.order.server.infrastructure.repository.OutboxEventRepository;
 import com.omisys.order.server.presentation.response.OrderResponse;
 import com.omisys.payment.payment_dto.dto.PaymentInternalDto;
 import com.omisys.payment.payment_dto.dto.PaymentInternalDto.Cancel;
@@ -30,8 +34,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,11 +46,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderService {
 
+    private static final Set<OrderState> NOTIFIABLE_STATES = EnumSet.of(
+            OrderState.COMPLETED, OrderState.SHIPPING, OrderState.DELIVERED,
+            OrderState.PURCHASE_CONFIRMED, OrderState.CANCELED);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private final OrderRepository orderRepository;
     private final UserClient userClient;
     private final PaymentClient paymentClient;
     private final ProductClient productClient;
     private final OrderProductRepository orderProductRepository;
+    private final OutboxEventRepository outboxEventRepository;
     private final OrderCreateService orderCreateService;
     private static final String POINT_HISTORY_TYPE_REFUND = "환불";
     private static final String POINT_DESCRIPTION_ORDER_CANCEL = "주문 취소";
@@ -79,14 +91,39 @@ public class OrderService {
 
         Order order = validateOrderExists(orderId);
 
+        OrderState state;
         try {
-            OrderState state = OrderState.valueOf(orderState);
+            state = OrderState.valueOf(orderState);
             order.updateState(state);
         } catch (IllegalArgumentException e) {
             throw new OrderException(OrderErrorCode.ORDER_STATE_NOT_FOUND);
         }
 
+        if (NOTIFIABLE_STATES.contains(state)) {
+            saveOutboxEvent(order, userId, state);
+        }
+
         return orderId;
+    }
+
+    private void saveOutboxEvent(Order order, Long userId, OrderState state) {
+        String displayProductName = order.getOrderProducts().get(0).getProductName();
+        NotificationOrderDto dto = new NotificationOrderDto(
+                order.getOrderId(), order.getUserId(),
+                state.getDescription(), displayProductName, order.getTotalQuantity());
+        String payload;
+        try {
+            payload = OBJECT_MAPPER.writeValueAsString(dto);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize NotificationOrderDto for orderId={}", order.getOrderId(), e);
+            return;
+        }
+        OutboxEvent event = OutboxEvent.pending(
+                "ORDER", String.valueOf(order.getOrderId()),
+                KafkaTopicConstant.ORDER_STATUS_CHANGED,
+                String.valueOf(userId),
+                payload);
+        outboxEventRepository.save(event);
     }
 
     @Transactional

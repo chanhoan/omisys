@@ -2,6 +2,7 @@ package com.omisys.user.presentation.controller;
 
 import com.omisys.user.application.service.PointHistoryInternalService;
 import com.omisys.user.application.service.UserInternalService;
+import com.omisys.user.presentation.response.UserNotificationInfoResponse;
 import com.omisys.user_dto.infrastructure.PointHistoryDto;
 import com.omisys.user_dto.infrastructure.UserDto;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,11 @@ public class UserInternalController {
     @DeleteMapping("/point/{pointHistoryId}")
     public void rollbackPointHistory(@PathVariable Long pointHistoryId) {
         pointHistoryInternalService.rollbackPointHistory(pointHistoryId);
+    }
+
+    @GetMapping("/{userId}/notification-info")
+    public UserNotificationInfoResponse getNotificationInfo(@PathVariable Long userId) {
+        return userInternalService.getNotificationInfo(userId);
     }
 
 }

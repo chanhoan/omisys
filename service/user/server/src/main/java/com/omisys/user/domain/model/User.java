@@ -41,6 +41,9 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private UserRole role;
 
+    @Column(length = 512)
+    private String fcmToken;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Address> addresses;
 

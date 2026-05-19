@@ -1,0 +1,86 @@
+package com.omisys.notification.server.application.service;
+
+import com.omisys.notification.server.domain.model.Notification;
+import com.omisys.notification.server.domain.model.vo.NotificationChannel;
+import com.omisys.notification.server.domain.model.vo.NotificationStatus;
+import com.omisys.notification.server.domain.model.vo.NotificationType;
+import com.omisys.notification.server.domain.repository.NotificationRepository;
+import com.omisys.notification.server.infrastructure.client.UserClient;
+import com.omisys.notification.server.infrastructure.client.dto.UserNotificationInfo;
+import com.omisys.notification.server.infrastructure.notification.EmailNotificationService;
+import com.omisys.notification.server.infrastructure.notification.FcmNotificationService;
+import com.omisys.order.order_dto.dto.NotificationOrderDto;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class NotificationService {
+
+    private final UserClient userClient;
+    private final EmailNotificationService emailService;
+    private final FcmNotificationService fcmService;
+    private final NotificationRepository notificationRepository;
+
+    public void processNotification(NotificationOrderDto dto) {
+        UserNotificationInfo info = userClient.getNotificationInfo(dto.getUserId());
+        if (info == null) {
+            log.warn("User notification info not found for userId={}", dto.getUserId());
+            return;
+        }
+
+        NotificationType type = toNotificationType(dto.getOrderState());
+        String productName = dto.getDisplayProductName();
+        long orderId = dto.getOrderId();
+
+        sendEmail(info.email(), type, productName, orderId, dto.getUserId());
+        sendFcm(info.fcmToken(), type, productName, orderId, dto.getUserId());
+    }
+
+    private void sendEmail(String email, NotificationType type, String productName,
+                           long orderId, Long userId) {
+        try {
+            emailService.send(email, type, productName, orderId);
+            notificationRepository.save(
+                    Notification.sent(userId, orderId, type, NotificationChannel.EMAIL));
+        } catch (Exception e) {
+            log.error("Email notification failed userId={} type={}", userId, type, e);
+            notificationRepository.save(
+                    Notification.failed(userId, orderId, type, NotificationChannel.EMAIL,
+                            e.getMessage()));
+        }
+    }
+
+    private void sendFcm(String fcmToken, NotificationType type, String productName,
+                         long orderId, Long userId) {
+        if (fcmToken == null || fcmToken.isBlank()) {
+            return;
+        }
+        try {
+            fcmService.send(fcmToken, type, productName, orderId);
+            notificationRepository.save(
+                    Notification.sent(userId, orderId, type, NotificationChannel.FCM));
+        } catch (Exception e) {
+            log.error("FCM notification failed userId={} type={}", userId, type, e);
+            notificationRepository.save(
+                    Notification.failed(userId, orderId, type, NotificationChannel.FCM,
+                            e.getMessage()));
+        }
+    }
+
+    private NotificationType toNotificationType(String orderState) {
+        return switch (orderState) {
+            case "주문 완료", "COMPLETED" -> NotificationType.ORDER_COMPLETED;
+            case "배송 시작", "SHIPPING" -> NotificationType.SHIPPING_STARTED;
+            case "배송 완료", "DELIVERED" -> NotificationType.DELIVERED;
+            case "구매 확정", "PURCHASE_CONFIRMED" -> NotificationType.PURCHASE_CONFIRMED;
+            case "주문 취소", "CANCELED" -> NotificationType.ORDER_CANCELED;
+            default -> {
+                log.warn("Unknown orderState={}, defaulting to ORDER_COMPLETED", orderState);
+                yield NotificationType.ORDER_COMPLETED;
+            }
+        };
+    }
+}

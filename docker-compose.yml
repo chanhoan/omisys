@@ -238,6 +238,29 @@ services:
     networks:
       - omisys-network
 
+  notification-service:
+    image: ghcr.io/chanhoan/omisys-notification-service:latest
+    container_name: notification-service
+    stop_grace_period: 45s
+    restart: always
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      NOTIFICATION_MYSQL_DATABASE: ${NOTIFICATION_MYSQL_DATABASE}
+      NOTIFICATION_MYSQL_USER: ${NOTIFICATION_MYSQL_USER}
+      NOTIFICATION_MYSQL_PASSWORD: ${NOTIFICATION_MYSQL_PASSWORD}
+      NOTIFICATION_MYSQL_ROOT_PASSWORD: ${NOTIFICATION_MYSQL_ROOT_PASSWORD}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      FIREBASE_CREDENTIALS_PATH: /app/firebase-adminsdk.json
+    volumes:
+      - ./firebase-adminsdk.json:/app/firebase-adminsdk.json:ro
+    networks:
+      - omisys-network
+
 networks:
   omisys-network:
     external: true

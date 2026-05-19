@@ -31,3 +31,5 @@ include(':service:promotion:server')
 include(':service:search:server')
 
 include(':service:review:server')
+
+include(':service:notification:server')
