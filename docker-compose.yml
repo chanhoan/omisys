@@ -12,6 +12,7 @@ services:
       SPRING_CLOUD_CONFIG_SERVER_GIT_URI: ${GIT_URI}
       SPRING_CLOUD_CONFIG_SERVER_GIT_USERNAME: ${GIT_NAME}
       SPRING_CLOUD_CONFIG_SERVER_GIT_PASSWORD: ${GIT_TOKEN}
+      ENCRYPT_KEY: ${ENCRYPT_KEY}
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
       interval: 10s
@@ -60,6 +61,7 @@ services:
       USER_MYSQL_USER: ${USER_MYSQL_USER}
       USER_MYSQL_PASSWORD: ${USER_MYSQL_PASSWORD}
       USER_MYSQL_ROOT_PASSWORD: ${USER_MYSQL_ROOT_PASSWORD}
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
 
     networks:
       - omisys-network
@@ -76,6 +78,9 @@ services:
       SPRING_PROFILES_ACTIVE: prod
 
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     networks:
       - omisys-network
 
@@ -89,6 +94,7 @@ services:
         condition: service_healthy
     environment:
       MAX_ACTIVE_USERS: ${MAX_ACTIVE_USERS}
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
     ports:
       - "19091:19091"
     networks:
@@ -117,6 +123,7 @@ services:
       AWS_S3_ACCESS_KEY: ${AWS_S3_ACCESS_KEY}
       AWS_S3_SECRET_KEY: ${AWS_S3_SECRET_KEY}
       AWS_S3_REGION: ${AWS_S3_REGION}
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
 
     networks:
       - omisys-network
@@ -136,6 +143,7 @@ services:
       ORDER_MYSQL_USER: ${ORDER_MYSQL_USER}
       ORDER_MYSQL_PASSWORD: ${ORDER_MYSQL_PASSWORD}
       ORDER_MYSQL_ROOT_PASSWORD: ${ORDER_MYSQL_ROOT_PASSWORD}
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
     networks:
       - omisys-network
 
@@ -158,6 +166,7 @@ services:
       TOSS_SECRET_KEY: ${TOSS_SECRET_KEY}
 
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
     networks:
       - omisys-network
 
@@ -178,6 +187,7 @@ services:
       SLACK_MYSQL_PASSWORD: ${SLACK_MYSQL_PASSWORD}
 
       SLACK_TOKEN: ${SLACK_TOKEN}
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
     networks:
       - omisys-network
 
@@ -196,6 +206,7 @@ services:
       PROMOTION_MYSQL_DATABASE: ${PROMOTION_MYSQL_DATABASE}
       PROMOTION_MYSQL_USER: ${PROMOTION_MYSQL_USER}
       PROMOTION_MYSQL_PASSWORD: ${PROMOTION_MYSQL_PASSWORD}
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
     networks:
       - omisys-network
 
@@ -236,6 +247,7 @@ services:
       REVIEW_MYSQL_USER: ${REVIEW_MYSQL_USER}
       REVIEW_MYSQL_PASSWORD: ${REVIEW_MYSQL_PASSWORD}
       REVIEW_MYSQL_ROOT_PASSWORD: ${REVIEW_MYSQL_ROOT_PASSWORD}
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
     networks:
       - omisys-network
 
