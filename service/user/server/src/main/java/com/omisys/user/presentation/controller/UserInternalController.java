@@ -20,6 +20,11 @@ public class UserInternalController {
         return userInternalService.getUserByUsername(username);
     }
 
+    @GetMapping("/email")
+    public UserDto getUserByEmail(@RequestParam String email) {
+        return userInternalService.getUserByEmail(email);
+    }
+
     @GetMapping("/user-id")
     public UserDto getUserById(@RequestParam Long userId) {
         return userInternalService.getUserByUserId(userId);

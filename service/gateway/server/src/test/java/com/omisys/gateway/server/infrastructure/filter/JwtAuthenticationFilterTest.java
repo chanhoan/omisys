@@ -30,7 +30,7 @@ class JwtAuthenticationFilterTest {
     void setUp() {
         authService = Mockito.mock(AuthService.class);
         objectMapper = new ObjectMapper();
-        filter = new JwtAuthenticationFilter(authService);
+        filter = new JwtAuthenticationFilter(authService, objectMapper);
     }
 
     @Test

@@ -34,6 +34,8 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 
     private static final List<String> PUBLIC_PATHS = List.of(
             "/api/auth/",
+            "/oauth2/",
+            "/login/oauth2/",
             "/api/users/sign-up",
             "/api/search",
             "/api/products/search",

@@ -77,6 +77,28 @@ class AuthServiceTest {
     }
 
     @Test
+    @DisplayName("OAuth2 로그인 성공: email로 기존 유저 조회 후 AT + RT 발급")
+    void signInByOAuth2Email_success() {
+        AuthService authService = newAuthService();
+        when(refreshTokenService.createRefreshToken(1L, "user1@example.com", "ROLE_USER"))
+                .thenReturn("refresh-token-value");
+
+        UserDto userDto = mock(UserDto.class);
+        when(userDto.getUserId()).thenReturn(1L);
+        when(userDto.getUserName()).thenReturn("user1@example.com");
+        when(userDto.getRole()).thenReturn("ROLE_USER");
+
+        when(userService.getUserByEmail("user1@example.com")).thenReturn(userDto);
+
+        AuthResponse.TokenPair response = authService.signInByOAuth2Email("user1@example.com");
+
+        assertThat(response.accessToken()).isNotBlank();
+        assertThat(response.refreshToken()).isEqualTo("refresh-token-value");
+        verify(refreshTokenService).createRefreshToken(1L, "user1@example.com", "ROLE_USER");
+        verify(userService, never()).getUserByUsername("user1@example.com");
+    }
+
+    @Test
     @DisplayName("signIn 실패: user가 null이면 SIGN_IN_FAIL")
     void signIn_fail_user_null() {
         AuthService authService = newAuthService();
