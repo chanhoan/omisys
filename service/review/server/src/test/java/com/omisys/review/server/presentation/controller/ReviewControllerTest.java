@@ -24,6 +24,10 @@ import org.springframework.security.web.method.annotation.AuthenticationPrincipa
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
+
+import jakarta.validation.Validation;
+
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -57,6 +61,7 @@ class ReviewControllerTest {
                         new PageableHandlerMethodArgumentResolver(),
                         new AuthenticationPrincipalArgumentResolver()
                 )
+                .setValidator(new SpringValidatorAdapter(Validation.buildDefaultValidatorFactory().getValidator()))
                 .build();
 
         JwtClaim claim = JwtClaim.create(USER_ID, "testUser", "ROLE_USER");
@@ -125,5 +130,81 @@ class ReviewControllerTest {
         mockMvc.perform(delete("/api/reviews/{reviewId}", REVIEW_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.statusName").value("OK"));
+    }
+
+    @Test
+    @DisplayName("createReview: rating 범위 초과(6) 시 400 반환")
+    void createReview_returns_400_when_rating_exceeds_max() throws Exception {
+        ReviewRequest.Create request = ReviewRequest.Create.builder()
+                .productId(PRODUCT_ID)
+                .orderId(100L)
+                .rating(6)
+                .content("내용")
+                .build();
+
+        mockMvc.perform(post("/api/reviews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("createReview: rating 0 미만 시 400 반환")
+    void createReview_returns_400_when_rating_below_min() throws Exception {
+        ReviewRequest.Create request = ReviewRequest.Create.builder()
+                .productId(PRODUCT_ID)
+                .orderId(100L)
+                .rating(0)
+                .content("내용")
+                .build();
+
+        mockMvc.perform(post("/api/reviews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("createReview: content 공백 시 400 반환")
+    void createReview_returns_400_when_content_blank() throws Exception {
+        ReviewRequest.Create request = ReviewRequest.Create.builder()
+                .productId(PRODUCT_ID)
+                .orderId(100L)
+                .rating(5)
+                .content("")
+                .build();
+
+        mockMvc.perform(post("/api/reviews")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("updateReview: rating 범위 초과(6) 시 400 반환")
+    void updateReview_returns_400_when_rating_exceeds_max() throws Exception {
+        ReviewRequest.Update request = ReviewRequest.Update.builder()
+                .rating(6)
+                .content("수정 내용")
+                .build();
+
+        mockMvc.perform(patch("/api/reviews/{reviewId}", REVIEW_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("updateReview: content 공백 시 400 반환")
+    void updateReview_returns_400_when_content_blank() throws Exception {
+        ReviewRequest.Update request = ReviewRequest.Update.builder()
+                .rating(4)
+                .content("")
+                .build();
+
+        mockMvc.perform(patch("/api/reviews/{reviewId}", REVIEW_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
     }
 }
