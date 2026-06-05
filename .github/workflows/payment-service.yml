@@ -81,6 +81,7 @@ jobs:
           script: |
             docker pull ghcr.io/chanhoan/omisys-payment-service:latest
             cd /opt/omisys
+            docker rm -f slack-service 2>/dev/null || true
             docker compose up -d --force-recreate --no-deps payment-service
 
       - name: Notify Discord - Result
