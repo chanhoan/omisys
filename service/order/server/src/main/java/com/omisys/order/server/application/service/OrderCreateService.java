@@ -138,7 +138,11 @@ public class OrderCreateService {
         PaymentInternalDto.Create payment = new PaymentInternalDto.Create(
                 userId, order.getOrderId(), order.getOrderNo(), userEmail,
                 order.getTotalRealAmount().longValue());
-        return paymentClient.payment(payment).getCheckoutUrl();
+        PaymentInternalDto.Created created = paymentClient.payment(payment);
+        if (created == null || created.getCheckoutUrl() == null || created.getCheckoutUrl().isBlank()) {
+            throw new OrderException(OrderErrorCode.SERVICE_UNAVAILABLE);
+        }
+        return created.getCheckoutUrl();
     }
 
     private Order createUniqueOrder(

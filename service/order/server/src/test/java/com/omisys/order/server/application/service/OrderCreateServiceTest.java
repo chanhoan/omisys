@@ -171,6 +171,52 @@ class OrderCreateServiceTest {
     }
 
     @Test
+    @DisplayName("createOrder 실패: 결제 응답이 null이면 SERVICE_UNAVAILABLE + rollbackTransaction 호출")
+    void createOrder_fail_null_payment_response_triggers_rollback() {
+        // given
+        long userId = 1L;
+        UUID productId = UUID.randomUUID();
+        String productIdStr = productId.toString();
+
+        OrderCreateRequest request = new OrderCreateRequest(
+                OrderType.STANDARD.name(),
+                List.of(new OrderProductInfo(productIdStr, 1, null)),
+                BigDecimal.ZERO,
+                100L
+        );
+
+        UserDto user = mock(UserDto.class);
+        when(userClient.getUser(userId)).thenReturn(user);
+
+        AddressDto address = mock(AddressDto.class);
+        when(address.getUserId()).thenReturn(userId);
+        when(userClient.getAddress(100L)).thenReturn(address);
+
+        ProductDto product = mock(ProductDto.class);
+        when(product.getProductId()).thenReturn(productId);
+        when(product.getStock()).thenReturn(10);
+        when(product.getDiscountedPrice()).thenReturn(BigDecimal.valueOf(10000));
+        when(productClient.getProductList(List.of(productIdStr))).thenReturn(List.of(product));
+
+        when(orderRepository.existsByOrderNo(anyString())).thenReturn(false);
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order saved = invocation.getArgument(0, Order.class);
+            ReflectionTestUtils.setField(saved, "orderId", 1001L);
+            return saved;
+        });
+        when(paymentClient.payment(any(PaymentInternalDto.Create.class))).thenReturn(null);
+
+        // when & then
+        assertThatThrownBy(() -> orderCreateService.createOrder(userId, request))
+                .isInstanceOf(OrderException.class)
+                .satisfies(ex -> assertThat(((OrderException) ex).getErrorCode())
+                        .isEqualTo(OrderErrorCode.SERVICE_UNAVAILABLE));
+
+        verify(orderRollbackService).rollbackTransaction(
+                eq(userId), eq(Map.of(productIdStr, 1)), eq(List.of()), isNull());
+    }
+
+    @Test
     @DisplayName("createOrder 실패: 주소 주인이 다르면 ADDRESS_MISMATCH 예외 + 이후 흐름 중단")
     void createOrder_fail_address_mismatch() {
         // given
