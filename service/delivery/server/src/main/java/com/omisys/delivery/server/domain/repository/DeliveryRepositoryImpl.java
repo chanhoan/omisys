@@ -3,7 +3,7 @@ package com.omisys.delivery.server.domain.repository;
 import static com.omisys.delivery.server.domain.model.QDelivery.delivery;
 
 import com.omisys.delivery.server.domain.model.Delivery;
-import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,10 +19,8 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom {
 
     @Override
     public Page<Delivery> getMyDelivery(Pageable pageable, Long userId) {
-        JPAQuery<Delivery> query = queryFactory.selectFrom(delivery)
-                .where(delivery.userId.eq(userId));
-
-        List<Delivery> deliveries = query
+        List<Delivery> deliveries = queryFactory.selectFrom(delivery)
+                .where(delivery.userId.eq(userId))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -38,26 +36,19 @@ public class DeliveryRepositoryImpl implements DeliveryRepositoryCustom {
 
     @Override
     public Page<Delivery> getAllDelivery(Pageable pageable, Long userId, String state) {
-        JPAQuery<Delivery> query = queryFactory.selectFrom(delivery);
+        BooleanBuilder predicate = new BooleanBuilder();
+        if (userId != null) predicate.and(delivery.userId.eq(userId));
+        if (state != null && !state.isBlank()) predicate.and(delivery.state.stringValue().eq(state));
 
-        if (userId != null) {
-            query.where(delivery.userId.eq(userId));
-        }
-        if (state != null && !state.isBlank()) {
-            query.where(delivery.state.stringValue().eq(state));
-        }
-
-        List<Delivery> deliveries = query
+        List<Delivery> deliveries = queryFactory.selectFrom(delivery)
+                .where(predicate)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
         Long totalSize = queryFactory.select(delivery.count())
                 .from(delivery)
-                .where(
-                        userId != null ? delivery.userId.eq(userId) : null,
-                        state != null && !state.isBlank() ? delivery.state.stringValue().eq(state) : null
-                )
+                .where(predicate)
                 .fetchOne();
 
         long totalElements = totalSize != null ? totalSize : 0;
