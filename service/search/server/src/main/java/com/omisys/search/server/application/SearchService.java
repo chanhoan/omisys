@@ -64,6 +64,7 @@ public class SearchService {
         NativeQuery searchQuery = NativeQuery.builder()
                 .withQuery(boolQuery.build()._toQuery())
                 .withPageable(PageRequest.of(page, pageSize))
+                .withTrackTotalHits(true)
                 .build();
 
         if (sortOption != null && !sortOption.equals(SortOption.RELEVANCE)) {
