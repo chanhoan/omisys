@@ -27,7 +27,7 @@ public class OutboxEventPoller {
     @Scheduled(fixedDelay = 1_000)
     public void publish() {
         List<OutboxEvent> pending = outboxRepo.findPendingReadyToPublish(
-                LocalDateTime.now(), PageRequest.of(0, BATCH_SIZE));
+                OutboxStatus.PENDING, LocalDateTime.now(), PageRequest.of(0, BATCH_SIZE));
 
         for (OutboxEvent event : pending) {
             try {
