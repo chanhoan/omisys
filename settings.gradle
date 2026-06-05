@@ -33,3 +33,6 @@ include(':service:search:server')
 include(':service:review:server')
 
 include(':service:notification:server')
+
+include(':service:delivery:delivery_dto')
+include(':service:delivery:server')
