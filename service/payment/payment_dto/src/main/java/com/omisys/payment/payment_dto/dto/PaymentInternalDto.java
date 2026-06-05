@@ -2,12 +2,22 @@ package com.omisys.payment.payment_dto.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class PaymentInternalDto {
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Created {
+
+        private String checkoutUrl;
+
+    }
 
     @Getter
     @Setter

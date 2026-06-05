@@ -9,6 +9,7 @@ import com.omisys.order.server.domain.repository.OrderProductRepository;
 import com.omisys.order.server.domain.repository.OrderRepository;
 import com.omisys.order.server.exception.OrderErrorCode;
 import com.omisys.order.server.exception.OrderException;
+import com.omisys.order.server.presentation.response.OrderCreateResponse;
 import com.omisys.order.server.infrastructure.client.PaymentClient;
 import com.omisys.order.server.infrastructure.client.ProductClient;
 import com.omisys.order.server.infrastructure.client.PromotionClient;
@@ -50,7 +51,7 @@ public class OrderCreateService {
     private final OrderRollbackService orderRollbackService;
 
     @Transactional
-    public Long createOrder(Long userId, OrderCreateRequest request) {
+    public OrderCreateResponse createOrder(Long userId, OrderCreateRequest request) {
 
         Map<String, Integer> deductedProductsQuantities = new HashMap<>();
         List<Long> usedCoupons = new ArrayList<>();
@@ -116,8 +117,8 @@ public class OrderCreateService {
                 cartService.orderCartProduct(userId, productQuantities);
             }
 
-            payment(userId, order, user.getEmail());
-            return savedOrderId;
+            String checkoutUrl = payment(userId, order, user.getEmail());
+            return OrderCreateResponse.of(savedOrderId, checkoutUrl);
 
         } catch (RuntimeException e) {
             orderRollbackService.rollbackTransaction(userId, deductedProductsQuantities, usedCoupons, pointHistoryId);
@@ -131,11 +132,15 @@ public class OrderCreateService {
         }
     }
 
-    private void payment(Long userId, Order order, String userEmail) {
+    private String payment(Long userId, Order order, String userEmail) {
         PaymentInternalDto.Create payment = new PaymentInternalDto.Create(
                 userId, order.getOrderId(), order.getOrderNo(), userEmail,
                 order.getTotalRealAmount().longValue());
-        paymentClient.payment(payment);
+        PaymentInternalDto.Created created = paymentClient.payment(payment);
+        if (created == null || created.getCheckoutUrl() == null || created.getCheckoutUrl().isBlank()) {
+            throw new OrderException(OrderErrorCode.SERVICE_UNAVAILABLE);
+        }
+        return created.getCheckoutUrl();
     }
 
     private Order createUniqueOrder(

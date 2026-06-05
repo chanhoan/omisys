@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface PaymentClient {
 
     @PostMapping("/internal/payments")
-    void payment(@RequestBody PaymentInternalDto.Create createRequest);
+    PaymentInternalDto.Created payment(@RequestBody PaymentInternalDto.Create createRequest);
 
     @PostMapping("/internal/payments/cancel")
     void cancelPayment(@RequestBody PaymentInternalDto.Cancel cancelRequest);

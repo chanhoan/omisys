@@ -20,7 +20,6 @@ import org.springframework.http.*;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -83,9 +82,11 @@ class PaymentInternalServiceTest {
         )).thenReturn(ResponseEntity.ok(responseBody));
 
         // when
-        paymentInternalService.createPayment(request);
+        String checkoutUrl = paymentInternalService.createPayment(request);
 
         // then
+        assertThat(checkoutUrl).isEqualTo("https://checkout.toss/pay/abc");
+
         // 1) 메시지 전송 검증
         ArgumentCaptor<MessageInternalDto.Create> msgCaptor = ArgumentCaptor.forClass(MessageInternalDto.Create.class);
         verify(messageClient).sendMessage(msgCaptor.capture());
