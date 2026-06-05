@@ -11,7 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -56,17 +56,17 @@ class DeliveryCreateServiceTest {
     }
 
     @Test
-    @DisplayName("이미 배송이 존재하는 주문 — 중복 생성 방지")
-    void createDelivery_alreadyExists_throwsException() {
+    @DisplayName("이미 배송이 존재하는 주문 — 멱등 처리로 null 반환")
+    void createDelivery_alreadyExists_returnsNull() {
         PaymentCompletedEvent event = PaymentCompletedEvent.builder()
                 .orderId(3L).userId(10L).success(true)
                 .build();
 
         when(deliveryRepository.existsByOrderId(3L)).thenReturn(true);
 
-        assertThatThrownBy(() -> deliveryCreateService.createDelivery(event))
-                .isInstanceOf(DeliveryException.class);
+        Long result = deliveryCreateService.createDelivery(event);
 
+        assertThat(result).isNull();
         verify(deliveryRepository, never()).save(any());
     }
 }

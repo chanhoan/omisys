@@ -76,13 +76,12 @@ public class DeliveryService {
     public Long updateState(Long deliveryId, String stateCode) {
         Delivery delivery = findDelivery(deliveryId);
         DeliveryState next = DeliveryState.valueOf(stateCode);
-        delivery.getState().validateTransitionTo(next);
 
         switch (next) {
             case DELIVERED -> delivery.complete();
             case CANCELED -> delivery.cancel();
             default -> throw new DeliveryException(DeliveryErrorCode.INVALID_DELIVERY_STATE_TRANSITION,
-                    delivery.getState().name() + " -> " + next.name());
+                    delivery.getState().name() + " -> " + next.name() + " (SHIPPING 전이는 /invoice 엔드포인트 사용)");
         }
 
         saveTrackingAndOutbox(delivery, next, null);

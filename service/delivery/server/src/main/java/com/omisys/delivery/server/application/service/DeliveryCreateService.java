@@ -2,8 +2,6 @@ package com.omisys.delivery.server.application.service;
 
 import com.omisys.delivery.server.domain.model.Delivery;
 import com.omisys.delivery.server.domain.repository.DeliveryRepository;
-import com.omisys.delivery.server.exception.DeliveryErrorCode;
-import com.omisys.delivery.server.exception.DeliveryException;
 import com.omisys.delivery.server.infrastructure.event.PaymentCompletedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +24,7 @@ public class DeliveryCreateService {
 
         if (deliveryRepository.existsByOrderId(event.getOrderId())) {
             log.warn("Delivery already exists for orderId={}, skipping (idempotent)", event.getOrderId());
-            throw new DeliveryException(DeliveryErrorCode.DELIVERY_ALREADY_EXISTS, event.getOrderId());
+            return null;
         }
 
         Delivery delivery = Delivery.create(event.getOrderId(), event.getUserId());
