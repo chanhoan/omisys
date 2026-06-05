@@ -11,7 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,34 +22,34 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Long>> createReview(
+    public ApiResponse<Long> createReview(
             @AuthenticationPrincipal JwtClaim claim,
             @Valid @RequestBody ReviewRequest.Create request) {
         Long reviewId = reviewService.createReview(claim.getUserId(), request);
-        return ResponseEntity.status(201).body(ApiResponse.created(reviewId));
+        return ApiResponse.created(reviewId);
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<ReviewResponse.Summary>>> getReviews(
+    public ApiResponse<Page<ReviewResponse.Summary>> getReviews(
             @RequestParam String productId,
             @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok(reviewService.getReviews(productId, pageable)));
+        return ApiResponse.ok(reviewService.getReviews(productId, pageable));
     }
 
     @PatchMapping("/{reviewId}")
-    public ResponseEntity<ApiResponse<Void>> updateReview(
+    public ApiResponse<Void> updateReview(
             @AuthenticationPrincipal JwtClaim claim,
             @PathVariable Long reviewId,
             @Valid @RequestBody ReviewRequest.Update request) {
         reviewService.updateReview(claim.getUserId(), reviewId, request);
-        return ResponseEntity.ok(ApiResponse.ok());
+        return ApiResponse.ok();
     }
 
     @DeleteMapping("/{reviewId}")
-    public ResponseEntity<ApiResponse<Void>> deleteReview(
+    public ApiResponse<Void> deleteReview(
             @AuthenticationPrincipal JwtClaim claim,
             @PathVariable Long reviewId) {
         reviewService.deleteReview(claim.getUserId(), reviewId);
-        return ResponseEntity.ok(ApiResponse.ok());
+        return ApiResponse.ok();
     }
 }
