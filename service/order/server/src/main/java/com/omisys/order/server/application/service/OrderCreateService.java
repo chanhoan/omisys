@@ -18,8 +18,6 @@ import com.omisys.product.product_dto.ProductDto;
 import com.omisys.user_dto.infrastructure.AddressDto;
 import com.omisys.user_dto.infrastructure.PointHistoryDto;
 import com.omisys.user_dto.infrastructure.UserDto;
-import feign.FeignException.FeignClientException;
-import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -109,7 +107,7 @@ public class OrderCreateService {
 
             request.getOrderProductInfos()
                     .forEach(productInfo -> createAndSaveOrderProduct(
-                            productInfo, null,
+                            productInfo, productInfo.getUserCouponId(),
                             productPrices.get(productInfo.getProductId()),
                             productNames.get(productInfo.getProductId()),
                             order));
@@ -121,7 +119,7 @@ public class OrderCreateService {
             payment(userId, order, user.getEmail());
             return savedOrderId;
 
-        } catch (FeignClientException | OrderException | CallNotPermittedException e) {
+        } catch (RuntimeException e) {
             orderRollbackService.rollbackTransaction(userId, deductedProductsQuantities, usedCoupons, pointHistoryId);
             throw e;
         }
@@ -168,7 +166,7 @@ public class OrderCreateService {
 
     private void createAndSaveOrderProduct(
             OrderProductInfo productInfo,
-            String couponDto,
+            Long userCouponId,
             BigDecimal productPrice,
             String productName,
             Order order) {
@@ -178,7 +176,7 @@ public class OrderCreateService {
                 productPrice,
                 productName,
                 productInfo.getQuantity(),
-                couponDto,
+                userCouponId,
                 order
         );
         order.addOrderProduct(orderProduct);

@@ -7,6 +7,7 @@ import com.omisys.order.server.application.service.OrderCreateService;
 import com.omisys.order.server.application.service.OrderService;
 import com.omisys.order.server.presentation.response.OrderResponse;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +25,7 @@ public class OrderController {
     @PostMapping
     public ApiResponse<Long> createOrder(
             @AuthenticationPrincipal JwtClaim userClaim,
-            @RequestBody OrderCreateRequest request) {
+            @RequestBody @Valid OrderCreateRequest request) {
         return ApiResponse.created(orderCreateService.createOrder(userClaim.getUserId(), request));
     }
 

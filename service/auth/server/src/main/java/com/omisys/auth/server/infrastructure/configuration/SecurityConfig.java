@@ -42,6 +42,8 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers("/internal/auth/**")
                                         .permitAll()
+                                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                                        .permitAll()
                                         .anyRequest()
                                         .authenticated())
                 .addFilterBefore(

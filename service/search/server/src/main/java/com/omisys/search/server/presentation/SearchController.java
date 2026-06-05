@@ -9,6 +9,7 @@ import com.omisys.search.server.domain.ProductSearchDto;
 import com.omisys.search.server.domain.SortOption;
 import com.omisys.search.server.exception.SearchErrorCode;
 import com.omisys.search.server.exception.SearchException;
+import com.omisys.search.server.presentation.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.elasticsearch.core.SearchHit;
@@ -25,7 +26,7 @@ public class SearchController {
     private final SearchService searchService;
 
     @GetMapping("/api/search")
-    public ApiResponse<List<ProductSearchDto>> searchProducts(
+    public ApiResponse<PageResponse<ProductSearchDto>> searchProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String brandName,
@@ -42,10 +43,15 @@ public class SearchController {
         }
         SearchHits<ProductSearchDto> searchHits = searchService.searchProducts(keyword, categoryId,
                 brandName, mainColor, minPrice, maxPrice, size, sortOption, page, pageSize);
+
         List<ProductSearchDto> products = searchHits.getSearchHits().stream()
                 .map(SearchHit::getContent)
                 .collect(Collectors.toList());
-        return ApiResponse.ok(products);
+
+        long totalElements = searchHits.getTotalHits();
+        int totalPages = pageSize > 0 ? (int) Math.ceil((double) totalElements / pageSize) : 0;
+
+        return ApiResponse.ok(new PageResponse<>(products, totalElements, totalPages, page, pageSize));
     }
 
 }

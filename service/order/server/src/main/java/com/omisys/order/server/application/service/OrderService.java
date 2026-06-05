@@ -15,6 +15,7 @@ import com.omisys.order.server.exception.OrderErrorCode;
 import com.omisys.order.server.exception.OrderException;
 import com.omisys.order.server.infrastructure.client.PaymentClient;
 import com.omisys.order.server.infrastructure.client.ProductClient;
+import com.omisys.order.server.infrastructure.client.PromotionClient;
 import com.omisys.order.server.infrastructure.client.UserClient;
 import com.omisys.order.server.infrastructure.repository.OutboxEventRepository;
 import com.omisys.order.server.presentation.response.OrderResponse;
@@ -55,6 +56,7 @@ public class OrderService {
     private final UserClient userClient;
     private final PaymentClient paymentClient;
     private final ProductClient productClient;
+    private final PromotionClient promotionClient;
     private final OrderProductRepository orderProductRepository;
     private final OutboxEventRepository outboxEventRepository;
     private final OrderCreateService orderCreateService;
@@ -76,7 +78,7 @@ public class OrderService {
             cancelPayment(orderId);
         }
 
-        // TODO 쿠폰 사용 롤백
+        refundCoupons(userId, order);
         order.cancel();
         return orderId;
     }
@@ -239,6 +241,19 @@ public class OrderService {
     private void cancelPayment(Long orderId) {
         PaymentInternalDto.Cancel paymentCancel = new Cancel(orderId, CANCEL_REASON);
         paymentClient.cancelPayment(paymentCancel);
+    }
+
+    private void refundCoupons(Long userId, Order order) {
+        List<OrderProduct> orderProducts = orderProductRepository.findByOrder(order);
+        orderProducts.stream()
+                .filter(op -> op.getUserCouponId() != null)
+                .forEach(op -> {
+                    try {
+                        promotionClient.refundCoupon(op.getUserCouponId(), userId);
+                    } catch (Exception e) {
+                        log.error("[COMPENSATION-FAIL] 쿠폰 환불 실패 — 수동 복구 필요. couponId={}, userId={}", op.getUserCouponId(), userId, e);
+                    }
+                });
     }
 
 

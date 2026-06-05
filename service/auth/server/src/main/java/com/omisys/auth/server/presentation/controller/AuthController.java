@@ -13,6 +13,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,7 +38,7 @@ public class AuthController {
     private final ObjectMapper objectMapper;
 
     @PostMapping("/sign-in")
-    public ApiResponse<Void> signIn(@RequestBody AuthRequest.SignIn request,
+    public ApiResponse<Void> signIn(@RequestBody @Valid AuthRequest.SignIn request,
                                     HttpServletResponse response) {
         AuthResponse.TokenPair tokenPair = authService.signIn(request);
         setTokenCookies(response, tokenPair);

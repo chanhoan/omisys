@@ -44,6 +44,7 @@ public class SecurityConfig {
                                         .requestMatchers("/payments/success").permitAll()
                                         .requestMatchers("/payments/fail").permitAll()
                                         .requestMatchers("/resources/templates/**").permitAll()
+                                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                                         .anyRequest()
                                         .authenticated())
                 .addFilterBefore(
