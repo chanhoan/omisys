@@ -1,5 +1,6 @@
 package com.omisys.payment.server.presentation.controller;
 
+import com.omisys.payment.payment_dto.dto.PaymentInternalDto;
 import com.omisys.payment.server.application.service.PaymentInternalService;
 import com.omisys.payment.server.presentation.request.PaymentRequest;
 import com.omisys.payment.server.presentation.response.PaymentResponse;
@@ -14,8 +15,9 @@ public class PaymentInternalController {
     private final PaymentInternalService paymentInternalService;
 
     @PostMapping("")
-    public void createPayment(@RequestBody PaymentRequest.Create createRequest) {
-        paymentInternalService.createPayment(createRequest);
+    public PaymentInternalDto.Created createPayment(@RequestBody PaymentRequest.Create createRequest) {
+        String checkoutUrl = paymentInternalService.createPayment(createRequest);
+        return new PaymentInternalDto.Created(checkoutUrl);
     }
 
     @PostMapping("/cancel")

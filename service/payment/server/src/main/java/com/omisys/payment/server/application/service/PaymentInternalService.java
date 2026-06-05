@@ -58,7 +58,7 @@ public class PaymentInternalService {
         this.messageClient = messageClient;
     }
 
-    public void createPayment(PaymentRequest.Create request) {
+    public String createPayment(PaymentRequest.Create request) {
         String secretKey = Base64.getEncoder().encodeToString(originalKey.getBytes());
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -84,13 +84,19 @@ public class PaymentInternalService {
             Payment payment = Payment.create(request, tossOrderId);
             payment.setPaymentKey(Objects.requireNonNull(response.getBody()).getPaymentKey());
 
-            sendMessage(response.getBody().getCheckout(), request.getEmail());
+            String checkoutUrl = parseCheckoutUrl(response.getBody().getCheckout());
+            sendMessage(checkoutUrl, request.getEmail());
 
             paymentRepository.save(payment);
+            return checkoutUrl;
         } catch (Exception e) {
             log.error(e.getMessage());
             throw new PaymentException(PaymentErrorCode.INVALID_PARAMETER);
         }
+    }
+
+    private String parseCheckoutUrl(Object checkout) {
+        return checkout.toString().replace("{url=", "").replace("}", "");
     }
 
     @Transactional
@@ -156,10 +162,8 @@ public class PaymentInternalService {
                 .build();
     }
 
-    private void sendMessage(Object checkout, String email) {
+    private void sendMessage(String checkoutUrl, String email) {
         try {
-            String checkoutUrl = checkout.toString().replace("{url=","").replace("}","");
-
             MessageInternalDto.Create messageRequest = new MessageInternalDto.Create();
             messageRequest.setReceiverEmail(email);
             messageRequest.setMessage(checkoutUrl);

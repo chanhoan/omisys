@@ -5,6 +5,7 @@ import com.omisys.common.domain.response.ApiResponse;
 import com.omisys.order.order_dto.dto.OrderCreateRequest;
 import com.omisys.order.server.application.service.OrderCreateService;
 import com.omisys.order.server.application.service.OrderService;
+import com.omisys.order.server.presentation.response.OrderCreateResponse;
 import com.omisys.order.server.presentation.response.OrderResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,7 +23,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ApiResponse<Long> createOrder(
+    public ApiResponse<OrderCreateResponse> createOrder(
             @AuthenticationPrincipal JwtClaim userClaim,
             @RequestBody OrderCreateRequest request) {
         return ApiResponse.created(orderCreateService.createOrder(userClaim.getUserId(), request));

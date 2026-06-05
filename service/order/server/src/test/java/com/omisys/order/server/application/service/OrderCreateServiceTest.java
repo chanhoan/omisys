@@ -11,6 +11,7 @@ import com.omisys.order.server.infrastructure.client.PaymentClient;
 import com.omisys.order.server.infrastructure.client.ProductClient;
 import com.omisys.order.server.infrastructure.client.PromotionClient;
 import com.omisys.order.server.infrastructure.client.UserClient;
+import com.omisys.order.server.presentation.response.OrderCreateResponse;
 import com.omisys.order.server.domain.repository.OrderProductRepository;
 import com.omisys.order.server.domain.repository.OrderRepository;
 import com.omisys.payment.payment_dto.dto.PaymentInternalDto;
@@ -26,7 +27,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -90,12 +90,15 @@ class OrderCreateServiceTest {
             ReflectionTestUtils.setField(saved, "orderId", 999L);
             return saved;
         });
+        when(paymentClient.payment(any(PaymentInternalDto.Create.class)))
+                .thenReturn(new PaymentInternalDto.Created("https://checkout.toss/pay/standard"));
 
         // when
-        Long orderId = orderCreateService.createOrder(userId, request);
+        OrderCreateResponse response = orderCreateService.createOrder(userId, request);
 
         // then
-        assertThat(orderId).isEqualTo(999L);
+        assertThat(response.orderId()).isEqualTo(999L);
+        assertThat(response.checkoutUrl()).isEqualTo("https://checkout.toss/pay/standard");
 
         // ✅ 호출 순서(오케스트레이션) 검증
         InOrder inOrder = inOrder(userClient, productClient, orderRepository, orderProductRepository, cartService, paymentClient);
@@ -151,12 +154,15 @@ class OrderCreateServiceTest {
             ReflectionTestUtils.setField(saved, "orderId", 1000L);
             return saved;
         });
+        when(paymentClient.payment(any(PaymentInternalDto.Create.class)))
+                .thenReturn(new PaymentInternalDto.Created("https://checkout.toss/pay/preorder"));
 
         // when
-        Long orderId = orderCreateService.createOrder(userId, request);
+        OrderCreateResponse response = orderCreateService.createOrder(userId, request);
 
         // then
-        assertThat(orderId).isEqualTo(1000L);
+        assertThat(response.orderId()).isEqualTo(1000L);
+        assertThat(response.checkoutUrl()).isEqualTo("https://checkout.toss/pay/preorder");
 
         verify(cartService, never()).orderCartProduct(anyLong(), anyMap());
         verify(paymentClient).payment(any(PaymentInternalDto.Create.class));
@@ -342,12 +348,15 @@ class OrderCreateServiceTest {
             ReflectionTestUtils.setField(saved, "orderId", 777L);
             return saved;
         });
+        when(paymentClient.payment(any(PaymentInternalDto.Create.class)))
+                .thenReturn(new PaymentInternalDto.Created("https://checkout.toss/pay/coupon"));
 
         // when
-        Long orderId = orderCreateService.createOrder(userId, request);
+        OrderCreateResponse response = orderCreateService.createOrder(userId, request);
 
         // then
-        assertThat(orderId).isEqualTo(777L);
+        assertThat(response.orderId()).isEqualTo(777L);
+        assertThat(response.checkoutUrl()).isEqualTo("https://checkout.toss/pay/coupon");
         verify(promotionClient).applyUserCoupon(userCouponId, userId, BigDecimal.valueOf(5000));
         verify(orderRollbackService, never()).rollbackTransaction(eq(userId), anyMap(), anyList(), any());
     }
@@ -386,14 +395,17 @@ class OrderCreateServiceTest {
             ReflectionTestUtils.setField(saved, "orderId", 888L);
             return saved;
         });
+        when(paymentClient.payment(any(PaymentInternalDto.Create.class)))
+                .thenReturn(new PaymentInternalDto.Created("https://checkout.toss/pay/coupon-line"));
 
         // when
-        orderCreateService.createOrder(userId, request);
+        OrderCreateResponse response = orderCreateService.createOrder(userId, request);
 
         // then: 행금액 = 5000 × 2 = 10000 이 promotionClient에 전달되어야 한다
         ArgumentCaptor<BigDecimal> priceCaptor = ArgumentCaptor.forClass(BigDecimal.class);
         verify(promotionClient).applyUserCoupon(eq(userCouponId), eq(userId), priceCaptor.capture());
         assertThat(priceCaptor.getValue()).isEqualByComparingTo(BigDecimal.valueOf(10000));
+        assertThat(response.checkoutUrl()).isEqualTo("https://checkout.toss/pay/coupon-line");
     }
 
     @Test

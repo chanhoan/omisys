@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class PaymentClientFallback implements PaymentClient {
 
     @Override
-    public void payment(PaymentInternalDto.Create createRequest) {
+    public PaymentInternalDto.Created payment(PaymentInternalDto.Create createRequest) {
         log.error("[CB] PaymentClient.payment 호출 실패 - orderId={}", createRequest.getOrderId());
         throw new OrderException(OrderErrorCode.SERVICE_UNAVAILABLE);
     }
