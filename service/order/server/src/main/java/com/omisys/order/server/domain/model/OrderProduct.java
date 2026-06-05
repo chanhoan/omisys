@@ -41,19 +41,19 @@ public class OrderProduct {
 
     public static OrderProduct createOrderProduct(String productId, BigDecimal productPrice,
                                                   String productName,
-                                                  int quantity, String couponDto, Order order) {
+                                                  int quantity, Long userCouponId, Order order) {
 
         return OrderProduct.builder()
                 .order(order)
                 .productId(productId)
                 .quantity(quantity)
                 .purchasePrice(
-                        couponDto != null ? productPrice.multiply(BigDecimal.valueOf(quantity))
+                        userCouponId != null ? productPrice.multiply(BigDecimal.valueOf(quantity))
                                 .subtract(BigDecimal.valueOf(100))
                                 : productPrice.multiply(BigDecimal.valueOf(quantity)))
                 .productName(productName)
-                .userCouponId(couponDto != null ? 1L : null)
-                .couponPrice(couponDto != null ? BigDecimal.valueOf(100) : BigDecimal.ZERO)
+                .userCouponId(userCouponId)
+                .couponPrice(userCouponId != null ? BigDecimal.valueOf(100) : BigDecimal.ZERO)
                 .build();
     }
 

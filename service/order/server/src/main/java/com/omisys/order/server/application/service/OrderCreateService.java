@@ -107,7 +107,7 @@ public class OrderCreateService {
 
             request.getOrderProductInfos()
                     .forEach(productInfo -> createAndSaveOrderProduct(
-                            productInfo, null,
+                            productInfo, productInfo.getUserCouponId(),
                             productPrices.get(productInfo.getProductId()),
                             productNames.get(productInfo.getProductId()),
                             order));
@@ -166,7 +166,7 @@ public class OrderCreateService {
 
     private void createAndSaveOrderProduct(
             OrderProductInfo productInfo,
-            String couponDto,
+            Long userCouponId,
             BigDecimal productPrice,
             String productName,
             Order order) {
@@ -176,7 +176,7 @@ public class OrderCreateService {
                 productPrice,
                 productName,
                 productInfo.getQuantity(),
-                couponDto,
+                userCouponId,
                 order
         );
         order.addOrderProduct(orderProduct);
