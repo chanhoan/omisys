@@ -460,23 +460,6 @@ services:
     networks:
       - omisys-network
 
-  slack_mysql:
-    image: mysql:8.0
-    container_name: omisys-mysql-slack
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${SLACK_MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${SLACK_MYSQL_DATABASE}
-      MYSQL_USER: ${SLACK_MYSQL_USER}
-      MYSQL_PASSWORD: ${SLACK_MYSQL_PASSWORD}
-    ports:
-      - "3310:3306"
-    command: --default-authentication-plugin=mysql_native_password
-    volumes:
-      - mysql-slack-data:/var/lib/mysql
-    networks:
-      - omisys-network
-
   promotion_mysql:
     image: mysql:8.0
     container_name: omisys-mysql-promotion
@@ -560,8 +543,6 @@ volumes:
   mysql-order-data:
     driver: local
   mysql-payment-data:
-    driver: local
-  mysql-slack-data:
     driver: local
   mysql-promotion-data:
     driver: local

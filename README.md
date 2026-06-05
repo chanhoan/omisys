@@ -77,7 +77,7 @@ OMISYS는 도메인 책임을 기준으로 서비스를 분리하여
 
 ---
 
-### 2️⃣ 주문 · 결제 · Slack 서비스 분리
+### 2️⃣ 주문 · 결제 책임 분리
 
 #### Order → Payment (동기 호출)
 
@@ -87,20 +87,11 @@ OMISYS는 도메인 책임을 기준으로 서비스를 분리하여
 다음 단계 진행을 위한 필수 선행 조건이기 때문에  
 Order Service는 Payment Service를 **동기로 호출**합니다.
 
-#### 결제 URL 전달 책임 분리
+#### 결제 URL 응답
 
-OMISYS에는 별도의 프론트엔드/UI 레이어가 없기 때문에  
-사용자가 결제 URL로 이동할 수 있는 **전달 채널**이 필요했습니다.
-
-이를 Payment 또는 Order 서비스에 포함시킬 경우  
-해당 도메인이 알림/메시징 책임까지 흡수하게 되어  
-도메인 경계가 흐려진다고 판단했습니다.
-
-- **Slack Service를 별도로 분리**
-- 결제 URL 전달 책임을 전담하도록 설계했습니다.
-
-이로 인해 Order와 Payment 서비스는  
-본래의 비즈니스 로직에만 집중할 수 있습니다.
+Payment Service가 생성한 checkout URL은 결제 도메인의 산출물로 취급합니다.
+Order Service는 결제 세션 생성 결과를 받아 주문 ID와 checkout URL을
+HTTP 응답으로 반환하고, 프론트엔드는 해당 URL로 사용자를 이동시킵니다.
 
 ---
 
@@ -164,7 +155,7 @@ OMISYS는 Kafka 기반 **SAGA 패턴**을 적용하여
 - **Database**: MySQL, Cassandra, Redis
 - **Search**: ElasticSearch
 - **Infra**: Docker, GitHub Actions
-- **ETC**: Redisson, FeignClient, Slack API, Toss Payments API
+- **ETC**: Redisson, FeignClient, Toss Payments API
 
 ---
 

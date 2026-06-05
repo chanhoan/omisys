@@ -170,27 +170,6 @@ services:
     networks:
       - omisys-network
 
-  slack-service:
-    image: ghcr.io/chanhoan/omisys-slack-service:latest
-    container_name: slack-service
-    stop_grace_period: 45s
-    restart: always
-    depends_on:
-      eureka-service:
-        condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
-
-      SLACK_MYSQL_ROOT_PASSWORD: ${SLACK_MYSQL_ROOT_PASSWORD}
-      SLACK_MYSQL_DATABASE: ${SLACK_MYSQL_DATABASE}
-      SLACK_MYSQL_USER: ${SLACK_MYSQL_USER}
-      SLACK_MYSQL_PASSWORD: ${SLACK_MYSQL_PASSWORD}
-
-      SLACK_TOKEN: ${SLACK_TOKEN}
-      INTERNAL_SECRET: ${INTERNAL_SECRET}
-    networks:
-      - omisys-network
-
   promotion-service:
     image: ghcr.io/chanhoan/omisys-promotion-service:latest
     container_name: promotion-service

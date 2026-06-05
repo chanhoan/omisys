@@ -7,10 +7,8 @@ import com.omisys.payment.server.domain.repository.PaymentHistoryRepository;
 import com.omisys.payment.server.domain.repository.PaymentRepository;
 import com.omisys.payment.server.exception.PaymentErrorCode;
 import com.omisys.payment.server.exception.PaymentException;
-import com.omisys.payment.server.infrastructure.client.MessageClient;
 import com.omisys.payment.server.presentation.request.PaymentRequest;
 import com.omisys.payment.server.presentation.response.PaymentResponse;
-import com.omisys.slack.slack_dto.dto.MessageInternalDto;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -31,8 +29,6 @@ class PaymentInternalServiceTest {
 
     @Mock private PaymentRepository paymentRepository;
     @Mock private PaymentHistoryRepository paymentHistoryRepository;
-    @Mock private MessageClient messageClient;
-
     @Mock private RestTemplateBuilder restTemplateBuilder;
     @Mock private RestTemplate restTemplate;
 
@@ -47,8 +43,7 @@ class PaymentInternalServiceTest {
         paymentInternalService = new PaymentInternalService(
                 paymentRepository,
                 paymentHistoryRepository,
-                restTemplateBuilder,
-                messageClient
+                restTemplateBuilder
         );
 
         // ✅ @Value 필드는 스프링 컨텍스트 없이 직접 주입
@@ -58,8 +53,8 @@ class PaymentInternalServiceTest {
     }
 
     @Test
-    @DisplayName("createPayment: Toss 결제생성 호출 → Payment 저장 + checkoutUrl 메시지 전송")
-    void createPayment_success_creates_payment_and_sends_message() {
+    @DisplayName("createPayment: Toss 결제생성 호출 → Payment 저장 + checkoutUrl 반환")
+    void createPayment_success_creates_payment_and_returns_checkout_url() {
         // given
         PaymentRequest.Create request = new PaymentRequest.Create();
         request.setUserId(1L);
@@ -87,15 +82,7 @@ class PaymentInternalServiceTest {
         // then
         assertThat(checkoutUrl).isEqualTo("https://checkout.toss/pay/abc");
 
-        // 1) 메시지 전송 검증
-        ArgumentCaptor<MessageInternalDto.Create> msgCaptor = ArgumentCaptor.forClass(MessageInternalDto.Create.class);
-        verify(messageClient).sendMessage(msgCaptor.capture());
-
-        MessageInternalDto.Create sent = msgCaptor.getValue();
-        assertThat(sent.getReceiverEmail()).isEqualTo("test@omisys.com");
-        assertThat(sent.getMessage()).isEqualTo("https://checkout.toss/pay/abc");
-
-        // 2) Payment 저장 검증 (paymentKey 세팅 포함)
+        // Payment 저장 검증 (paymentKey 세팅 포함)
         ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
         verify(paymentRepository).save(paymentCaptor.capture());
 

@@ -6,7 +6,7 @@ on:
     paths:
       - "common/domain/**"
       - "service/auth/auth_dto/**"
-      - "service/slack/slack_dto/**"
+      - "service/payment/payment_dto/**"
       - "service/payment/server/**"
       - "Dockerfile"
       - "docker-compose.yml"
@@ -81,6 +81,7 @@ jobs:
           script: |
             docker pull ghcr.io/chanhoan/omisys-payment-service:latest
             cd /opt/omisys
+            docker rm -f slack-service 2>/dev/null || true
             docker compose up -d --force-recreate --no-deps payment-service
 
       - name: Notify Discord - Result

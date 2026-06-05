@@ -28,6 +28,7 @@ jobs:
             cd /opt/omisys
             git pull origin main
             chmod +x start.sh
+            docker rm -f omisys-mysql-slack 2>/dev/null || true
             docker compose -f docker-compose-dep.yml up -d
 
       - name: Notify Discord - Result
