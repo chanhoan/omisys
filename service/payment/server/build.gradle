@@ -38,7 +38,6 @@ sourceSets {
 dependencies {
     implementation project(':common:domain')
     implementation project(':service:auth:auth_dto')
-    implementation project(':service:slack:slack_dto')
     implementation project(':service:payment:payment_dto')
 
     implementation 'org.springframework.boot:spring-boot-starter-web'

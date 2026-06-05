@@ -7,10 +7,8 @@ import com.omisys.payment.server.domain.repository.PaymentHistoryRepository;
 import com.omisys.payment.server.domain.repository.PaymentRepository;
 import com.omisys.payment.server.exception.PaymentErrorCode;
 import com.omisys.payment.server.exception.PaymentException;
-import com.omisys.payment.server.infrastructure.client.MessageClient;
 import com.omisys.payment.server.presentation.request.PaymentRequest;
 import com.omisys.payment.server.presentation.response.PaymentResponse;
-import com.omisys.slack.slack_dto.dto.MessageInternalDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -45,17 +43,14 @@ public class PaymentInternalService {
     private final PaymentRepository paymentRepository;
     private final PaymentHistoryRepository paymentHistoryRepository;
     private final RestTemplate restTemplate;
-    private final MessageClient messageClient;
 
     public PaymentInternalService(
             PaymentRepository paymentRepository,
             PaymentHistoryRepository paymentHistoryRepository,
-            RestTemplateBuilder restTemplateBuilder,
-            MessageClient messageClient) {
+            RestTemplateBuilder restTemplateBuilder) {
         this.paymentRepository = paymentRepository;
         this.paymentHistoryRepository = paymentHistoryRepository;
         this.restTemplate = restTemplateBuilder.build();
-        this.messageClient = messageClient;
     }
 
     public String createPayment(PaymentRequest.Create request) {
@@ -85,7 +80,6 @@ public class PaymentInternalService {
             payment.setPaymentKey(Objects.requireNonNull(response.getBody()).getPaymentKey());
 
             String checkoutUrl = parseCheckoutUrl(response.getBody().getCheckout());
-            sendMessage(checkoutUrl, request.getEmail());
 
             paymentRepository.save(payment);
             return checkoutUrl;
@@ -162,16 +156,4 @@ public class PaymentInternalService {
                 .build();
     }
 
-    private void sendMessage(String checkoutUrl, String email) {
-        try {
-            MessageInternalDto.Create messageRequest = new MessageInternalDto.Create();
-            messageRequest.setReceiverEmail(email);
-            messageRequest.setMessage(checkoutUrl);
-
-            messageClient.sendMessage(messageRequest);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            throw new PaymentException(PaymentErrorCode.INVALID_PARAMETER);
-        }
-    }
 }
