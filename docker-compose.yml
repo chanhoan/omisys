@@ -275,6 +275,25 @@ services:
     networks:
       - omisys-network
 
+  delivery-service:
+    image: ghcr.io/chanhoan/omisys-delivery-service:latest
+    container_name: delivery-service
+    stop_grace_period: 45s
+    restart: always
+    depends_on:
+      eureka-service:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      DELIVERY_MYSQL_DATABASE: ${DELIVERY_MYSQL_DATABASE}
+      DELIVERY_MYSQL_USER: ${DELIVERY_MYSQL_USER}
+      DELIVERY_MYSQL_PASSWORD: ${DELIVERY_MYSQL_PASSWORD}
+      DELIVERY_MYSQL_ROOT_PASSWORD: ${DELIVERY_MYSQL_ROOT_PASSWORD}
+      INTERNAL_SECRET: ${INTERNAL_SECRET}
+    networks:
+      - omisys-network
+
 networks:
   omisys-network:
     external: true
