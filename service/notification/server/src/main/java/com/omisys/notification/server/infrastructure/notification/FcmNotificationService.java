@@ -47,8 +47,7 @@ public class FcmNotificationService {
             String response = FirebaseMessaging.getInstance().send(message);
             log.info("FCM sent: {} type={}", response, type);
         } catch (FirebaseMessagingException e) {
-            if (e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED
-                    || e.getMessagingErrorCode() == MessagingErrorCode.INVALID_ARGUMENT) {
+            if (isInvalidToken(e.getMessagingErrorCode())) {
                 throw new InvalidFcmTokenException(fcmToken);
             }
             log.error("FCM send failed type={}", type, e);
@@ -57,6 +56,10 @@ public class FcmNotificationService {
             log.error("FCM send failed type={}", type, e);
             throw new RuntimeException(e);
         }
+    }
+
+    static boolean isInvalidToken(MessagingErrorCode errorCode) {
+        return errorCode == MessagingErrorCode.UNREGISTERED;
     }
 
     private String title(NotificationType type) {
