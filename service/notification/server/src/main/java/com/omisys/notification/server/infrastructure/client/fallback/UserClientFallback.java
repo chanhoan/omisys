@@ -14,4 +14,9 @@ public class UserClientFallback implements UserClient {
         log.warn("UserClient fallback for userId={}", userId);
         return null;
     }
+
+    @Override
+    public void deleteDevice(String deviceId) {
+        log.warn("UserClient fallback deleting deviceId={}", deviceId);
+    }
 }

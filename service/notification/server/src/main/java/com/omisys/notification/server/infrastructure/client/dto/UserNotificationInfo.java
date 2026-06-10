@@ -1,4 +1,6 @@
 package com.omisys.notification.server.infrastructure.client.dto;
 
-public record UserNotificationInfo(String email, String fcmToken) {
+import java.util.List;
+
+public record UserNotificationInfo(String email, List<UserDeviceInfo> devices) {
 }

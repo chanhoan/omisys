@@ -9,8 +9,10 @@ import com.omisys.notification.server.exception.NotificationErrorCode;
 import com.omisys.notification.server.exception.NotificationException;
 import com.omisys.notification.server.infrastructure.client.UserClient;
 import com.omisys.notification.server.infrastructure.client.dto.UserNotificationInfo;
+import com.omisys.notification.server.infrastructure.client.dto.UserDeviceInfo;
 import com.omisys.notification.server.infrastructure.notification.EmailNotificationService;
 import com.omisys.notification.server.infrastructure.notification.FcmNotificationService;
+import com.omisys.notification.server.infrastructure.notification.InvalidFcmTokenException;
 import com.omisys.order.order_dto.dto.NotificationOrderDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +39,10 @@ public class NotificationService {
         long orderId = dto.getOrderId();
 
         sendEmail(info.email(), type, productName, orderId, dto.getUserId());
-        sendFcm(info.fcmToken(), type, productName, orderId, dto.getUserId());
+        if (info.devices() != null) {
+            info.devices().forEach(device ->
+                    sendFcm(device, type, productName, orderId, dto.getUserId()));
+        }
     }
 
     private void sendEmail(String email, NotificationType type, String productName,
@@ -54,20 +59,28 @@ public class NotificationService {
         }
     }
 
-    private void sendFcm(String fcmToken, NotificationType type, String productName,
+    private void sendFcm(UserDeviceInfo device, NotificationType type, String productName,
                          long orderId, Long userId) {
+        String fcmToken = device.pushToken();
         if (fcmToken == null || fcmToken.isBlank()) {
             return;
         }
         try {
             fcmService.send(fcmToken, type, productName, orderId);
             notificationRepository.save(
-                    Notification.sent(userId, orderId, type, NotificationChannel.FCM));
+                    Notification.sent(userId, orderId, type, NotificationChannel.FCM,
+                            device.deviceId()));
+        } catch (InvalidFcmTokenException e) {
+            log.warn("Removing invalid FCM device userId={} deviceId={}", userId, device.deviceId());
+            userClient.deleteDevice(device.deviceId());
+            notificationRepository.save(
+                    Notification.failed(userId, orderId, type, NotificationChannel.FCM,
+                            device.deviceId(), safeErrorMessage(e)));
         } catch (Exception e) {
             log.error("FCM notification failed userId={} type={}", userId, type, e);
             notificationRepository.save(
                     Notification.failed(userId, orderId, type, NotificationChannel.FCM,
-                            safeErrorMessage(e)));
+                            device.deviceId(), safeErrorMessage(e)));
         }
     }
 
