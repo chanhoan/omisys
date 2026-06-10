@@ -14,6 +14,7 @@ public class ProductDto {
 
     private UUID productId;
     private String productName;
+    private String thumbnailImgUrl;
     private BigDecimal originalPrice;
     private BigDecimal discountedPrice;
     private Double discountPercent;
@@ -24,6 +25,7 @@ public class ProductDto {
     public ProductDto(
             UUID productId,
             String productName,
+            String thumbnailImgUrl,
             BigDecimal originalPrice,
             BigDecimal discountedPrice,
             Double discountPercent,
@@ -32,6 +34,7 @@ public class ProductDto {
             boolean isCoupon) {
         this.productId = productId;
         this.productName = productName;
+        this.thumbnailImgUrl = thumbnailImgUrl;
         this.originalPrice = originalPrice;
         this.discountedPrice = discountedPrice;
         this.discountPercent = discountPercent;

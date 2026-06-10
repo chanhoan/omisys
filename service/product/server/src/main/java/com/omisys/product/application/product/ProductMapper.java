@@ -11,6 +11,7 @@ public class ProductMapper {
         return ProductDto.builder()
                 .productId(product.getProductId())
                 .productName(product.getProductName())
+                .thumbnailImgUrl(product.getThumbnailImgUrl())
                 .originalPrice(product.getOriginalPrice())
                 .discountPercent(product.getDiscountPercent())
                 .discountedPrice(product.getDiscountedPrice())
