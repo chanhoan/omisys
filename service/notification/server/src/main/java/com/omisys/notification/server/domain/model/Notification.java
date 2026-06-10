@@ -27,6 +27,9 @@ public class Notification extends BaseEntity {
     @Column(nullable = false)
     private Long orderId;
 
+    @Column(length = 128)
+    private String deviceId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private NotificationType type;
@@ -47,11 +50,18 @@ public class Notification extends BaseEntity {
 
     public static Notification sent(Long userId, Long orderId,
                                     NotificationType type, NotificationChannel channel) {
+        return sent(userId, orderId, type, channel, null);
+    }
+
+    public static Notification sent(Long userId, Long orderId,
+                                    NotificationType type, NotificationChannel channel,
+                                    String deviceId) {
         Notification n = new Notification();
         n.userId = userId;
         n.orderId = orderId;
         n.type = type;
         n.channel = channel;
+        n.deviceId = deviceId;
         n.status = NotificationStatus.SENT;
         n.sentAt = LocalDateTime.now();
         return n;
@@ -60,11 +70,18 @@ public class Notification extends BaseEntity {
     public static Notification failed(Long userId, Long orderId,
                                       NotificationType type, NotificationChannel channel,
                                       String errorMessage) {
+        return failed(userId, orderId, type, channel, null, errorMessage);
+    }
+
+    public static Notification failed(Long userId, Long orderId,
+                                      NotificationType type, NotificationChannel channel,
+                                      String deviceId, String errorMessage) {
         Notification n = new Notification();
         n.userId = userId;
         n.orderId = orderId;
         n.type = type;
         n.channel = channel;
+        n.deviceId = deviceId;
         n.status = NotificationStatus.FAILED;
         n.errorMessage = errorMessage;
         return n;

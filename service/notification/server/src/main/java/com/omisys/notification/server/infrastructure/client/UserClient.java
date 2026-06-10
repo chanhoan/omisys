@@ -4,6 +4,7 @@ import com.omisys.notification.server.infrastructure.client.dto.UserNotification
 import com.omisys.notification.server.infrastructure.client.fallback.UserClientFallback;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @FeignClient(name = "user-service", fallback = UserClientFallback.class)
@@ -11,4 +12,7 @@ public interface UserClient {
 
     @GetMapping("/internal/users/{userId}/notification-info")
     UserNotificationInfo getNotificationInfo(@PathVariable Long userId);
+
+    @DeleteMapping("/internal/users/devices/{deviceId}")
+    void deleteDevice(@PathVariable String deviceId);
 }

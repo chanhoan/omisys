@@ -1,4 +1,6 @@
 package com.omisys.user.presentation.response;
 
-public record UserNotificationInfoResponse(String email, String fcmToken) {
+import java.util.List;
+
+public record UserNotificationInfoResponse(String email, List<UserDeviceInfoResponse> devices) {
 }

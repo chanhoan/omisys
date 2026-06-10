@@ -2,6 +2,7 @@ package com.omisys.user.presentation.controller;
 
 import com.omisys.user.application.service.PointHistoryInternalService;
 import com.omisys.user.application.service.UserInternalService;
+import com.omisys.user.application.service.UserDeviceService;
 import com.omisys.user.presentation.response.UserNotificationInfoResponse;
 import com.omisys.user_dto.infrastructure.PointHistoryDto;
 import com.omisys.user_dto.infrastructure.UserDto;
@@ -15,6 +16,7 @@ public class UserInternalController {
 
     private final UserInternalService userInternalService;
     private final PointHistoryInternalService pointHistoryInternalService;
+    private final UserDeviceService userDeviceService;
 
     @GetMapping
     public UserDto getUserByUsername(@RequestParam String username) {
@@ -44,6 +46,11 @@ public class UserInternalController {
     @GetMapping("/{userId}/notification-info")
     public UserNotificationInfoResponse getNotificationInfo(@PathVariable Long userId) {
         return userInternalService.getNotificationInfo(userId);
+    }
+
+    @DeleteMapping("/devices/{deviceId}")
+    public void deleteDevice(@PathVariable String deviceId) {
+        userDeviceService.deleteInternal(deviceId);
     }
 
 }

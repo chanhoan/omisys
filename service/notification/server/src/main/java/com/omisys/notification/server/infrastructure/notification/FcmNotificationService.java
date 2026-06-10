@@ -2,7 +2,13 @@ package com.omisys.notification.server.infrastructure.notification;
 
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.MessagingErrorCode;
+import com.google.firebase.messaging.AndroidConfig;
+import com.google.firebase.messaging.AndroidNotification;
+import com.google.firebase.messaging.ApnsConfig;
+import com.google.firebase.messaging.Aps;
 import com.google.firebase.messaging.Notification;
 import com.omisys.notification.server.domain.model.vo.NotificationType;
 import lombok.extern.slf4j.Slf4j;
@@ -23,13 +29,30 @@ public class FcmNotificationService {
         try {
             Message message = Message.builder()
                     .setToken(fcmToken)
+                    .putData("orderId", Long.toString(orderId))
+                    .putData("type", type.name())
                     .setNotification(Notification.builder()
                             .setTitle(title(type))
                             .setBody("%s 외 주문(#%d)".formatted(productName, orderId))
                             .build())
+                    .setAndroidConfig(AndroidConfig.builder()
+                            .setNotification(AndroidNotification.builder()
+                                    .setChannelId("transactions")
+                                    .build())
+                            .build())
+                    .setApnsConfig(ApnsConfig.builder()
+                            .setAps(Aps.builder().setSound("default").build())
+                            .build())
                     .build();
             String response = FirebaseMessaging.getInstance().send(message);
             log.info("FCM sent: {} type={}", response, type);
+        } catch (FirebaseMessagingException e) {
+            if (e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED
+                    || e.getMessagingErrorCode() == MessagingErrorCode.INVALID_ARGUMENT) {
+                throw new InvalidFcmTokenException(fcmToken);
+            }
+            log.error("FCM send failed type={}", type, e);
+            throw new RuntimeException(e);
         } catch (Exception e) {
             log.error("FCM send failed type={}", type, e);
             throw new RuntimeException(e);
