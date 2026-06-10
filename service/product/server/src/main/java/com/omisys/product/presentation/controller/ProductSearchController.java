@@ -25,7 +25,7 @@ public class ProductSearchController {
     public ApiResponse<Page<ProductSearchDto>> getProductList(
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "30") @Min(1) @Max(100) int size,
-            @RequestParam("categoryId") Long categoryId,
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "brandName", required = false) String brandName,
             @RequestParam(name = "minPrice", defaultValue = "1000") @Min(1000) Long minPrice,
             @RequestParam(value = "maxPrice", required = false) Long maxPrice,

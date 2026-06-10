@@ -16,6 +16,7 @@ public class CartProductResponse {
     private Integer quantity;
 
     private String name;
+    private String thumbnailImgUrl;
     private BigDecimal originalPrice;
     private BigDecimal discountedPrice;
     private Double discountPercent;
@@ -25,6 +26,7 @@ public class CartProductResponse {
                 product.getProductId().toString(),
                 quantity,
                 product.getProductName(),
+                product.getThumbnailImgUrl(),
                 product.getOriginalPrice(),
                 product.getDiscountedPrice(),
                 product.getDiscountPercent());
