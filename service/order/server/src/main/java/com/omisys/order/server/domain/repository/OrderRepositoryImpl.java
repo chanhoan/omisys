@@ -4,8 +4,10 @@ import static com.omisys.order.server.domain.model.QOrder.order;
 import static com.omisys.order.server.domain.model.QOrderProduct.orderProduct;
 
 import com.omisys.order.server.domain.model.Order;
+import com.omisys.order.server.domain.model.vo.OrderState;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,10 +44,14 @@ public class OrderRepositoryImpl implements OrderRepositoryCustom {
     }
 
     @Override
-    public Page<Order> getAllOrder(Pageable pageable, Long orderUserId, String productId) {
+    public Page<Order> getAllOrder(Pageable pageable, Long orderUserId, String productId, OrderState state,
+                                    LocalDateTime from, LocalDateTime to) {
         BooleanBuilder predicate = new BooleanBuilder();
         if (orderUserId != null) predicate.and(order.userId.eq(orderUserId));
         if (productId != null && !productId.trim().isEmpty()) predicate.and(orderProduct.productId.eq(productId));
+        if (state != null) predicate.and(order.state.eq(state));
+        if (from != null) predicate.and(order.createdAt.goe(from));
+        if (to != null) predicate.and(order.createdAt.loe(to));
 
         List<Order> orders = queryFactory.selectFrom(order)
                 .join(order.orderProducts, orderProduct).fetchJoin()

@@ -13,6 +13,7 @@ import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.cors.reactive.CorsUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -53,6 +54,13 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // Origin/Access-Control-Request-Method 헤더는 non-browser 클라이언트가 위조 가능하므로
+        // 이 bypass는 게이트웨이 단독으로는 인증을 보장하지 않는다. 각 다운스트림 서비스가
+        // X-User-Claims 헤더 부재 시 자체 SecurityConfig로 401/403을 반환하는 defense-in-depth에 의존한다.
+        if (CorsUtils.isPreFlightRequest(exchange.getRequest())) {
+            return chain.filter(exchange);
+        }
+
         String path = exchange.getRequest().getURI().getPath();
 
         if (isPublicPath(path)) {

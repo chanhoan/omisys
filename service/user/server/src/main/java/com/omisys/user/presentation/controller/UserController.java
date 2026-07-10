@@ -63,4 +63,13 @@ public class UserController {
         return ApiResponse.ok();
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PatchMapping("/{userId}/role")
+    public ApiResponse<Void> updateUserRole(
+            @PathVariable Long userId,
+            @RequestBody @Valid UserRequest.UpdateRole request) {
+        userService.updateUserRole(userId, request.getRole());
+        return ApiResponse.ok();
+    }
+
 }

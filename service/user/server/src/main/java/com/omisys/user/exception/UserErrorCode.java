@@ -10,6 +10,7 @@ public enum UserErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
     USER_CONFLICT(HttpStatus.CONFLICT, "이미 존재하는 사용자입니다."),
     INVAILD_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
+    ROLE_INVALID(HttpStatus.BAD_REQUEST, "존재하지 않는 권한입니다."),
 
     INVALID_POINT_HISTORY_TYPE(HttpStatus.NOT_FOUND, "포인트 타입을 찾을 수 없습니다."),
     INSUFFICIENT_POINTS(HttpStatus.BAD_REQUEST, "포인트가 부족합니다."),

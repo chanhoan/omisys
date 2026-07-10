@@ -5,6 +5,7 @@ import com.omisys.user.application.dto.UserTierResponse;
 import com.omisys.user.domain.model.Tier;
 import com.omisys.user.domain.model.User;
 import com.omisys.user.domain.model.UserTier;
+import com.omisys.user.domain.model.vo.UserRole;
 import com.omisys.user.domain.repository.TierRepository;
 import com.omisys.user.domain.repository.UserRepository;
 import com.omisys.user.domain.repository.UserTierRepository;
@@ -45,10 +46,25 @@ public class UserService {
         );
 
         User user = userRepository.save(
-                User.create(request, passwordEncoder.encode(request.getPassword()))
+                User.create(request, passwordEncoder.encode(request.getPassword()), UserRole.ROLE_USER)
         );
 
         userTierRepository.save(UserTier.create(user, defaultTier));
+
+    }
+
+    @Transactional
+    public void updateUserRole(Long userId, String role) {
+
+        User user = userRepository
+                .findById(userId)
+                .orElseThrow(() -> new UserException(USER_NOT_FOUND));
+
+        try {
+            user.updateRole(UserRole.valueOf(role));
+        } catch (IllegalArgumentException e) {
+            throw new UserException(ROLE_INVALID);
+        }
 
     }
 

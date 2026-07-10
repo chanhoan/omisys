@@ -1,6 +1,5 @@
 package com.omisys.user.presentation.request;
 
-import com.omisys.user.domain.model.vo.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -32,9 +31,6 @@ public class UserRequest {
         @NotBlank(message = "닉네임은 비어 있을 수 없습니다.")
         private String nickname;
 
-        @NotBlank(message = "사용자 타입은 비어 있을 수 없습니다.")
-        private UserRole role;
-
     }
 
     @Getter
@@ -63,6 +59,16 @@ public class UserRequest {
 
         @NotBlank(message = "등급은 비어있을 수 없습니다.")
         private String tier;
+
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpdateRole {
+
+        @NotBlank(message = "권한은 비어 있을 수 없습니다.")
+        private String role;
 
     }
 }
