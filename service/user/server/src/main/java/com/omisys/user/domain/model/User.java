@@ -56,14 +56,14 @@ public class User extends BaseEntity {
     @Column
     private Boolean isDeleted;
 
-    public static User create(UserRequest.Create request, String encodedPassword) {
+    public static User create(UserRequest.Create request, String encodedPassword, UserRole role) {
         return User.builder()
                 .username(request.getUsername())
                 .password(encodedPassword)
                 .nickname(request.getNickname())
                 .point(BigDecimal.ZERO)
                 .email(request.getEmail())
-                .role(request.getRole())
+                .role(role)
                 .isDeleted(false)
                 .build();
     }
@@ -74,6 +74,10 @@ public class User extends BaseEntity {
 
     public void updatePassword(String password) {
         this.password = password;
+    }
+
+    public void updateRole(UserRole role) {
+        this.role = role;
     }
 
     public void delete(Boolean isDeleted) {

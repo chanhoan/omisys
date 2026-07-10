@@ -2,6 +2,7 @@ package com.omisys.user.application.service;
 
 import com.omisys.user.domain.model.Tier;
 import com.omisys.user.domain.model.User;
+import com.omisys.user.domain.model.vo.UserRole;
 import com.omisys.user.domain.repository.TierRepository;
 import com.omisys.user.domain.repository.UserRepository;
 import com.omisys.user.domain.repository.UserTierRepository;
@@ -39,8 +40,7 @@ class UserServiceTest {
                 "user1",
                 "Password1!",
                 "user1@omisys.com",
-                "nick",
-                com.omisys.user.domain.model.vo.UserRole.ROLE_USER
+                "nick"
         );
 
         when(userRepository.findByUsername("user1")).thenReturn(Optional.empty());
@@ -72,6 +72,32 @@ class UserServiceTest {
     }
 
     @Test
+    @DisplayName("createUser 보안: 공개 가입은 항상 ROLE_USER로 저장된다 (권한상승 차단)")
+    void createUser_alwaysForcesRoleUser() {
+        // given
+        UserRequest.Create request = new UserRequest.Create(
+                "user2",
+                "Password1!",
+                "user2@omisys.com",
+                "nick"
+        );
+
+        when(userRepository.findByUsername("user2")).thenReturn(Optional.empty());
+        when(passwordEncoder.encode("Password1!")).thenReturn("ENCODED");
+
+        Tier ironTier = mock(Tier.class);
+        when(tierRepository.findByName("아이언")).thenReturn(Optional.of(ironTier));
+
+        // when
+        userService.createUser(request);
+
+        // then
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        assertThat(userCaptor.getValue().getRole()).isEqualTo(UserRole.ROLE_USER);
+    }
+
+    @Test
     @DisplayName("createUser 실패: username 중복이면 USER_CONFLICT 예외")
     void createUser_fail_duplicate_username() {
         // given
@@ -79,8 +105,7 @@ class UserServiceTest {
                 "dupuser",
                 "Password1!",
                 "dup@omisys.com",
-                "nick",
-                com.omisys.user.domain.model.vo.UserRole.ROLE_USER
+                "nick"
         );
 
         when(userRepository.findByUsername("dupuser")).thenReturn(Optional.of(mock(User.class)));
@@ -163,5 +188,57 @@ class UserServiceTest {
 
         // then
         verify(user).delete(true);
+    }
+
+    @Test
+    @DisplayName("updateUserRole 성공: enum name(ROLE_MANAGER)을 받아 role 승격 반영")
+    void updateUserRole_success() {
+        // given
+        long userId = 1L;
+
+        User user = mock(User.class);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // when
+        userService.updateUserRole(userId, "ROLE_MANAGER");
+
+        // then
+        verify(user).updateRole(UserRole.ROLE_MANAGER);
+    }
+
+    @Test
+    @DisplayName("updateUserRole 실패: 대상 사용자가 없으면 USER_NOT_FOUND 예외")
+    void updateUserRole_fail_user_not_found() {
+        // given
+        long userId = 99L;
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> userService.updateUserRole(userId, "ROLE_MANAGER"))
+                .isInstanceOf(UserException.class)
+                .satisfies(ex -> {
+                    UserException ue = (UserException) ex;
+                    assertThat(ue.getErrorCode()).isEqualTo(UserErrorCode.USER_NOT_FOUND);
+                });
+    }
+
+    @Test
+    @DisplayName("updateUserRole 실패: enum name이 아닌 값(한글 라벨)이면 ROLE_INVALID 예외")
+    void updateUserRole_fail_invalid_role() {
+        // given
+        long userId = 1L;
+
+        User user = mock(User.class);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // when & then
+        assertThatThrownBy(() -> userService.updateUserRole(userId, "관리자"))
+                .isInstanceOf(UserException.class)
+                .satisfies(ex -> {
+                    UserException ue = (UserException) ex;
+                    assertThat(ue.getErrorCode()).isEqualTo(UserErrorCode.ROLE_INVALID);
+                });
+
+        verify(user, never()).updateRole(any());
     }
 }
