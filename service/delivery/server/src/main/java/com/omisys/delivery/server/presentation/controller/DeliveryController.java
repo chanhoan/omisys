@@ -51,6 +51,10 @@ public class DeliveryController {
         return ApiResponse.ok(deliveryService.getTrackingHistory(userClaim.getUserId(), deliveryId));
     }
 
+    /**
+     * 송장 등록의 정본(source of truth) 엔드포인트. 관리자 프론트는 송장 입력 시 이 API만 사용한다.
+     * (order 서비스의 {@code PATCH /api/orders/{orderId}/invoice-number/{invoiceNumber}} 는 deprecated)
+     */
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PatchMapping("/{deliveryId}/invoice")
     public ApiResponse<Long> registerInvoice(

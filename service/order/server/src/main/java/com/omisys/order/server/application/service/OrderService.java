@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -174,9 +175,20 @@ public class OrderService {
     }
 
     public Page<OrderResponse.AllOrderGetResponse> getAllOrder(Pageable pageable, Long userId, Long orderUserId,
-                                                               String productId) {
+                                                               String productId, String state,
+                                                               LocalDateTime from, LocalDateTime to) {
         UserDto user = userClient.getUser(userId);
-        Page<Order> orders = orderRepository.getAllOrder(pageable, orderUserId, productId);
+
+        OrderState orderState = null;
+        if (state != null && !state.isBlank()) {
+            try {
+                orderState = OrderState.valueOf(state);
+            } catch (IllegalArgumentException e) {
+                throw new OrderException(OrderErrorCode.ORDER_STATE_NOT_FOUND);
+            }
+        }
+
+        Page<Order> orders = orderRepository.getAllOrder(pageable, orderUserId, productId, orderState, from, to);
 
         List<OrderResponse.AllOrderGetResponse> responses = new ArrayList<>();
         orders.forEach(
