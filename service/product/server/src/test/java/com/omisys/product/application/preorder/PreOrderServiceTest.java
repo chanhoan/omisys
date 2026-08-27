@@ -3,7 +3,7 @@ package com.omisys.product.application.preorder;
 import com.omisys.product.domain.model.PreOrder;
 import com.omisys.product.domain.model.PreOrderState;
 import com.omisys.product.domain.model.Product;
-import com.omisys.product.domain.repository.cassandra.ProductRepository;
+import com.omisys.product.domain.repository.jpa.ProductRepository;
 import com.omisys.product.domain.repository.jpa.PreOrderRepository;
 import com.omisys.product.exception.ProductErrorCode;
 import com.omisys.product.exception.ProductException;

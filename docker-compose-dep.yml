@@ -3,6 +3,7 @@ version: "3.8"
 services:
   setup:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    profiles: [ "search" ]
     env_file:
       - .env
     volumes:
@@ -14,9 +15,6 @@ services:
       bash -c '
         if [ x${ELASTIC_PASSWORD} == x ]; then
           echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
-          exit 1;
-        elif [ x${KIBANA_PASSWORD} == x ]; then
-          echo "Set the KIBANA_PASSWORD environment variable in the .env file";
           exit 1;
         fi;
         if [ ! -f config/certs/ca.zip ]; then
@@ -53,34 +51,9 @@ services:
       timeout: 5s
       retries: 120
 
-  kibana-init:
-    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
-    env_file:
-      - .env
-    depends_on:
-      es01:
-        condition: service_healthy
-    volumes:
-      - certs:/usr/share/elasticsearch/config/certs
-    user: "0"
-    networks:
-      - omisys-network
-    command: >
-      bash -c '
-        echo "Waiting for Elasticsearch availability";
-        until curl -s --cacert config/certs/ca/ca.crt https://es01:9200 \
-              | grep -Eq "(missing authentication credentials|security_exception)"; do sleep 10; done;
-        echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt \
-          -u "elastic:${ELASTIC_PASSWORD}" \
-          -H "Content-Type: application/json" \
-          https://es01:9200/_security/user/kibana_system/_password \
-          -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
-        echo "kibana_system password set.";
-      '
-
   es01:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}
+    profiles: [ "search" ]
     restart: always
     env_file:
       - .env
@@ -97,6 +70,7 @@ services:
       - cluster.name=${CLUSTER_NAME}
       - cluster.initial_master_nodes=es01
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
       - bootstrap.memory_lock=true
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
@@ -109,7 +83,7 @@ services:
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
-    mem_limit: ${MEM_LIMIT}
+    mem_limit: 1600m
     networks:
       - omisys-network
     ulimits:
@@ -126,212 +100,30 @@ services:
       timeout: 10s
       retries: 120
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:${STACK_VERSION}
-    restart: always
-    env_file:
-      - .env
-    depends_on:
-      es01:
-        condition: service_healthy
-      kibana-init:
-        condition: service_completed_successfully
-    volumes:
-      - certs:/usr/share/kibana/config/certs
-      - kibanadata:/usr/share/kibana/data
-    ports:
-      - ${KIBANA_PORT}:5601
-    environment:
-      - SERVERNAME=kibana
-      - ELASTICSEARCH_HOSTS=https://es01:9200
-      - ELASTICSEARCH_USERNAME=kibana_system
-      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
-      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
-    mem_limit: ${MEM_LIMIT}
-    networks:
-      - omisys-network
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'",
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 120
-
-  logstash01:
-    image: docker.elastic.co/logstash/logstash:${STACK_VERSION}
-    restart: always
-    env_file:
-      - .env
-    depends_on:
-      es01:
-        condition: service_healthy
-      kibana:
-        condition: service_healthy
-    labels:
-      co.elastic.logs/module: logstash
-    user: root
-    ports:
-      - "5044:5044"
-      - "50000:50000/tcp"
-      - "50000:50000/udp"
-      - "9600:9600"
-    networks:
-      - omisys-network
-    volumes:
-      - certs:/usr/share/logstash/certs
-      - logstashdata01:/usr/share/logstash/data
-      - "./logstash_ingest_data/:/usr/share/logstash/ingest_data/"
-      - "./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro"
-    environment:
-      - xpack.monitoring.enabled=false
-      - ELASTIC_USER=elastic
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - ELASTIC_HOSTS=https://es01:9200
-
-  metricbeat01:
-    image: docker.elastic.co/beats/metricbeat:${STACK_VERSION}
-    restart: always
-    env_file:
-      - .env
-    depends_on:
-      es01:
-        condition: service_healthy
-      kibana:
-        condition: service_healthy
-    user: root
-    networks:
-      - omisys-network
-    volumes:
-      - certs:/usr/share/metricbeat/certs
-      - metricbeatdata01:/usr/share/metricbeat/data
-      - "./metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro"
-      - "/proc:/hostfs/proc:ro"
-      - "/:/hostfs:ro"
-    environment:
-      - ELASTIC_USER=elastic
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - ELASTIC_HOSTS=https://es01:9200
-      - KIBANA_HOSTS=http://kibana:5601
-      - LOGSTASH_HOSTS=http://logstash01:9600
-
-  filebeat01:
-    image: docker.elastic.co/beats/filebeat:${STACK_VERSION}
-    restart: always
-    env_file:
-      - .env
-    depends_on:
-      es01:
-        condition: service_healthy
-    user: root
-    networks:
-      - omisys-network
-    volumes:
-      - certs:/usr/share/filebeat/certs
-      - filebeatdata01:/usr/share/filebeat/data
-      - "./filebeat_ingest_data/:/usr/share/filebeat/ingest_data/"
-      - "./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro"
-      - "/var/lib/docker/containers:/var/lib/docker/containers:ro"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-    environment:
-      - ELASTIC_USER=elastic
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - ELASTIC_HOSTS=https://es01:9200
-      - KIBANA_HOSTS=http://kibana:5601
-      - LOGSTASH_HOSTS=http://logstash01:9600
-
-  zookeeper:
-    image: wurstmeister/zookeeper:latest
-    restart: always
-    platform: linux/amd64
-    ports:
-      - "2181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    networks:
-      - omisys-network
-    healthcheck:
-      test: [ "CMD-SHELL", "echo ruok | nc localhost 2181 | grep -q imok" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-
   kafka:
     container_name: kafka
-    image: wurstmeister/kafka:latest
+    image: apache/kafka:3.8.1
     restart: always
-    platform: linux/amd64
-    depends_on:
-      zookeeper:
-        condition: service_healthy
     ports:
-      - "29092:29092"   # 호스트(윈도우/WSL)에서 접속용
+      - "29092:29092"
     environment:
-      KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:29092
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
       KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9092,OUTSIDE://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-    networks:
-      - omisys-network
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_HEAP_OPTS: "-Xms256m -Xmx512m"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    platform: linux/amd64
-    ports:
-      - "8080:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
-      KAFKA_CLUSTERS_0_READONLY: "false"
+      - kafka-data:/var/lib/kafka/data
     networks:
       - omisys-network
-
-  cassandra:
-    image: cassandra:latest
-    container_name: cassandra-node-01
-    environment:
-      - CASSANDRA_SEEDS=cassandra-node-01
-      - CASSANDRA_CLUSTER_NAME=omisys
-      - CASSANDRA_DC=datacenter01
-      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
-    networks:
-      - omisys-network
-    ports:
-      - "7001:7001"      # 노드간 클러스터 포트
-      - "7002:7002"      # 노드간 보안 포트
-      - "9042:9042"      # CQL 클라이언트 포트
-    volumes:
-      - cassandra_data:/var/lib/cassandra
-    healthcheck:
-      test: [ "CMD-SHELL", "nodetool status | grep -E '^UN' || exit 1" ]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
-
-  cassandra-init:
-    image: cassandra:latest
-    depends_on:
-      cassandra:
-        condition: service_healthy
-    networks:
-      - omisys-network
-    restart: on-failure
-    command:
-      - cqlsh
-      - cassandra
-      - -e
-      - "CREATE KEYSPACE IF NOT EXISTS product WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};"
+    mem_limit: 800m
 
   cart-cache:
     container_name: cart-cache
@@ -343,6 +135,7 @@ services:
     restart: always
     networks:
       - omisys-network
+    mem_limit: 80m
 
   product-cache:
     container_name: product-cache
@@ -355,6 +148,7 @@ services:
     restart: always
     networks:
       - omisys-network
+    mem_limit: 80m
 
   coupon-cache:
     container_name: coupon-cache
@@ -367,6 +161,7 @@ services:
     restart: always
     networks:
       - omisys-network
+    mem_limit: 80m
 
   gateway-cache:
     container_name: gateway-cache
@@ -379,6 +174,7 @@ services:
     restart: always
     networks:
       - omisys-network
+    mem_limit: 80m
 
   auth-cache:
     container_name: auth-cache
@@ -391,129 +187,56 @@ services:
     restart: always
     networks:
       - omisys-network
+    mem_limit: 80m
 
-  user_mysql:
+  omisys-mysql:
     image: mysql:8.0
-    container_name: omisys-mysql-user
+    container_name: omisys-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${USER_MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${USER_MYSQL_DATABASE}
-      MYSQL_USER: ${USER_MYSQL_USER}
-      MYSQL_PASSWORD: ${USER_MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
+      # 최초 기동 시 01-init-schemas.sh 가 아래 값으로 스키마와 계정을 만든다.
+      # 앱 서비스(docker-compose.yml)와 같은 변수라 .env 한 벌로 맞춰진다.
+      USER_MYSQL_DATABASE: ${USER_MYSQL_DATABASE}
+      USER_MYSQL_USER: ${USER_MYSQL_USER}
+      USER_MYSQL_PASSWORD: ${USER_MYSQL_PASSWORD}
+      PRODUCT_MYSQL_DATABASE: ${PRODUCT_MYSQL_DATABASE}
+      PRODUCT_MYSQL_USER: ${PRODUCT_MYSQL_USER}
+      PRODUCT_MYSQL_PASSWORD: ${PRODUCT_MYSQL_PASSWORD}
+      ORDER_MYSQL_DATABASE: ${ORDER_MYSQL_DATABASE}
+      ORDER_MYSQL_USER: ${ORDER_MYSQL_USER}
+      ORDER_MYSQL_PASSWORD: ${ORDER_MYSQL_PASSWORD}
+      PAYMENT_MYSQL_DATABASE: ${PAYMENT_MYSQL_DATABASE}
+      PAYMENT_MYSQL_USER: ${PAYMENT_MYSQL_USER}
+      PAYMENT_MYSQL_PASSWORD: ${PAYMENT_MYSQL_PASSWORD}
+      PROMOTION_MYSQL_DATABASE: ${PROMOTION_MYSQL_DATABASE}
+      PROMOTION_MYSQL_USER: ${PROMOTION_MYSQL_USER}
+      PROMOTION_MYSQL_PASSWORD: ${PROMOTION_MYSQL_PASSWORD}
+      REVIEW_MYSQL_DATABASE: ${REVIEW_MYSQL_DATABASE}
+      REVIEW_MYSQL_USER: ${REVIEW_MYSQL_USER}
+      REVIEW_MYSQL_PASSWORD: ${REVIEW_MYSQL_PASSWORD}
+      NOTIFICATION_MYSQL_DATABASE: ${NOTIFICATION_MYSQL_DATABASE}
+      NOTIFICATION_MYSQL_USER: ${NOTIFICATION_MYSQL_USER}
+      NOTIFICATION_MYSQL_PASSWORD: ${NOTIFICATION_MYSQL_PASSWORD}
+      DELIVERY_MYSQL_DATABASE: ${DELIVERY_MYSQL_DATABASE}
+      DELIVERY_MYSQL_USER: ${DELIVERY_MYSQL_USER}
+      DELIVERY_MYSQL_PASSWORD: ${DELIVERY_MYSQL_PASSWORD}
     ports:
       - "3306:3306"
-    command: --default-authentication-plugin=mysql_native_password
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --innodb-buffer-pool-size=512M
+      --max-connections=200
+      --performance-schema=OFF
     volumes:
-      - mysql-user-data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
+      - ./docs/migrations/mysql/01-init-schemas.sh:/docker-entrypoint-initdb.d/01-init-schemas.sh:ro
     networks:
       - omisys-network
-
-  product_mysql:
-    image: mysql:8.0
-    container_name: omisys-mysql-product
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${PRODUCT_MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${PRODUCT_MYSQL_DATABASE}
-      MYSQL_USER: ${PRODUCT_MYSQL_USER}
-      MYSQL_PASSWORD: ${PRODUCT_MYSQL_PASSWORD}
-    ports:
-      - "3307:3306"
-    command: --default-authentication-plugin=mysql_native_password
-    volumes:
-      - mysql-product-data:/var/lib/mysql
-    networks:
-      - omisys-network
-
-  order_mysql:
-    image: mysql:8.0
-    container_name: omisys-mysql-order
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${ORDER_MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${ORDER_MYSQL_DATABASE}
-      MYSQL_USER: ${ORDER_MYSQL_USER}
-      MYSQL_PASSWORD: ${ORDER_MYSQL_PASSWORD}
-    ports:
-      - "3308:3306"
-    command: --default-authentication-plugin=mysql_native_password
-    volumes:
-      - mysql-order-data:/var/lib/mysql
-    networks:
-      - omisys-network
-
-  payment_mysql:
-    image: mysql:8.0
-    container_name: omisys-mysql-payment
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${PAYMENT_MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${PAYMENT_MYSQL_DATABASE}
-      MYSQL_USER: ${PAYMENT_MYSQL_USER}
-      MYSQL_PASSWORD: ${PAYMENT_MYSQL_PASSWORD}
-    ports:
-      - "3309:3306"
-    command: --default-authentication-plugin=mysql_native_password
-    volumes:
-      - mysql-payment-data:/var/lib/mysql
-    networks:
-      - omisys-network
-
-  promotion_mysql:
-    image: mysql:8.0
-    container_name: omisys-mysql-promotion
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${PROMOTION_MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${PROMOTION_MYSQL_DATABASE}
-      MYSQL_USER: ${PROMOTION_MYSQL_USER}
-      MYSQL_PASSWORD: ${PROMOTION_MYSQL_PASSWORD}
-    ports:
-      - "3311:3306"
-    command: --default-authentication-plugin=mysql_native_password
-    volumes:
-      - mysql-promotion-data:/var/lib/mysql
-    networks:
-      - omisys-network
-
-  review_mysql:
-    image: mysql:8.0
-    container_name: omisys-mysql-review
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${REVIEW_MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${REVIEW_MYSQL_DATABASE}
-      MYSQL_USER: ${REVIEW_MYSQL_USER}
-      MYSQL_PASSWORD: ${REVIEW_MYSQL_PASSWORD}
-    ports:
-      - "3312:3306"
-    command: --default-authentication-plugin=mysql_native_password
-    volumes:
-      - mysql-review-data:/var/lib/mysql
-    networks:
-      - omisys-network
-
-  notification_mysql:
-    image: mysql:8.0
-    container_name: omisys-mysql-notification
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${NOTIFICATION_MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${NOTIFICATION_MYSQL_DATABASE}
-      MYSQL_USER: ${NOTIFICATION_MYSQL_USER}
-      MYSQL_PASSWORD: ${NOTIFICATION_MYSQL_PASSWORD}
-    ports:
-      - "3313:3306"
-    command: --default-authentication-plugin=mysql_native_password
-    volumes:
-      - mysql-notification-data:/var/lib/mysql
-    networks:
-      - omisys-network
+    mem_limit: 900m
 
 volumes:
-  cassandra_data:
-    driver: local
   redis-cart-data:
     driver: local
   redis-product-data:
@@ -528,30 +251,11 @@ volumes:
     driver: local
   esdata01:
     driver: local
-  kibanadata:
+  kafka-data:
     driver: local
-  logstashdata01:
-    driver: local
-  metricbeatdata01:
-    driver: local
-  filebeatdata01:
-    driver: local
-  mysql-user-data:
-    driver: local
-  mysql-product-data:
-    driver: local
-  mysql-order-data:
-    driver: local
-  mysql-payment-data:
-    driver: local
-  mysql-promotion-data:
-    driver: local
-  mysql-review-data:
-    driver: local
-  mysql-notification-data:
+  mysql-data:
     driver: local
 
 networks:
   omisys-network:
     external: true
-
