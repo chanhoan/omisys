@@ -17,27 +17,33 @@ IDE(Spring Boot × N, local 프로파일)
 
 | 항목 | 값 |
 |---|---|
-| SSH 키 | `.pem` 파일을 로컬에 배치 (예: `C:\keys\omisys.pem`) |
-| 환경변수 `OMISYS_DEP_HOST` | `ubuntu@<원격 IP>` |
-| 환경변수 `OMISYS_DEP_KEY` | `.pem` 파일 절대경로 |
+| SSH 키 | `.pem` 을 `<repo>/` · `~/.ssh/` · `~/Downloads/` 중 한 곳에 `omisys.pem` 이름으로 배치 |
+| `.env.local` 의 `OMISYS_DEP_HOST` | `ubuntu@<Elastic IP>` |
+| `.env.local` 의 `OMISYS_DEP_KEY` | 생략 가능 — 위 위치를 자동 탐색한다 |
 | 로컬 포트 | 6379 / 29092 / 9200 이 비어 있을 것 (MySQL 포트는 LOCAL_MYSQL_PORT 로 우회 가능) |
 
-PowerShell:
-
-```powershell
-$env:OMISYS_DEP_HOST = "ubuntu@1.2.3.4"
-$env:OMISYS_DEP_KEY  = "C:\keys\omisys.pem"
-```
-
-Git Bash / 리눅스:
+`.env.local` 에 호스트를 적는다. 이 파일은 어차피 DB 비밀번호 때문에 PC 마다 만들어야 하므로 추가 부담이 아니다.
 
 ```bash
-export OMISYS_DEP_HOST="ubuntu@1.2.3.4"
-export OMISYS_DEP_KEY="$HOME/keys/omisys.pem"
-chmod 600 "$OMISYS_DEP_KEY"
+OMISYS_DEP_HOST=ubuntu@1.2.3.4
 ```
 
-> `.pem` 파일과 호스트 주소는 **스크립트에 하드코딩하지 않는다.** 키 파일은 저장소 밖에 두고 커밋하지 않는다.
+키는 `omisys.pem` 이름으로 아래 중 한 곳에 두면 자동으로 찾는다. PC 마다 경로를 맞출 필요가 없다.
+
+```
+<repo>/omisys.pem  |  ~/.ssh/omisys.pem  |  ~/Downloads/omisys.pem  |  ~/keys/omisys.pem
+```
+
+다른 이름이나 위치를 쓴다면 `.env.local` 에 `OMISYS_DEP_KEY=<절대경로>` 를 적는다.
+환경변수로 직접 넘긴 값이 항상 우선한다.
+
+Git Bash 에서는 키 권한을 조여 둔다.
+
+```bash
+chmod 600 <키 경로>
+```
+
+> `.pem` 과 `.env.local` 은 `.gitignore` 대상이다. 저장소에 커밋하지 않는다.
 
 ---
 
@@ -87,7 +93,11 @@ Git Bash / 리눅스:
 | 로컬 포트 | 원격 대상 | 사용 서비스 |
 |---|---|---|
 | 3306 | 통합 MySQL (`omisys-mysql`) | user · product · order · payment · promotion · review · notification · delivery |
-| 6379 | Redis | gateway · product · promotion (Redisson 락 · 캐시) |
+| 6379 | `cart-cache` | order (장바구니) |
+| 6380 | `product-cache` | product (상품 캐시 · 재고 락) |
+| 6381 | `coupon-cache` | promotion (쿠폰 발행 락) |
+| 6382 | `gateway-cache` | gateway (대기열) |
+| 6383 | `auth-cache` | auth (리프레시 토큰) |
 | 29092 | Kafka (`OUTSIDE` 리스너) | 이벤트 발행·구독 전 서비스 |
 | 9200 | Elasticsearch | product · search (`search` 프로파일 필요) |
 
