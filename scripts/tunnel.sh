@@ -4,10 +4,10 @@
 # 로컬 IDE에서 local 프로파일로 애플리케이션을 실행하기 전에 먼저 기동한다.
 #
 # 사용 전 환경변수 설정:
-#   export OMISYS_DEP_HOST="ec2-user@<ip>"
+#   export OMISYS_DEP_HOST="ubuntu@<ip>"
 #   export OMISYS_DEP_KEY="$HOME/keys/omisys.pem"
 #
-# 포워딩 포트: 3306(MySQL) / 6379(Redis) / 29092(Kafka) / 9200(Elasticsearch)
+# 포워딩 포트: 3306(MySQL, LOCAL_MYSQL_PORT 로 변경 가능) / 6379-6383(Redis 5개) / 29092(Kafka) / 9200(ES)
 # 종료: Ctrl+C
 #
 # 자세한 절차는 docs/development/local-setup.md 참조.
@@ -16,10 +16,13 @@ set -euo pipefail
 
 EC2_HOST="${OMISYS_DEP_HOST:-}"
 KEY_PATH="${OMISYS_DEP_KEY:-}"
+# 로컬에 MySQL 이 이미 3306 을 잡고 있으면 bind 가 실패한다. 그럴 때만 바꾼다.
+# 애플리케이션도 같은 값을 받아야 한다 (*-local.yml 의 ${LOCAL_MYSQL_PORT:3306}).
+LOCAL_MYSQL_PORT="${LOCAL_MYSQL_PORT:-3306}"
 
 if [ -z "$EC2_HOST" ]; then
   echo "[error] OMISYS_DEP_HOST 가 설정되지 않았습니다." >&2
-  echo "        예) export OMISYS_DEP_HOST=\"ec2-user@1.2.3.4\"" >&2
+  echo "        예) export OMISYS_DEP_HOST=\"ubuntu@1.2.3.4\"" >&2
   exit 1
 fi
 
@@ -35,13 +38,17 @@ if [ ! -f "$KEY_PATH" ]; then
 fi
 
 echo "[info] 터널 연결: $EC2_HOST"
-echo "[info] 로컬 포트 3306 / 6379 / 29092 / 9200 -> 원격 의존성"
+echo "[info] 로컬 포트 ${LOCAL_MYSQL_PORT} / 6379-6383 / 29092 / 9200 -> 원격 의존성"
 echo "[info] 종료하려면 Ctrl+C"
 
 exec ssh -i "$KEY_PATH" -N \
   -o ServerAliveInterval=30 \
-  -L 3306:localhost:3306 \
+  -L ${LOCAL_MYSQL_PORT}:localhost:3306 \
   -L 6379:localhost:6379 \
+  -L 6380:localhost:6380 \
+  -L 6381:localhost:6381 \
+  -L 6382:localhost:6382 \
+  -L 6383:localhost:6383 \
   -L 29092:localhost:29092 \
   -L 9200:localhost:9200 \
   "$EC2_HOST"
