@@ -78,6 +78,12 @@ out/
 .env.*
 !.env.*.example
 *.pem
+
+# 서비스 계정 비밀키 — Firebase Admin SDK, GCP 등
+firebase-adminsdk*.json
+*-adminsdk-*.json
+serviceAccountKey.json
+
 grafana/*
 !grafana/provisioning/
 
