@@ -2,17 +2,48 @@
 # 원격 의존성 서버(EC2)로 SSH 포트 포워딩을 연다.
 # 로컬 IDE에서 local 프로파일로 애플리케이션을 실행하기 전에 먼저 기동한다.
 #
-# 사용 전 환경변수 설정:
-#   $env:OMISYS_DEP_HOST = "ubuntu@<ip>"
-#   $env:OMISYS_DEP_KEY  = "C:\keys\omisys.pem"
+# 접속 정보는 저장소 루트의 .env.local 에서 읽는다:
+#   OMISYS_DEP_HOST=ubuntu@<ip>          (필수)
+#   OMISYS_DEP_KEY=<키 경로>              (생략 시 자동 탐색)
 #
 # 포워딩 포트: 3306(MySQL, LOCAL_MYSQL_PORT 로 변경 가능) / 6379-6383(Redis 5개) / 29092(Kafka) / 9200(ES)
 # 종료: Ctrl+C
 #
 # 자세한 절차는 docs/development/local-setup.md 참조.
 
+# 저장소 루트의 .env.local 을 먼저 읽는다. 환경변수로 직접 넘긴 값이 우선한다.
+$RepoRoot = Split-Path -Parent $PSScriptRoot
+$EnvFile = Join-Path $RepoRoot ".env.local"
+if (Test-Path -LiteralPath $EnvFile) {
+    foreach ($line in Get-Content -LiteralPath $EnvFile) {
+        if ($line -match '^\s*([A-Z_][A-Z0-9_]*)=(.*)$') {
+            $name = $Matches[1]
+            if (-not [Environment]::GetEnvironmentVariable($name, 'Process')) {
+                [Environment]::SetEnvironmentVariable($name, $Matches[2].Trim(), 'Process')
+            }
+        }
+    }
+}
+
 $Ec2Host = $env:OMISYS_DEP_HOST
 $KeyPath = $env:OMISYS_DEP_KEY
+
+# 키 파일: 명시된 경로가 없으면 흔한 위치를 순서대로 찾는다.
+if ([string]::IsNullOrWhiteSpace($KeyPath)) {
+    $candidates = @(
+        (Join-Path $RepoRoot "omisys.pem"),
+        (Join-Path $HOME ".ssh\omisys.pem"),
+        (Join-Path $HOME "Downloads\omisys.pem"),
+        (Join-Path $HOME "keys\omisys.pem")
+    )
+    foreach ($c in $candidates) {
+        if (Test-Path -LiteralPath $c -PathType Leaf) {
+            $KeyPath = $c
+            Write-Host "[info] 키 파일 자동 탐색: $KeyPath"
+            break
+        }
+    }
+}
 # 로컬에 MySQL 이 이미 3306 을 잡고 있으면 bind 가 실패한다. 그럴 때만 바꾼다.
 $LocalMysqlPort = if ($env:LOCAL_MYSQL_PORT) { $env:LOCAL_MYSQL_PORT } else { "3306" }
 
