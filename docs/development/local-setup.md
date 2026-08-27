@@ -114,9 +114,40 @@ IntelliJ 기준 Run Configuration:
 
 - **Active profiles**: `local`
 - **VM options**(로컬 메모리가 부족할 때만): `-Xmx256m -XX:MaxMetaspaceSize=128m`
+- **Environment variables**: 아래 표 참조
 
-`*-local.yml`은 이미 전부 `localhost` 기반이므로 터널만 열려 있으면 별도 설정 변경이 필요 없다.
+`*-local.yml`의 호스트는 전부 `localhost`라 터널만 열려 있으면 주소를 고칠 일은 없다.
 Config 저장소(`chanhoan/omisys_config`)를 수정한 경우 Config Server가 `clone-on-start: true`라 **재시작해야 반영된다.**
+
+### 필수 환경변수
+
+`local` 프로파일은 터널 너머의 **공유 MySQL**에 붙는다. 그 인스턴스에는 스키마별 계정만 있고 예전의 개인 계정은 없으므로,
+실행하려는 서비스의 자격증명을 환경변수로 넘겨야 한다. 이름은 `prod`·`docker-compose.yml`·`01-init-schemas.sh`와 같아서 **`.env` 한 벌로 전부 맞춰진다.**
+
+| 변수 | 기본값 | 비고 |
+|---|---|---|
+| `<SVC>_MYSQL_DATABASE` | `omisys_<svc>` | 스키마명을 바꾸지 않았다면 생략 가능 |
+| `<SVC>_MYSQL_USER` | `omisys_<svc>` | 위와 동일 |
+| `<SVC>_MYSQL_PASSWORD` | **없음** | 미설정 시 기동이 실패한다 (잘못된 계정으로 붙는 것보다 낫다) |
+
+`<SVC>`는 `USER` · `PRODUCT` · `ORDER` · `PAYMENT` · `PROMOTION` · `REVIEW` · `NOTIFICATION` · `DELIVERY` 중 하나다.
+**`search-service`는 product 스키마를 공유하므로 `PRODUCT_*` 를 쓴다.**
+
+Elasticsearch를 쓰는 서비스(`product` · `search`)는 두 개가 더 필요하다.
+
+| 변수 | 기본값 | 비고 |
+|---|---|---|
+| `ELASTIC_PASSWORD` | **없음** | `search` 프로파일로 ES를 띄운 경우 필수 |
+| `ELASTIC_FINGERPRINT` | 빈 값 | HTTPS 인증서 지문. 평문 HTTP면 비워 둔다 |
+
+예시 — order-service 하나만 띄울 때:
+
+```bash
+ORDER_MYSQL_PASSWORD=<원격 omisys_order 계정 비밀번호>
+```
+
+여러 서비스를 자주 띄운다면 IDE의 EnvFile 플러그인으로 `.env` 하나를 공유하는 편이 낫다.
+`.env`와 `.pem`은 커밋하지 않는다.
 
 ---
 
@@ -128,9 +159,9 @@ Config 저장소(`chanhoan/omisys_config`)를 수정한 경우 Config Server가 
 
 그 밖에:
 
-- `.pem` 키 파일은 저장소에 커밋하지 않는다. 커밋 전 `.gitignore` 확인.
-- `init-schemas.sql`의 `:XXX_PW` 플레이스홀더는 배포 시점에 치환한다. **실제 비밀번호를 커밋하지 않는다.**
-- `user-local.yml`의 평문 계정(`chanhoan/chanhoan`)은 원격 DB 계정과 분리한다. 원격용 비밀번호는 환경변수로 뺀다.
+- `.pem` 키 파일과 `.env`는 저장소에 커밋하지 않는다. 커밋 전 `.gitignore` 확인.
+- 스키마 계정 비밀번호는 `01-init-schemas.sh`가 환경변수에서 읽는다. 파일에 적어 두지 않는다.
+- `*-local.yml`도 자격증명을 환경변수로 받는다. 평문 계정을 되돌리지 않는다 — 그 계정은 공유 인스턴스에 존재하지 않는다.
 
 ---
 
