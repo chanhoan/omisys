@@ -11,9 +11,6 @@ cd "$COMPOSE_DIR"
 
 log "=== omisys startup begin ==="
 
-# 0. config 파일 소유권 보정 (filebeat/metricbeat는 root 소유 요구)
-chown root:root "$COMPOSE_DIR/filebeat.yml" "$COMPOSE_DIR/metricbeat.yml" 2>/dev/null || true
-
 # 1. 인프라 스택 기동
 log "Starting dep stack..."
 if ! docker compose -f docker-compose-dep.yml up -d; then

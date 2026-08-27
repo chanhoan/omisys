@@ -7,9 +7,6 @@ on:
       - "docker-compose-monitoring.yml"
       - "prometheus.yml"
       - "grafana/**"
-      - "logstash.conf"
-      - "filebeat.yml"
-      - "metricbeat.yml"
 
 jobs:
   deploy-monitoring-stack:

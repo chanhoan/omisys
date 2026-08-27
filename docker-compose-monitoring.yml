@@ -8,6 +8,7 @@ networks:
 services:
   prometheus:
     image: prom/prometheus:latest
+    profiles: ["loadtest"]
     container_name: prometheus
     restart: always
     ports:
@@ -16,9 +17,11 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - omisys-network
+    mem_limit: 512m
 
   grafana:
     image: grafana/grafana:latest
+    profiles: ["loadtest"]
     container_name: grafana
     restart: always
     ports:
@@ -28,9 +31,11 @@ services:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
     networks:
       - omisys-network
+    mem_limit: 256m
 
   zipkin:
     image: openzipkin/zipkin:latest
+    profiles: ["loadtest"]
     container_name: zipkin
     restart: always
     environment:
@@ -39,6 +44,7 @@ services:
       - "9411:9411"
     networks:
       - omisys-network
+    mem_limit: 512m
 
 volumes:
   grafana-data:

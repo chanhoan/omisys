@@ -53,8 +53,13 @@ class SecurityContextFilterTest {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         assertThat(auth).isNotNull();
-        assertThat(auth.getPrincipal()).isEqualTo(1L);
-        assertThat(auth.getCredentials()).isEqualTo("chanhoan");
+        // 컨트롤러가 @AuthenticationPrincipal JwtClaim으로 주입받으므로 principal은 JwtClaim이어야 한다
+        assertThat(auth.getPrincipal())
+                .isInstanceOf(JwtClaim.class)
+                .extracting("userId", "username", "role")
+                .containsExactly(1L, "chanhoan", "ROLE_USER");
+        assertThat(auth.getCredentials()).isNull();
+        assertThat(auth.getName()).isEqualTo("chanhoan");
         assertThat(auth.getAuthorities()).extracting(Object::toString).contains("ROLE_USER");
         assertThat(auth.isAuthenticated()).isTrue();
     }

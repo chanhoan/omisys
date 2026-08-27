@@ -13,5 +13,5 @@ public interface PaymentRepositoryCustom {
             String paymentId,
             String orderId,
             String state);
-    
+
 }

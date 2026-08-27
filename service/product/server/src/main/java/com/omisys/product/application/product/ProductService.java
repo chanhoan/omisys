@@ -3,7 +3,7 @@ package com.omisys.product.application.product;
 import com.omisys.product.application.dto.ImgDto;
 import com.omisys.product.domain.model.Product;
 import com.omisys.product.domain.model.SortOption;
-import com.omisys.product.domain.repository.cassandra.ProductRepository;
+import com.omisys.product.domain.repository.jpa.ProductRepository;
 import com.omisys.product.exception.ProductErrorCode;
 import com.omisys.product.exception.ProductException;
 import com.omisys.product.infrastructure.client.ReviewClient;
@@ -33,7 +33,6 @@ public class ProductService {
     @Transactional
     public ProductResponse createProduct(ProductRequest.Create request, ImgDto imgDto) {
         Product newProduct = ProductMapper.toEntity(request, imgDto);
-        newProduct.setIsNew(true);
         Product savedProduct = productRepository.save(newProduct);
         return ProductResponse.fromEntity(savedProduct);
     }
@@ -110,20 +109,16 @@ public class ProductService {
         Sort.Direction direction =
                 sort.getOrder().name().contains("Asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort.getField()));
-        List<ProductResponse> result =
-                productRepository
-                        .findAllByFilters(
-                                categoryId,
-                                brandName,
-                                BigDecimal.valueOf(minPrice),
-                                BigDecimal.valueOf(maxPrice),
-                                productSize,
-                                mainColor,
-                                pageable)
-                        .stream()
-                        .map(ProductResponse::fromEntity)
-                        .toList();
-        return new PageImpl<>(result, pageable, result.size());
+        Page<Product> products =
+                productRepository.findAllByFilters(
+                        categoryId,
+                        brandName,
+                        minPrice == null ? null : BigDecimal.valueOf(minPrice),
+                        maxPrice == null ? null : BigDecimal.valueOf(maxPrice),
+                        productSize,
+                        mainColor,
+                        pageable);
+        return products.map(ProductResponse::fromEntity);
     }
 
     public List<ProductDto> getProductList(List<String> productIds) {

@@ -2,7 +2,7 @@ package com.omisys.product.application.product;
 
 import com.omisys.product.application.dto.ImgDto;
 import com.omisys.product.domain.model.Product;
-import com.omisys.product.domain.repository.cassandra.ProductRepository;
+import com.omisys.product.domain.repository.jpa.ProductRepository;
 import com.omisys.product.exception.ProductErrorCode;
 import com.omisys.product.exception.ProductException;
 import com.omisys.product.presentation.request.ProductRequest;
@@ -14,6 +14,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
 import java.util.LinkedHashMap;
@@ -34,7 +39,7 @@ class ProductServiceTest {
     private ProductService productService;
 
     @Test
-    @DisplayName("createProduct: Product 생성 → isNew=true 설정 → 저장 → 응답 반환")
+    @DisplayName("createProduct: Product 생성 → 저장 → 응답 반환")
     void createProduct_success() {
         // given
         ProductRequest.Create request = new ProductRequest.Create(
@@ -69,9 +74,6 @@ class ProductServiceTest {
         verify(productRepository, times(1)).save(captor.capture());
 
         Product saved = captor.getValue();
-
-        // isNew 플래그는 Cassandra Persistable 처리에 중요 (insert/update 구분)
-        assertThat(saved.isNew()).isTrue();
 
         // 매핑 값 검증
         assertThat(saved.getCategoryId()).isEqualTo(10L);
@@ -275,5 +277,90 @@ class ProductServiceTest {
         // then
         verify(productRepository, times(1)).save(product);
         assertThat(product.getStock()).isEqualTo(10);
+    }
+
+    private Product sampleProduct(String name) {
+        return Product.builder()
+                .categoryId(10L)
+                .productName(name)
+                .brandName("NIKE")
+                .mainColor("BLACK")
+                .size("270")
+                .originalPrice(BigDecimal.valueOf(1000))
+                .discountPercent(null)
+                .stock(5)
+                .description("d")
+                .originImgUrl("o")
+                .detailImgUrl("d")
+                .thumbnailImgUrl("t")
+                .limitCountPerUser(1)
+                .tags(List.of("tag"))
+                .build();
+    }
+
+    @Test
+    @DisplayName("getProductList: 리포지토리의 전체 건수를 그대로 유지한다 (페이지 크기로 덮어쓰지 않음)")
+    void getProductList_preservesTotalElements() {
+        // given — 전체 25건 중 첫 페이지 2건만 조회한 상황
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "salesCount"));
+        List<Product> firstPage = List.of(sampleProduct("p1"), sampleProduct("p2"));
+        when(productRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(firstPage, pageable, 25L));
+
+        // when
+        Page<ProductResponse> result =
+                productService.getProductList(0, 10, null, null, null, null, null, null, "SALES");
+
+        // then
+        assertThat(result.getTotalElements()).isEqualTo(25L);
+        assertThat(result.getTotalPages()).isEqualTo(3);
+        assertThat(result.getContent()).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("getProductList: 필터가 모두 null이면 null 그대로 리포지토리에 전달한다")
+    void getProductList_withNullFilters() {
+        // given
+        when(productRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0L));
+
+        // when
+        Page<ProductResponse> result =
+                productService.getProductList(0, 10, null, null, null, null, null, null, "NEWEST");
+
+        // then — 가격이 null 이어도 BigDecimal 변환에서 NPE 없이 null 이 전달되어야 한다
+        verify(productRepository).findAllByFilters(
+                isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class));
+        assertThat(result.getTotalElements()).isZero();
+        assertThat(result.getContent()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("getProductList: 필터를 모두 지정하면 값과 정렬 조건이 그대로 전달된다")
+    void getProductList_withAllFilters() {
+        // given
+        when(productRepository.findAllByFilters(any(), any(), any(), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(sampleProduct("p1")), PageRequest.of(1, 5), 6L));
+
+        // when
+        Page<ProductResponse> result =
+                productService.getProductList(1, 5, 10L, "NIKE", 1_000L, 50_000L, "270", "BLACK", "MIN_PRICE");
+
+        // then
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(productRepository).findAllByFilters(
+                eq(10L), eq("NIKE"),
+                eq(BigDecimal.valueOf(1_000L)), eq(BigDecimal.valueOf(50_000L)),
+                eq("270"), eq("BLACK"), pageableCaptor.capture());
+
+        Pageable captured = pageableCaptor.getValue();
+        assertThat(captured.getPageNumber()).isEqualTo(1);
+        assertThat(captured.getPageSize()).isEqualTo(5);
+        // MIN_PRICE 는 discountedPrice 오름차순
+        assertThat(captured.getSort().getOrderFor("discountedPrice")).isNotNull();
+        assertThat(captured.getSort().getOrderFor("discountedPrice").getDirection())
+                .isEqualTo(Sort.Direction.ASC);
+
+        assertThat(result.getTotalElements()).isEqualTo(6L);
     }
 }

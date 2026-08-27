@@ -5,23 +5,27 @@ import java.util.List;
 import java.util.UUID;
 
 import com.omisys.common.domain.entity.BaseEntity;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.cassandra.core.mapping.Column;
-import org.springframework.data.cassandra.core.mapping.PrimaryKey;
-import org.springframework.data.cassandra.core.mapping.Table;
-import org.springframework.data.domain.Persistable;
 
-@Table("P_PRODUCT")
+@Entity
+@Table(name = "P_PRODUCT")
 @Getter
-public class Product extends BaseEntity implements Persistable {
-    @PrimaryKey private UUID productId = UUID.randomUUID();
+public class Product extends BaseEntity {
+
+    @Id
+    @Column(columnDefinition = "BINARY(16)")
+    private UUID productId = UUID.randomUUID();
+
     @Column private Long categoryId;
     @Column private String productName;
     @Column private String brandName;
     @Column private String mainColor;
-    @Column private String size;
+
+    @Column(name = "product_size")
+    private String size;
+
     @Column private String description;
 
     @Column private BigDecimal originalPrice;
@@ -41,19 +45,13 @@ public class Product extends BaseEntity implements Persistable {
     @Column private boolean isPublic = true;
     @Column private boolean soldout = false;
     @Column private boolean isDeleted = false;
-    @Column private List<String> tags;
-    @Transient private boolean isNew = false;
 
-    @Override
-    public Object getId() {
-        return this.productId;
-    }
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "P_PRODUCT_TAG", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "tag")
+    private List<String> tags;
 
-    @Transient
-    @Override
-    public boolean isNew() {
-        return this.isNew;
-    }
+    protected Product() {}
 
     @Builder
     private Product(
@@ -124,10 +122,6 @@ public class Product extends BaseEntity implements Persistable {
 
     public UUID getProductId() {
         return productId;
-    }
-
-    public void setIsNew(boolean isNew) {
-        this.isNew = isNew;
     }
 
     public void isDelete() {
