@@ -42,22 +42,22 @@ public class PreOrderRequest {
 
         @NotNull(message = "사전예약상품아이디는 필수입니다")
         private Long preOrderId;
-        
+
         @NotNull(message = "상품아이디는 필수입니다")
         private UUID productId;
-        
+
         @NotBlank(message = "사전예약주문타이틀은 필수입니다")
         private String preOrderTitle;
-        
+
         @NotNull(message = "사전예약시작일자는 필수입니다")
         private LocalDateTime startDateTime;
-        
+
         @NotNull(message = "사전예약종료일자는 필수입니다")
         private LocalDateTime endDateTime;
-        
+
         @NotNull(message = "사전예약발송일자는 필수입니다")
         private LocalDateTime releaseDateTime;
-        
+
         @NotNull(message = "사전예약수량은 필수입니다")
         private Integer availableQuantity;
     }
