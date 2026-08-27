@@ -75,6 +75,9 @@ out/
 .vscode/
 
 .env
+.env.*
+!.env.*.example
+*.pem
 grafana/*
 !grafana/provisioning/
 

@@ -125,7 +125,7 @@ product · search 서비스의 검색은 Elasticsearch가 담당하므로 MySQL�
    DROP TABLE omisys_product.P_PRODUCT;
    ```
 
-   (스키마 전체를 되돌려야 하면 `DROP DATABASE omisys_product;` 후 재생성 — `init-schemas.sql`의 `CREATE DATABASE` 문 참조)
+   (스키마 전체를 되돌려야 하면 `DROP DATABASE omisys_product;` 후 재생성 — `01-init-schemas.sh`가 만드는 스키마와 같은 이름·charset 으로 재생성)
 3. 1번에서 확보한 스냅샷으로 Cassandra를 복구한다 (`nodetool refresh` 또는 `sstableloader`).
 4. 애플리케이션 코드를 이관 이전 커밋으로 되돌린 뒤 재기동한다.
 5. ES는 복구된 Cassandra 기준으로 다시 재색인한다.

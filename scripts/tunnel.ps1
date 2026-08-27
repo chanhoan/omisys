@@ -3,7 +3,7 @@
 # 로컬 IDE에서 local 프로파일로 애플리케이션을 실행하기 전에 먼저 기동한다.
 #
 # 사용 전 환경변수 설정:
-#   $env:OMISYS_DEP_HOST = "ec2-user@<ip>"
+#   $env:OMISYS_DEP_HOST = "ubuntu@<ip>"
 #   $env:OMISYS_DEP_KEY  = "C:\keys\omisys.pem"
 #
 # 포워딩 포트: 3306(MySQL, LOCAL_MYSQL_PORT 로 변경 가능) / 6379(Redis) / 29092(Kafka) / 9200(ES)
@@ -17,7 +17,7 @@ $KeyPath = $env:OMISYS_DEP_KEY
 $LocalMysqlPort = if ($env:LOCAL_MYSQL_PORT) { $env:LOCAL_MYSQL_PORT } else { "3306" }
 
 if ([string]::IsNullOrWhiteSpace($Ec2Host)) {
-    Write-Error 'OMISYS_DEP_HOST 가 설정되지 않았습니다. 예) $env:OMISYS_DEP_HOST = "ec2-user@1.2.3.4"'
+    Write-Error 'OMISYS_DEP_HOST 가 설정되지 않았습니다. 예) $env:OMISYS_DEP_HOST = "ubuntu@1.2.3.4"'
     exit 1
 }
 

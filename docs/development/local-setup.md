@@ -4,7 +4,7 @@
 로컬에서 Docker를 쓰지 않으므로 Windows 바인드 마운트·I/O 문제가 발생하지 않고, 목데이터를 원격 DB에 한 번만 채우면 여러 PC에서 같은 데이터로 이어서 개발할 수 있다.
 
 ```
-[로컬 PC]                                  [원격 EC2 t3.medium]
+[로컬 PC]                                  [원격 EC2 t3.large]
 IDE(Spring Boot × N, local 프로파일)
    |  localhost:3306 / 6379 / 29092 / 9200
    |
@@ -18,21 +18,21 @@ IDE(Spring Boot × N, local 프로파일)
 | 항목 | 값 |
 |---|---|
 | SSH 키 | `.pem` 파일을 로컬에 배치 (예: `C:\keys\omisys.pem`) |
-| 환경변수 `OMISYS_DEP_HOST` | `ec2-user@<원격 IP>` |
+| 환경변수 `OMISYS_DEP_HOST` | `ubuntu@<원격 IP>` |
 | 환경변수 `OMISYS_DEP_KEY` | `.pem` 파일 절대경로 |
-| 로컬 포트 | 3306 / 6379 / 29092 / 9200 을 아무것도 점유하고 있지 않을 것 |
+| 로컬 포트 | 6379 / 29092 / 9200 이 비어 있을 것 (MySQL 포트는 LOCAL_MYSQL_PORT 로 우회 가능) |
 
 PowerShell:
 
 ```powershell
-$env:OMISYS_DEP_HOST = "ec2-user@1.2.3.4"
+$env:OMISYS_DEP_HOST = "ubuntu@1.2.3.4"
 $env:OMISYS_DEP_KEY  = "C:\keys\omisys.pem"
 ```
 
 Git Bash / 리눅스:
 
 ```bash
-export OMISYS_DEP_HOST="ec2-user@1.2.3.4"
+export OMISYS_DEP_HOST="ubuntu@1.2.3.4"
 export OMISYS_DEP_KEY="$HOME/keys/omisys.pem"
 chmod 600 "$OMISYS_DEP_KEY"
 ```
@@ -117,31 +117,85 @@ Get-NetTCPConnection -LocalPort 3306 -State Listen |
 연결 확인:
 
 ```bash
-mysql -h 127.0.0.1 -P 3306 -u omisys_user -p -e "SHOW DATABASES;"
+mysql -h 127.0.0.1 -P "${LOCAL_MYSQL_PORT:-3306}" -u omisys_user -p -e "SHOW DATABASES;"
 redis-cli -h 127.0.0.1 -p 6379 ping
 curl -s http://localhost:9200 -k -u elastic:<password>
 ```
 
-> `omisys_user` 계정은 `omisys_user` 스키마만 보여야 한다. 다른 스키마가 보이면 `docs/migrations/mysql/init-schemas.sql`의 `GRANT` 범위를 다시 확인한다.
+> `omisys_user` 계정은 `omisys_user` 스키마만 보여야 한다. 다른 스키마가 보이면 `docs/migrations/mysql/01-init-schemas.sh`의 `GRANT` 범위를 다시 확인한다.
 
 ---
 
 ## 3. 애플리케이션 실행 (IDE)
 
-기동 순서를 지킨다.
+### 환경변수 준비 (1회)
 
-1. **config-server** — `local` 프로파일. `http://localhost:8888/user/local` 이 200을 반환하는지 확인한다.
-2. **eureka-service** — `local` 프로파일.
-3. **작업 대상 서비스** — 필요한 것만 `local` 프로파일로 실행한다. 13개를 전부 띄울 필요는 없다.
+```bash
+cp .env.local.example .env.local
+```
+
+값을 채운다. 비밀번호는 EC2에서 가져온다.
+
+```bash
+ssh -i <key.pem> ubuntu@<host> "cat /opt/omisys/.env"
+```
+
+`.env.local` 과 `*.pem` 은 `.gitignore` 대상이다. 커밋하지 않는다.
+
+IntelliJ는 **EnvFile 플러그인**으로 `.env.local` 을 Run Configuration에 걸면 서비스마다 다시 입력할 필요가 없다.
+셸에서 `./gradlew bootRun` 으로 띄운다면 이렇게 읽는다.
+
+```bash
+set -a; . ./.env.local; set +a
+```
+
+### 기동 순서
+
+1. **config-server** — `local` 프로파일. `GIT_NAME` · `GIT_TOKEN` 이 필요하다(설정 저장소가 private).
+   `curl http://localhost:8888/user/local` 이 JSON을 돌려주면 정상이다.
+2. **eureka-service** — `local` 프로파일. 서비스 간 Feign 호출을 쓰지 않는 작업이라면 건너뛰어도 되지만,
+   그 경우 애플리케이션 로그에 Eureka 연결 실패 경고가 반복된다.
+3. **작업 대상 서비스** — 필요한 것만 `local` 프로파일로 띄운다. 13개를 전부 올릴 필요는 없다.
 
 IntelliJ 기준 Run Configuration:
 
 - **Active profiles**: `local`
+- **Environment variables**: `.env.local` (EnvFile 플러그인)
 - **VM options**(로컬 메모리가 부족할 때만): `-Xmx256m -XX:MaxMetaspaceSize=128m`
-- **Environment variables**: 아래 표 참조
 
-`*-local.yml`의 호스트는 전부 `localhost`라 터널만 열려 있으면 주소를 고칠 일은 없다.
-Config 저장소(`chanhoan/omisys_config`)를 수정한 경우 Config Server가 `clone-on-start: true`라 **재시작해야 반영된다.**
+### 왜 CONFIG_SERVER_URI 와 EUREKA_URI 가 필요한가
+
+각 서비스의 `application.yml` 은 기본값으로 **Docker 호스트명**(`config-server:8888`, `eureka-service:19090`)을 쓴다.
+컨테이너 안에서는 맞지만 로컬 IDE에서는 해석되지 않아, 터널까지 가지도 못하고 **부트스트랩 단계에서 기동이 실패한다.**
+
+```yaml
+uri: ${CONFIG_SERVER_URI:http://config-server:8888}
+defaultZone: ${EUREKA_URI:http://eureka-service:19090/eureka/}
+```
+
+기본값이 기존 값이라 **컨테이너 배포는 아무것도 바뀌지 않는다.** 로컬에서만 두 변수를 `localhost` 로 덮어쓴다.
+
+Config Server 주소만은 환경변수여야 한다 — 설정을 받아오기 *전에* 필요한 값이라 설정 저장소에 둘 수 없다.
+
+> Config 저장소(`chanhoan/omisys_config`)를 수정했다면 Config Server가 `clone-on-start: true` 라 **재시작해야 반영된다.**
+
+### 연결 확인
+
+애플리케이션 로그에서 HikariPool이 커넥션을 잡았는지 본다.
+
+```
+HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@...
+Started UserApplication in 12.51 seconds
+```
+
+원격 DB에 테이블이 실제로 생겼는지도 확인할 수 있다(`ddl-auto: update`).
+
+```bash
+ssh -i <key.pem> ubuntu@<host> \
+  'cd /opt/omisys; set -a; . ./.env; set +a; \
+   docker exec -e MYSQL_PWD="$USER_MYSQL_PASSWORD" omisys-mysql \
+     mysql -uomisys_user -N -e "USE omisys_user; SHOW TABLES;"'
+```
 
 ### 필수 환경변수
 

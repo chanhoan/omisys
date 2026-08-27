@@ -4,7 +4,7 @@
 # 로컬 IDE에서 local 프로파일로 애플리케이션을 실행하기 전에 먼저 기동한다.
 #
 # 사용 전 환경변수 설정:
-#   export OMISYS_DEP_HOST="ec2-user@<ip>"
+#   export OMISYS_DEP_HOST="ubuntu@<ip>"
 #   export OMISYS_DEP_KEY="$HOME/keys/omisys.pem"
 #
 # 포워딩 포트: 3306(MySQL, LOCAL_MYSQL_PORT 로 변경 가능) / 6379(Redis) / 29092(Kafka) / 9200(ES)
@@ -22,7 +22,7 @@ LOCAL_MYSQL_PORT="${LOCAL_MYSQL_PORT:-3306}"
 
 if [ -z "$EC2_HOST" ]; then
   echo "[error] OMISYS_DEP_HOST 가 설정되지 않았습니다." >&2
-  echo "        예) export OMISYS_DEP_HOST=\"ec2-user@1.2.3.4\"" >&2
+  echo "        예) export OMISYS_DEP_HOST=\"ubuntu@1.2.3.4\"" >&2
   exit 1
 fi
 
