@@ -6,7 +6,7 @@
 #   $env:OMISYS_DEP_HOST = "ubuntu@<ip>"
 #   $env:OMISYS_DEP_KEY  = "C:\keys\omisys.pem"
 #
-# 포워딩 포트: 3306(MySQL, LOCAL_MYSQL_PORT 로 변경 가능) / 6379(Redis) / 29092(Kafka) / 9200(ES)
+# 포워딩 포트: 3306(MySQL, LOCAL_MYSQL_PORT 로 변경 가능) / 6379-6383(Redis 5개) / 29092(Kafka) / 9200(ES)
 # 종료: Ctrl+C
 #
 # 자세한 절차는 docs/development/local-setup.md 참조.
@@ -32,13 +32,17 @@ if (-not (Test-Path -LiteralPath $KeyPath -PathType Leaf)) {
 }
 
 Write-Host "[info] 터널 연결: $Ec2Host"
-Write-Host "[info] 로컬 포트 $LocalMysqlPort / 6379 / 29092 / 9200 -> 원격 의존성"
+Write-Host "[info] 로컬 포트 $LocalMysqlPort / 6379-6383 / 29092 / 9200 -> 원격 의존성"
 Write-Host "[info] 종료하려면 Ctrl+C"
 
 ssh -i $KeyPath -N `
     -o ServerAliveInterval=30 `
     -L ${LocalMysqlPort}:localhost:3306 `
     -L 6379:localhost:6379 `
+    -L 6380:localhost:6380 `
+    -L 6381:localhost:6381 `
+    -L 6382:localhost:6382 `
+    -L 6383:localhost:6383 `
     -L 29092:localhost:29092 `
     -L 9200:localhost:9200 `
     $Ec2Host

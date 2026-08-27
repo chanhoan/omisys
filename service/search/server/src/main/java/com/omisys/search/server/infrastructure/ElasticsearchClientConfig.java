@@ -42,17 +42,34 @@ public class ElasticsearchClientConfig {
                 restClient, new JacksonJsonpMapper(), restClientOptions.getIfAvailable());
     }
 
+    /**
+     * fingerprint 가 비어 있으면 평문 HTTP 로 붙는다.
+     *
+     * <p>의존성 스택의 Elasticsearch 는 SSH 터널 뒤에만 열려 있어 HTTP 로 운영한다.
+     * 터널이 이미 전송을 암호화하므로 자체서명 CA 를 클라이언트마다 신뢰시킬 이유가 없다.
+     * HTTPS 로 운영하는 환경에서는 fingerprint 를 넣으면 종전대로 TLS 로 붙는다.
+     * 비밀번호 인증은 두 경우 모두 적용된다.
+     */
     @Bean
     public ElasticsearchClient elasticsearchClientWithSSL() {
-        SSLContext sslContext = TransportUtils.sslContextFromCaFingerprint(fingerprint);
-
         BasicCredentialsProvider credsProv = new BasicCredentialsProvider();
         credsProv.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(account, password));
 
+        boolean useTls = fingerprint != null && !fingerprint.isBlank();
+        String scheme = useTls ? "https" : "http";
+
         RestClient restClient =
-                RestClient.builder(new HttpHost(host, port, "https"))
+                RestClient.builder(new HttpHost(host, port, scheme))
                         .setHttpClientConfigCallback(
-                                hc -> hc.setSSLContext(sslContext).setDefaultCredentialsProvider(credsProv))
+                                hc -> {
+                                    hc.setDefaultCredentialsProvider(credsProv);
+                                    if (useTls) {
+                                        SSLContext sslContext =
+                                                TransportUtils.sslContextFromCaFingerprint(fingerprint);
+                                        hc.setSSLContext(sslContext);
+                                    }
+                                    return hc;
+                                })
                         .build();
 
         ElasticsearchTransport transport =
