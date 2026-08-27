@@ -53,6 +53,7 @@ chmod 600 "$OMISYS_DEP_KEY"
 
 - **기본(1.95GB)**: 통합 MySQL 0.9 + Redis 0.25 + Kafka 0.8. 대부분의 서비스 개발은 여기서 끝난다.
 - **`search`(3.55GB)**: Elasticsearch(`setup` + `es01`)가 추가된다. **product · search 서비스를 로컬에서 띄울 때는 이 프로파일이 필요하다.** 그 외 서비스 작업에는 불필요하다.
+  - t3.large(7.6GiB)에서 실측하면 **1.9GiB / 25%** 로 여유가 있다. ES 컨테이너 하나가 1.45GiB를 쓰므로 `mem_limit`이 힙(1g)의 2.5배인 2560m로 잡혀 있다. **4GB 인스턴스로는 이 프로파일이 뜨지 않는다.**
 - **`loadtest`(8.75GB)**: Prometheus · Grafana · Zipkin과 애플리케이션 컨테이너까지 전부 올린 데모/부하테스트 구성. t3 계열은 CPU 크레딧이 소진되면 스로틀되므로 **부하테스트 구간에는 c5/m5 등 고정 성능 인스턴스를 쓴다.**
 
 기동 확인:
@@ -85,10 +86,33 @@ Git Bash / 리눅스:
 
 | 로컬 포트 | 원격 대상 | 사용 서비스 |
 |---|---|---|
-| 3306 | 통합 MySQL (`omisys-mysql`) | user · product · order · payment · promotion · review · notification |
+| 3306 | 통합 MySQL (`omisys-mysql`) | user · product · order · payment · promotion · review · notification · delivery |
 | 6379 | Redis | gateway · product · promotion (Redisson 락 · 캐시) |
 | 29092 | Kafka (`OUTSIDE` 리스너) | 이벤트 발행·구독 전 서비스 |
 | 9200 | Elasticsearch | product · search (`search` 프로파일 필요) |
+
+### 로컬에 MySQL이 이미 떠 있다면
+
+3306을 다른 프로세스가 잡고 있으면 터널이 `bind: Permission denied`로 **기동 자체에 실패한다.**
+로컬 MySQL을 끄는 대신 다른 포트로 포워딩하면 된다.
+
+```bash
+LOCAL_MYSQL_PORT=13306 ./scripts/tunnel.sh
+```
+
+```powershell
+$env:LOCAL_MYSQL_PORT = "13306"; .\scripts\tunnel.ps1
+```
+
+애플리케이션 쪽도 **같은 값**을 환경변수로 받아야 한다 — `*-local.yml`이 `localhost:${LOCAL_MYSQL_PORT:3306}`을 쓴다.
+기본값이 3306이므로 **충돌이 없는 PC는 아무것도 설정하지 않아도 된다.**
+
+점유 중인 프로세스 확인:
+
+```powershell
+Get-NetTCPConnection -LocalPort 3306 -State Listen |
+  Select-Object OwningProcess, @{n='Name';e={(Get-Process -Id $_.OwningProcess).ProcessName}}
+```
 
 연결 확인:
 

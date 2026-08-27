@@ -83,7 +83,9 @@ services:
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=${LICENSE}
-    mem_limit: 1600m
+    # 힙 1g 에 Lucene mmap·스레드 스택 등 off-heap 이 더해진다.
+    # 1600m 으로는 실측 93% 까지 차서 OOM-Kill 위험이 있었다. 힙의 2.5배로 잡는다.
+    mem_limit: 2560m
     networks:
       - omisys-network
     ulimits:
