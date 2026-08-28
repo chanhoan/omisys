@@ -58,9 +58,10 @@ class ProductFacadeServiceTest {
 
         when(categoryService.existsCategory(10L)).thenReturn(true);
 
-        // 썸네일 생성 로직이 "omisys-products-origin" -> "omisys-products-thumbnail" replace를 사용함
+        // 썸네일 생성 로직이 "omisys-products-origin" -> "omisys-products-thumbnail" replace를 사용함.
+        // detail 업로드는 detail 버킷 URL 을 돌려주므로 그 URL 로는 치환이 일어나지 않는다.
         String originUrl = "https://s3.amazonaws.com/omisys-products-origin/origin.jpg";
-        String detailUrl = "https://s3.amazonaws.com/omisys-products-origin/detail.jpg";
+        String detailUrl = "https://s3.amazonaws.com/omisys-products-detail/detail.jpg";
 
         when(imageService.uploadImage(eq("origin"), eq(productImg))).thenReturn(originUrl);
         when(imageService.uploadImage(eq("detail"), eq(detailImg))).thenReturn(detailUrl);
@@ -84,9 +85,10 @@ class ProductFacadeServiceTest {
         assertThat(usedImg.originImgUrl()).isEqualTo(originUrl);
         assertThat(usedImg.detailImgUrl()).isEqualTo(detailUrl);
 
-        // detailUrl 기준으로 thumbnail을 만든다(현재 코드 기준)
+        // 썸네일은 origin URL 에서 파생된다. detail URL 로 만들면 버킷 치환이 되지 않아
+        // 존재하지 않는 detail 버킷 경로를 가리키게 된다.
         assertThat(usedImg.thumbnailImgUrl())
-                .isEqualTo("https://s3.amazonaws.com/omisys-products-thumbnail/resized-detail.jpg");
+                .isEqualTo("https://s3.amazonaws.com/omisys-products-thumbnail/resized-origin.jpg");
 
         verify(elasticSearchService).saveProduct(mockedResponse);
     }

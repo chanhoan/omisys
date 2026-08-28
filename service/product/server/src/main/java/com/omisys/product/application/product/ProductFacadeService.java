@@ -35,7 +35,7 @@ public class ProductFacadeService {
         validateCategoryId(request.getCategoryId());
         String productImgUrl = imageService.uploadImage("origin", productImg);
         String detailImgUrl = imageService.uploadImage("detail", detailImg);
-        String thumbnailImgUrl = getThumbnailImgUrl(detailImgUrl);
+        String thumbnailImgUrl = getThumbnailImgUrl(productImgUrl);
         ProductResponse productResponse =
                 productService.createProduct(
                         request, new ImgDto(productImgUrl, detailImgUrl, thumbnailImgUrl));

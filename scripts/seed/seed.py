@@ -22,6 +22,13 @@ import api
 import catalog
 import images
 
+# Windows 콘솔이 cp949 면 일부 문자에서 죽는다. 출력 때문에 시딩이 멈추면 안 된다.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(errors="replace")
+    except AttributeError:
+        pass
+
 DEFAULT_COUNT = 300
 DEFAULT_EUREKA = "http://localhost:19090"
 PROGRESS_EVERY = 25
@@ -81,7 +88,7 @@ def ensure_categories(client):
                 created += 1
             leaf_ids[sub_name] = sub_id
 
-    print("[info] 카테고리 준비 완료 — 신규 {}개, 전체 리프 {}개".format(created, len(leaf_ids)))
+    print("[info] 카테고리 준비 완료 - 신규 {}개, 전체 리프 {}개".format(created, len(leaf_ids)))
     return leaf_ids
 
 
@@ -145,7 +152,7 @@ def main(argv):
         client, products, category_ids, image_pool, args.stop_on_error
     )
 
-    print("\n[info] 완료 — 성공 {}건 / 실패 {}건".format(succeeded, len(failures)))
+    print("\n[info] 완료 - 성공 {}건 / 실패 {}건".format(succeeded, len(failures)))
     if failures:
         print("[error] 실패 목록 (앞 5건):", file=sys.stderr)
         for name, reason in failures[:5]:
