@@ -28,13 +28,14 @@ public class GlobalQueueFilter implements GlobalFilter, Ordered {
 
     private final UserQueueService userQueueService;
     private final ObjectMapper objectMapper;
+    private final PublicPathPolicy publicPathPolicy;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
         String path = exchange.getRequest().getURI().getPath();
 
-        if (isPublicPath(path)) {
+        if (publicPathPolicy.isPublic(path)) {
             return chain.filter(exchange);
         }
 
@@ -45,15 +46,6 @@ public class GlobalQueueFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         return Ordered.LOWEST_PRECEDENCE;
-    }
-
-    private boolean isPublicPath(String path) {
-        return path.startsWith("/api/auth/")
-                || path.startsWith("/api/users/sign-up")
-                || path.startsWith("/api/search")
-                || path.startsWith("/api/products/search")
-                || path.startsWith("/api/preorder/search")
-                || path.startsWith("/api/categories/search");
     }
 
     private Mono<String> extractUserId(ServerWebExchange exchange) {

@@ -51,6 +51,8 @@ dependencies {
 	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
 	implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
 	implementation 'org.springframework.cloud:spring-cloud-starter-config'
+	// 게이트웨이는 reactive 라 webmvc 변종이 아니라 webflux 변종을 써야 한다.
+	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.6.0'
 }
 
 dependencyManagement {

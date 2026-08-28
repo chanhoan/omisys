@@ -31,7 +31,7 @@ class GlobalQueueFilterTest {
     void setUp() {
         userQueueService = Mockito.mock(UserQueueService.class);
         objectMapper = new ObjectMapper();
-        filter = new GlobalQueueFilter(userQueueService, objectMapper);
+        filter = new GlobalQueueFilter(userQueueService, objectMapper, new PublicPathPolicy(false));
     }
 
     @Test
@@ -58,8 +58,9 @@ class GlobalQueueFilterTest {
                 .isInstanceOf(GatewayException.class)
                 .satisfies(ex -> {
                     GatewayException ge = (GatewayException) ex;
-                    assertThat(ge.getStatusName()).isEqualTo(GatewayErrorCode.UNAUTHORIZED.getMessage());
-                    assertThat(ge.getMessage()).isEqualTo(GatewayErrorCode.UNAUTHORIZED.getStatus().name());
+                    assertThat(ge.getStatusName()).isEqualTo(GatewayErrorCode.UNAUTHORIZED.getStatus().name());
+                    assertThat(ge.getMessage()).isEqualTo(GatewayErrorCode.UNAUTHORIZED.getMessage());
+                    assertThat(ge.getStatus()).isEqualTo(GatewayErrorCode.UNAUTHORIZED.getStatus());
                 });
 
         assertThat(chain.isCalled()).isFalse();

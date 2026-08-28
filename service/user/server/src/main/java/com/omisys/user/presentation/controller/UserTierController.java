@@ -36,7 +36,7 @@ public class UserTierController {
         return ApiResponse.ok(userService.getUserTierByUserId(userId));
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_NANAGER', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')")
     @GetMapping
     public ApiResponse<Page<UserTierResponse.Get>> getUserTierList(Pageable pageable) {
         return ApiResponse.ok(userService.getUserTierList(pageable));

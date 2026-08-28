@@ -34,6 +34,11 @@ sourceSets {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // OpenAPI 설정용. 소비하는 서비스가 이미 springdoc 을 갖고 있으므로 여기서 끌어오지 않는다.
+    // web 스타터를 딸려 보내면 reactive 인 게이트웨이가 깨진다.
+    compileOnly 'org.springdoc:springdoc-openapi-starter-common:2.6.0'
+    compileOnly 'org.springframework.security:spring-security-core'
+    compileOnly 'org.springframework:spring-web'
     implementation 'jakarta.servlet:jakarta.servlet-api'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

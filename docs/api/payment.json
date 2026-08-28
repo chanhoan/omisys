@@ -1,0 +1,544 @@
+{
+  "components": {
+    "schemas": {
+      "ApiResponsePageGet": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PageGet"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Cancel": {
+        "properties": {
+          "cancelReason": {
+            "type": "string"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Create": {
+        "properties": {
+          "amount": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "email": {
+            "type": "string"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "orderName": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Created": {
+        "properties": {
+          "checkoutUrl": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Get": {
+        "properties": {
+          "amount": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "histories": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentHistoryDto"
+            },
+            "type": "array"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "orderName": {
+            "type": "string"
+          },
+          "paymentId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "PAYMENT",
+              "PENDING",
+              "FAILED",
+              "CANCEL",
+              "REFUND_PENDING",
+              "REFUND"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "PageGet": {
+        "properties": {
+          "content": {
+            "items": {
+              "$ref": "#/components/schemas/Get"
+            },
+            "type": "array"
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "number": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "numberOfElements": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "size": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "totalElements": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPages": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Pageable": {
+        "properties": {
+          "page": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "size": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "PageableObject": {
+        "properties": {
+          "offset": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "pageNumber": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageSize": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "unpaged": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "PaymentHistoryDto": {
+        "properties": {
+          "amount": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "cancelReason": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "PAYMENT",
+              "PENDING",
+              "FAILED",
+              "CANCEL",
+              "REFUND_PENDING",
+              "REFUND"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SortObject": {
+        "properties": {
+          "ascending": {
+            "type": "boolean"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "ignoreCase": {
+            "type": "boolean"
+          },
+          "nullHandling": {
+            "type": "string"
+          },
+          "property": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "accessToken": {
+        "description": "로그인(POST /api/auth/sign-in)이 내려주는 JWT.\n\n게이트웨이가 쿠키의 accessToken 을 검증한 뒤 X-User-Claims 헤더로 바꿔\n각 서비스에 넘긴다. 브라우저는 쿠키만 실어 보내면 되고 헤더를 직접\n만들 필요가 없다. 서비스 간 호출은 Authorization: Bearer 도 받는다.",
+        "in": "cookie",
+        "name": "accessToken",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "title": "omisys payment service",
+    "version": "v0"
+  },
+  "openapi": "3.0.1",
+  "paths": {
+    "/api/payments/all": {
+      "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "getAllPayments",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "userId",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "paymentKey",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "paymentId",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orderId",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "payment-controller"
+        ]
+      }
+    },
+    "/internal/payments": {
+      "post": {
+        "operationId": "createPayment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Create"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Created"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "payment-internal-controller"
+        ]
+      }
+    },
+    "/internal/payments/cancel": {
+      "post": {
+        "operationId": "cancelPayment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cancel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "payment-internal-controller"
+        ]
+      }
+    },
+    "/internal/payments/{orderId}": {
+      "get": {
+        "operationId": "getPaymentAndHistoryByOrderId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Get"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "payment-internal-controller"
+        ]
+      }
+    },
+    "/payments/fail": {
+      "get": {
+        "operationId": "paymentFail",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "paymentKey",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "payment-controller"
+        ]
+      }
+    },
+    "/payments/mock/keys": {
+      "get": {
+        "description": "필요 권한: ROLE_USER",
+        "operationId": "latestPaymentKeys",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "payment-mock-controller"
+        ]
+      }
+    },
+    "/payments/mock/success": {
+      "post": {
+        "operationId": "paymentSuccessMock",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "paymentKey",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "payment-mock-controller"
+        ]
+      }
+    },
+    "/payments/success": {
+      "get": {
+        "operationId": "paymentSuccess",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "paymentKey",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "payment-controller"
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "accessToken": []
+    }
+  ]
+}

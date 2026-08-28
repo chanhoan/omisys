@@ -1,0 +1,632 @@
+{
+  "components": {
+    "schemas": {
+      "AdminGet": {
+        "properties": {
+          "courier": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "deliveryId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "state": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseGet": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Get"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseListTrackingHistory": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TrackingHistory"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseLong": {
+        "properties": {
+          "data": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponsePageAdminGet": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PageAdminGet"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponsePageMyGet": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PageMyGet"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Get": {
+        "properties": {
+          "courier": {
+            "type": "string"
+          },
+          "deliveryId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "shippingAddress": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "zipcode": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MyGet": {
+        "properties": {
+          "courier": {
+            "type": "string"
+          },
+          "deliveryId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "PageAdminGet": {
+        "properties": {
+          "content": {
+            "items": {
+              "$ref": "#/components/schemas/AdminGet"
+            },
+            "type": "array"
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "number": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "numberOfElements": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "size": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "totalElements": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPages": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "PageMyGet": {
+        "properties": {
+          "content": {
+            "items": {
+              "$ref": "#/components/schemas/MyGet"
+            },
+            "type": "array"
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "number": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "numberOfElements": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "size": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "totalElements": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPages": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Pageable": {
+        "properties": {
+          "page": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "size": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "PageableObject": {
+        "properties": {
+          "offset": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "pageNumber": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageSize": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "unpaged": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "SortObject": {
+        "properties": {
+          "ascending": {
+            "type": "boolean"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "ignoreCase": {
+            "type": "boolean"
+          },
+          "nullHandling": {
+            "type": "string"
+          },
+          "property": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "TrackingHistory": {
+        "properties": {
+          "memo": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "accessToken": {
+        "description": "로그인(POST /api/auth/sign-in)이 내려주는 JWT.\n\n게이트웨이가 쿠키의 accessToken 을 검증한 뒤 X-User-Claims 헤더로 바꿔\n각 서비스에 넘긴다. 브라우저는 쿠키만 실어 보내면 되고 헤더를 직접\n만들 필요가 없다. 서비스 간 호출은 Authorization: Bearer 도 받는다.",
+        "in": "cookie",
+        "name": "accessToken",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "title": "omisys delivery service",
+    "version": "v0"
+  },
+  "openapi": "3.0.1",
+  "paths": {
+    "/api/deliveries/all": {
+      "get": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
+        "operationId": "getAllDelivery",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "userId",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageAdminGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "delivery-controller"
+        ]
+      }
+    },
+    "/api/deliveries/me": {
+      "get": {
+        "operationId": "getMyDelivery",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageMyGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "delivery-controller"
+        ]
+      }
+    },
+    "/api/deliveries/{deliveryId}": {
+      "get": {
+        "operationId": "getDelivery",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deliveryId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "delivery-controller"
+        ]
+      }
+    },
+    "/api/deliveries/{deliveryId}/invoice": {
+      "patch": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
+        "operationId": "registerInvoice",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deliveryId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "courier",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "invoiceNumber",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLong"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "delivery-controller"
+        ]
+      }
+    },
+    "/api/deliveries/{deliveryId}/state/{state}": {
+      "patch": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
+        "operationId": "updateState",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deliveryId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "state",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLong"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "delivery-controller"
+        ]
+      }
+    },
+    "/api/deliveries/{deliveryId}/tracking": {
+      "get": {
+        "operationId": "getTrackingHistory",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deliveryId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListTrackingHistory"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "delivery-controller"
+        ]
+      }
+    },
+    "/internal/deliveries": {
+      "get": {
+        "operationId": "getDeliveryByOrderId",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Get"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "delivery-internal-controller"
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "accessToken": []
+    }
+  ]
+}

@@ -1,0 +1,1563 @@
+{
+  "components": {
+    "schemas": {
+      "AddressDto": {
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "addressId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "alias": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "zipcode": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseGet": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Get"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseInfo": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Info"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseListGet": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Get"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseListInfo": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Info"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponsePageGet": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PageGet"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseUserDeviceStatusResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UserDeviceStatusResponse"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseVoid": {
+        "properties": {
+          "data": {
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Create": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "nickname": {
+            "type": "string"
+          },
+          "password": {
+            "pattern": "^[a-zA-Z0-9_#$%^!-]{8,15}$",
+            "type": "string"
+          },
+          "username": {
+            "pattern": "^[a-z0-9]{4,10}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "nickname",
+          "password",
+          "username"
+        ],
+        "type": "object"
+      },
+      "Get": {
+        "properties": {
+          "tier": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Info": {
+        "properties": {
+          "point": {
+            "type": "number"
+          },
+          "role": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "username": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "PageGet": {
+        "properties": {
+          "content": {
+            "items": {
+              "$ref": "#/components/schemas/Get"
+            },
+            "type": "array"
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "number": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "numberOfElements": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "size": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "totalElements": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPages": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Pageable": {
+        "properties": {
+          "page": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "size": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "PageableObject": {
+        "properties": {
+          "offset": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "pageNumber": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageSize": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "unpaged": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "PointHistoryDto": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "point": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "SortObject": {
+        "properties": {
+          "ascending": {
+            "type": "boolean"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "ignoreCase": {
+            "type": "boolean"
+          },
+          "nullHandling": {
+            "type": "string"
+          },
+          "property": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Update": {
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "thresholdPrice": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "UpdatePassword": {
+        "properties": {
+          "currentPassword": {
+            "pattern": "^[a-zA-Z0-9_#$%^!-]{8,15}$",
+            "type": "string"
+          },
+          "updatePassword": {
+            "pattern": "^[a-zA-Z0-9_#$%^!-]{8,15}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "updatePassword"
+        ],
+        "type": "object"
+      },
+      "UpdateRole": {
+        "properties": {
+          "role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "type": "object"
+      },
+      "UpdateTier": {
+        "properties": {
+          "tier": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tier"
+        ],
+        "type": "object"
+      },
+      "UserDeviceInfoResponse": {
+        "properties": {
+          "deviceId": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "pushToken": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "UserDeviceRequest": {
+        "properties": {
+          "appVersion": {
+            "maxLength": 32,
+            "minLength": 0,
+            "type": "string"
+          },
+          "platform": {
+            "enum": [
+              "IOS",
+              "ANDROID"
+            ],
+            "type": "string"
+          },
+          "pushToken": {
+            "maxLength": 512,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "appVersion",
+          "platform",
+          "pushToken"
+        ],
+        "type": "object"
+      },
+      "UserDeviceStatusResponse": {
+        "properties": {
+          "registered": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "UserDto": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "point": {
+            "type": "number"
+          },
+          "role": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "userName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "UserNotificationInfoResponse": {
+        "properties": {
+          "devices": {
+            "items": {
+              "$ref": "#/components/schemas/UserDeviceInfoResponse"
+            },
+            "type": "array"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "accessToken": {
+        "description": "로그인(POST /api/auth/sign-in)이 내려주는 JWT.\n\n게이트웨이가 쿠키의 accessToken 을 검증한 뒤 X-User-Claims 헤더로 바꿔\n각 서비스에 넘긴다. 브라우저는 쿠키만 실어 보내면 되고 헤더를 직접\n만들 필요가 없다. 서비스 간 호출은 Authorization: Bearer 도 받는다.",
+        "in": "cookie",
+        "name": "accessToken",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "title": "omisys user service",
+    "version": "v0"
+  },
+  "openapi": "3.0.1",
+  "paths": {
+    "/api/address": {
+      "get": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
+        "operationId": "getAddressList",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "address-controller"
+        ]
+      },
+      "post": {
+        "operationId": "createAddress",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Create"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "address-controller"
+        ]
+      }
+    },
+    "/api/address/me": {
+      "get": {
+        "description": "필요 권한: ROLE_USER",
+        "operationId": "getAddressByUserId",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "address-controller"
+        ]
+      }
+    },
+    "/api/address/{addressId}": {
+      "delete": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_ADMIN 또는 ROLE_MANAGER",
+        "operationId": "deleteAddress",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "addressId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "address-controller"
+        ]
+      },
+      "patch": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_ADMIN 또는 ROLE_MANAGER",
+        "operationId": "updateAddress",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "addressId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Update"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "address-controller"
+        ]
+      }
+    },
+    "/api/tier": {
+      "get": {
+        "description": "필요 권한: ROLE_ADMIN",
+        "operationId": "getTierList",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "tier-controller"
+        ]
+      },
+      "post": {
+        "description": "필요 권한: ROLE_ADMIN",
+        "operationId": "createTier",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Create"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "tier-controller"
+        ]
+      }
+    },
+    "/api/tier/{tierId}": {
+      "delete": {
+        "description": "필요 권한: ROLE_ADMIN",
+        "operationId": "deleteTier",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tierId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "tier-controller"
+        ]
+      },
+      "patch": {
+        "description": "필요 권한: ROLE_ADMIN",
+        "operationId": "updateTier",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tierId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Update"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "tier-controller"
+        ]
+      }
+    },
+    "/api/users": {
+      "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "getUserList",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListInfo"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-controller"
+        ]
+      }
+    },
+    "/api/users/me": {
+      "get": {
+        "description": "필요 권한: ROLE_USER",
+        "operationId": "getMyPage",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseInfo"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-controller"
+        ]
+      }
+    },
+    "/api/users/me/devices/{deviceId}": {
+      "delete": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deviceId",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 0,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-device-controller"
+        ]
+      },
+      "get": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deviceId",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 0,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUserDeviceStatusResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-device-controller"
+        ]
+      },
+      "put": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "register",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deviceId",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 0,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserDeviceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-device-controller"
+        ]
+      }
+    },
+    "/api/users/point": {
+      "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "getPointHistoryList",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "point-history-controller"
+        ]
+      }
+    },
+    "/api/users/point/me": {
+      "get": {
+        "description": "필요 권한: ROLE_USER",
+        "operationId": "getPointHistoryByUser",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "point-history-controller"
+        ]
+      }
+    },
+    "/api/users/point/{pointHistoryId}": {
+      "delete": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "deletePointHistory",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pointHistoryId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "point-history-controller"
+        ]
+      }
+    },
+    "/api/users/point/{userId}": {
+      "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "getPointHistoryByUserId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "point-history-controller"
+        ]
+      }
+    },
+    "/api/users/reset-password": {
+      "patch": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "updateUserPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePassword"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-controller"
+        ]
+      }
+    },
+    "/api/users/sign-up": {
+      "post": {
+        "operationId": "signUp",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Create"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-controller"
+        ]
+      }
+    },
+    "/api/users/tier": {
+      "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "getUserTierList",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-tier-controller"
+        ]
+      }
+    },
+    "/api/users/tier/me": {
+      "get": {
+        "description": "필요 권한: ROLE_USER",
+        "operationId": "getUserTierByUser",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-tier-controller"
+        ]
+      }
+    },
+    "/api/users/tier/{userId}": {
+      "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "getUserTierByUserId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-tier-controller"
+        ]
+      },
+      "patch": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "updateUserTier",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTier"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-tier-controller"
+        ]
+      }
+    },
+    "/api/users/{userId}": {
+      "delete": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "deleteUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-controller"
+        ]
+      },
+      "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
+        "operationId": "getUser",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseInfo"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-controller"
+        ]
+      }
+    },
+    "/api/users/{userId}/role": {
+      "patch": {
+        "description": "필요 권한: ROLE_ADMIN",
+        "operationId": "updateUserRole",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRole"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-controller"
+        ]
+      }
+    },
+    "/internal/address/{addressId}": {
+      "get": {
+        "operationId": "getAddress",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "addressId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "address-internal-controller"
+        ]
+      }
+    },
+    "/internal/users": {
+      "get": {
+        "operationId": "getUserByUsername",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-internal-controller"
+        ]
+      }
+    },
+    "/internal/users/devices/{deviceId}": {
+      "delete": {
+        "operationId": "deleteDevice",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "deviceId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-internal-controller"
+        ]
+      }
+    },
+    "/internal/users/email": {
+      "get": {
+        "operationId": "getUserByEmail",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "email",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-internal-controller"
+        ]
+      }
+    },
+    "/internal/users/point": {
+      "post": {
+        "operationId": "createPointHistory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PointHistoryDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "format": "int64",
+                  "type": "integer"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-internal-controller"
+        ]
+      }
+    },
+    "/internal/users/point/{pointHistoryId}": {
+      "delete": {
+        "operationId": "rollbackPointHistory",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "pointHistoryId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-internal-controller"
+        ]
+      }
+    },
+    "/internal/users/user-id": {
+      "get": {
+        "operationId": "getUserById",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-internal-controller"
+        ]
+      }
+    },
+    "/internal/users/{userId}/notification-info": {
+      "get": {
+        "operationId": "getNotificationInfo",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserNotificationInfoResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "user-internal-controller"
+        ]
+      }
+    }
+  },
+  "security": [
+    {
+      "accessToken": []
+    }
+  ]
+}
