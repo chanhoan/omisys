@@ -84,8 +84,12 @@ echo "[info] 터널 연결: $EC2_HOST"
 echo "[info] 로컬 포트 ${LOCAL_MYSQL_PORT} / 6379-6383 / 29092 / 9200 -> 원격 의존성"
 echo "[info] 종료하려면 Ctrl+C"
 
-exec ssh -i "$KEY_PATH" -N \
+# ExitOnForwardFailure: 포트를 하나라도 못 잡으면 즉시 끝낸다.
+# 이게 없으면 절반만 포워딩된 채로 살아남아, 애플리케이션이 엉뚱한 곳에서 죽는다.
+STATUS=0
+ssh -i "$KEY_PATH" -N \
   -o ServerAliveInterval=30 \
+  -o ExitOnForwardFailure=yes \
   -L ${LOCAL_MYSQL_PORT}:localhost:3306 \
   -L 6379:localhost:6379 \
   -L 6380:localhost:6380 \
@@ -94,4 +98,16 @@ exec ssh -i "$KEY_PATH" -N \
   -L 6383:localhost:6383 \
   -L 29092:localhost:29092 \
   -L 9200:localhost:9200 \
-  "$EC2_HOST"
+  "$EC2_HOST" || STATUS=$?
+
+# 130 = Ctrl+C. 그 외 실패는 대부분 로컬 포트를 누가 이미 잡고 있는 경우다.
+if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 130 ]; then
+  echo >&2
+  echo "[error] 터널이 종료되었습니다 (exit $STATUS)." >&2
+  echo "        위에 'bind ... Permission denied' 가 보이면 그 포트를 이미 누가 잡고 있다는 뜻입니다." >&2
+  echo "        - 다른 터널이 떠 있는지 확인하십시오. WSL 과 PowerShell 양쪽 다 봐야 합니다." >&2
+  echo "        - WSL 이 networkingMode=mirrored 면 두 환경이 포트를 공유하고," >&2
+  echo "          종료된 터널의 예약이 남기도 합니다. 그때는 'wsl --shutdown' 으로 정리됩니다." >&2
+  echo "        - MySQL 포트만 겹친다면 LOCAL_MYSQL_PORT 로 옮길 수 있습니다." >&2
+fi
+exit "$STATUS"

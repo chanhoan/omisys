@@ -64,8 +64,11 @@ Write-Host "[info] 터널 연결: $Ec2Host"
 Write-Host "[info] 로컬 포트 $LocalMysqlPort / 6379-6383 / 29092 / 9200 -> 원격 의존성"
 Write-Host "[info] 종료하려면 Ctrl+C"
 
+# ExitOnForwardFailure: 포트를 하나라도 못 잡으면 즉시 끝낸다.
+# 이게 없으면 절반만 포워딩된 채로 살아남아, 애플리케이션이 엉뚱한 곳에서 죽는다.
 ssh -i $KeyPath -N `
     -o ServerAliveInterval=30 `
+    -o ExitOnForwardFailure=yes `
     -L ${LocalMysqlPort}:localhost:3306 `
     -L 6379:localhost:6379 `
     -L 6380:localhost:6380 `
@@ -75,3 +78,14 @@ ssh -i $KeyPath -N `
     -L 29092:localhost:29092 `
     -L 9200:localhost:9200 `
     $Ec2Host
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "[error] 터널이 종료되었습니다 (exit $LASTEXITCODE)."
+    Write-Host "        위에 'bind ... Permission denied' 가 보이면 그 포트를 이미 누가 잡고 있다는 뜻입니다."
+    Write-Host "        - 다른 터널이 떠 있는지 확인하십시오. WSL 과 PowerShell 양쪽 다 봐야 합니다."
+    Write-Host "        - WSL 이 networkingMode=mirrored 면 두 환경이 포트를 공유하고,"
+    Write-Host "          종료된 터널의 예약이 남기도 합니다. 그때는 'wsl --shutdown' 으로 정리됩니다."
+    Write-Host "        - MySQL 포트만 겹친다면 LOCAL_MYSQL_PORT 로 옮길 수 있습니다."
+    exit $LASTEXITCODE
+}

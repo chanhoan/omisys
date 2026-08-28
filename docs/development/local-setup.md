@@ -130,6 +130,21 @@ curl -s http://localhost:9200 -k -u elastic:<password>
 
 > `omisys_user` 계정은 `omisys_user` 스키마만 보여야 한다. 다른 스키마가 보이면 `docs/migrations/mysql/01-init-schemas.sh`의 `GRANT` 범위를 다시 확인한다.
 
+### `bind: Permission denied` 가 3306 이외의 포트에서 날 때
+
+권한 문제가 아니라 **그 포트를 이미 누가 잡고 있다는 뜻이다.** 원인은 대개 터널이 두 개 떠 있는 것이다.
+
+WSL 을 `networkingMode=mirrored` 로 쓰면(`%USERPROFILE%\.wslconfig`) WSL 과 Windows 가 **포트를 공유한다.**
+그래서 WSL 에서 `tunnel.sh` 를 띄운 채 PowerShell 에서 `tunnel.ps1` 을 띄우면 뒤에 뜬 쪽이 포트를 못 잡는다.
+종료된 터널의 예약이 잠시 남아 `netstat` 에는 안 보이는데도 bind 가 막히는 경우도 있다.
+
+- **터널은 한 셸에서만 띄운다.** WSL 이면 `tunnel.sh`, PowerShell 이면 `tunnel.ps1` 중 하나로 고정한다.
+- 떠 있는 터널 확인: `Get-Process ssh` (Windows), `pgrep -af "ssh -i"` (WSL)
+- 예약이 남아 안 풀리면 `wsl --shutdown` 으로 정리한다.
+
+두 스크립트 모두 `ExitOnForwardFailure=yes` 로 뜨기 때문에, 포트를 하나라도 못 잡으면 **절반만 연결된 채 살아남지 않고 즉시 종료된다.**
+절반만 포워딩된 터널은 애플리케이션이 엉뚱한 곳에서 죽게 만들기 때문이다.
+
 ---
 
 ## 3. 애플리케이션 실행 (IDE)
