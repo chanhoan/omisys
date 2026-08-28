@@ -277,6 +277,28 @@ outbox → Kafka → Elasticsearch 색인을 함께 태운다. DB 에 바로 넣
 > 서비스를 띄운 뒤 터널을 다시 연결했다면 **서비스를 재시작해야 한다.** 커넥션 풀이
 > 끊어진 터널을 붙잡고 있어 요청이 응답 없이 멈춘다.
 
+### 상품 이미지 저장 구조
+
+상품 이미지는 **버킷 하나**(`omisys-products`, `ap-northeast-2`)에 프리픽스로 나눠 담는다.
+
+```
+omisys-products/origin/<uuid>.jpg    상품 대표 이미지 (썸네일도 이 URL 을 함께 쓴다)
+omisys-products/detail/<uuid>.jpg    상세 이미지
+```
+
+DB 에 저장되는 URL 은 S3 가 아니라 **CloudFront** 를 가리킨다. 버킷은 OAC 로만 열려 있어
+직접 접근이 막혀 있으므로, 퍼블릭 액세스 차단 4개를 모두 켠 채로 두어야 한다.
+
+- 버킷 정책은 직접 쓰지 말고 CloudFront 배포 생성 화면이 제시하는 것을 붙여넣는다.
+  `Principal` 이 `*` 가 아니라 `cloudfront.amazonaws.com` 이고 배포 ARN 으로 조건이 걸린다.
+- 버킷 이름과 CloudFront 도메인은 config 저장소의 `aws.s3.bucket-name` 과 `aws.cdn.base-url`
+  에 있다. local 과 prod 가 같은 값을 쓴다.
+- 앱에 필요한 IAM 권한은 `s3:PutObject` · `s3:GetObject` · `s3:DeleteObject` 다.
+
+> **리사이즈 파이프라인은 없다.** `thumbnailImgUrl` 은 원본과 같은 이미지를 가리킨다.
+> 별도 크기가 필요해지면 시더가 축소본을 함께 올리는 편이 낫다 — 상품 등록은 관리자만 하는
+> 저빈도 작업이라 앱에 리사이즈를 넣을 이유가 약하다.
+
 ---
 
 ## 4. 보안 주의

@@ -58,10 +58,9 @@ class ProductFacadeServiceTest {
 
         when(categoryService.existsCategory(10L)).thenReturn(true);
 
-        // 썸네일 생성 로직이 "omisys-products-origin" -> "omisys-products-thumbnail" replace를 사용함.
-        // detail 업로드는 detail 버킷 URL 을 돌려주므로 그 URL 로는 치환이 일어나지 않는다.
-        String originUrl = "https://s3.amazonaws.com/omisys-products-origin/origin.jpg";
-        String detailUrl = "https://s3.amazonaws.com/omisys-products-detail/detail.jpg";
+        // 업로드는 CloudFront URL 을 돌려준다. 버킷은 하나이고 종류는 프리픽스로 나뉜다.
+        String originUrl = "https://d3bs7s8t9rgsyg.cloudfront.net/origin/origin.jpg";
+        String detailUrl = "https://d3bs7s8t9rgsyg.cloudfront.net/detail/detail.jpg";
 
         when(imageService.uploadImage(eq("origin"), eq(productImg))).thenReturn(originUrl);
         when(imageService.uploadImage(eq("detail"), eq(detailImg))).thenReturn(detailUrl);
@@ -85,10 +84,8 @@ class ProductFacadeServiceTest {
         assertThat(usedImg.originImgUrl()).isEqualTo(originUrl);
         assertThat(usedImg.detailImgUrl()).isEqualTo(detailUrl);
 
-        // 썸네일은 origin URL 에서 파생된다. detail URL 로 만들면 버킷 치환이 되지 않아
-        // 존재하지 않는 detail 버킷 경로를 가리키게 된다.
-        assertThat(usedImg.thumbnailImgUrl())
-                .isEqualTo("https://s3.amazonaws.com/omisys-products-thumbnail/resized-origin.jpg");
+        // 리사이즈 파이프라인이 없어 썸네일은 원본과 같은 이미지를 가리킨다.
+        assertThat(usedImg.thumbnailImgUrl()).isEqualTo(originUrl);
 
         verify(elasticSearchService).saveProduct(mockedResponse);
     }
@@ -182,7 +179,7 @@ class ProductFacadeServiceTest {
     }
 
     @Test
-    @DisplayName("deleteProduct: ES 삭제 → 이미지 삭제(널 아닌 것만) → 삭제 여부 반환")
+    @DisplayName("deleteProduct: ES 삭제 → 원본·상세 이미지 삭제 → 삭제 여부 반환")
     void deleteProduct_success() {
         // given
         UUID productId = UUID.randomUUID();
@@ -190,7 +187,6 @@ class ProductFacadeServiceTest {
         ProductResponse mocked = mock(ProductResponse.class);
         when(mocked.getOriginImgUrl()).thenReturn("origin-url");
         when(mocked.getDetailImgUrl()).thenReturn("detail-url");
-        when(mocked.getThumbnailImgUrl()).thenReturn("thumb-url");
         when(mocked.isDeleted()).thenReturn(true);
 
         when(productService.deleteProduct(productId)).thenReturn(mocked);
@@ -204,6 +200,7 @@ class ProductFacadeServiceTest {
         verify(elasticSearchService).deleteProduct(mocked);
         verify(imageService).deleteImage("origin-url");
         verify(imageService).deleteImage("detail-url");
-        verify(imageService).deleteImage("thumb-url");
+        // 썸네일은 원본과 같은 객체라 삭제 호출이 한 번이면 된다.
+        verifyNoMoreInteractions(imageService);
     }
 }

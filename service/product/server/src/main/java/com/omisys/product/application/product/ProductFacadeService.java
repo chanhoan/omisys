@@ -35,7 +35,9 @@ public class ProductFacadeService {
         validateCategoryId(request.getCategoryId());
         String productImgUrl = imageService.uploadImage("origin", productImg);
         String detailImgUrl = imageService.uploadImage("detail", detailImg);
-        String thumbnailImgUrl = getThumbnailImgUrl(productImgUrl);
+        // 리사이즈 파이프라인이 없어 썸네일은 원본과 같은 이미지를 가리킨다.
+        // 별도 크기가 필요해지면 이 값만 바꾸면 되고, 저장 구조는 그대로 둘 수 있다.
+        String thumbnailImgUrl = productImgUrl;
         ProductResponse productResponse =
                 productService.createProduct(
                         request, new ImgDto(productImgUrl, detailImgUrl, thumbnailImgUrl));
@@ -67,9 +69,9 @@ public class ProductFacadeService {
     public boolean deleteProduct(UUID productId) {
         ProductResponse product = productService.deleteProduct(productId);
         elasticSearchService.deleteProduct(product);
+        // 썸네일은 원본과 같은 객체를 가리키므로 따로 지우지 않는다.
         Optional.ofNullable(product.getOriginImgUrl()).ifPresent(imageService::deleteImage);
         Optional.ofNullable(product.getDetailImgUrl()).ifPresent(imageService::deleteImage);
-        Optional.ofNullable(product.getThumbnailImgUrl()).ifPresent(imageService::deleteImage);
         return product.isDeleted();
     }
 
@@ -82,28 +84,14 @@ public class ProductFacadeService {
         String thumbnailImgUrl = savedProduct.getThumbnailImgUrl();
         if (productImg != null && !productImg.isEmpty()) {
             imageService.deleteImage(productImgUrl);
-            imageService.deleteImage(thumbnailImgUrl);
             productImgUrl = imageService.uploadImage("origin", productImg);
-            thumbnailImgUrl = getThumbnailImgUrl(productImgUrl);
+            thumbnailImgUrl = productImgUrl;
         }
         if (detailImg != null && !detailImg.isEmpty()) {
             imageService.deleteImage(detailImgUrl);
             detailImgUrl = imageService.uploadImage("detail", detailImg);
         }
         return new ImgDto(productImgUrl, detailImgUrl, thumbnailImgUrl);
-    }
-
-    private String getThumbnailImgUrl(String productImgUrl) {
-        String[] parts = productImgUrl.split("/");
-        String fileNameWithExtension = parts[parts.length - 1];
-
-        String imageName = "resized-" + fileNameWithExtension;
-
-        String baseUrl =
-                productImgUrl
-                        .substring(0, productImgUrl.lastIndexOf("/") + 1)
-                        .replace("omisys-products-origin", "omisys-products-thumbnail");
-        return baseUrl + imageName;
     }
 
     private void validateCategoryId(Long categoryId) {
