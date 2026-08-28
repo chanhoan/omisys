@@ -250,6 +250,35 @@ ORDER_MYSQL_PASSWORD=<원격 omisys_order 계정 비밀번호>
 
 ---
 
+### 목데이터 시딩
+
+상품·카테고리 목데이터는 `scripts/seed/` 가 만든다.
+
+```bash
+python3 scripts/seed/seed.py --dry-run      # 전송 없이 생성 결과만 확인
+python3 scripts/seed/seed.py --count 300    # 실제 투입
+```
+
+product 서비스 주소는 Eureka(`localhost:19090`)에서 찾으므로 포트를 외울 필요가 없다.
+못 찾으면 `--base-url http://localhost:18083` 으로 직접 준다.
+
+**SQL 로 직접 INSERT 하지 않고 API 를 거치는 이유가 있다.** 상품 생성은 S3 업로드와
+outbox → Kafka → Elasticsearch 색인을 함께 태운다. DB 에 바로 넣으면 이미지도 검색도
+통째로 빈 채로 남는다.
+
+- 인증은 `X-User-Claims` 헤더로 처리한다. 게이트웨이가 JWT 를 검증한 뒤 넣어 주는 헤더를
+  시더가 직접 만들어 붙이므로 로그인 절차가 필요 없다.
+- 이미지는 picsum.photos 에서 24쌍만 받아 `scripts/seed/.cache/` 에 두고 돌려 쓴다.
+  저작권 부담이 없고 API 키도 필요 없다. 사진이 그 상품일 필요는 없고, 실제 바이너리가
+  S3 로 올라가는 것이 목적이다.
+- `--seed` 값이 같으면 같은 카탈로그가 나온다. 카테고리는 이름이 겹치면 건너뛰므로
+  여러 번 돌려도 중복이 쌓이지 않는다.
+
+> 서비스를 띄운 뒤 터널을 다시 연결했다면 **서비스를 재시작해야 한다.** 커넥션 풀이
+> 끊어진 터널을 붙잡고 있어 요청이 응답 없이 멈춘다.
+
+---
+
 ## 4. 보안 주의
 
 > **보안그룹에는 SSH 22번만 열어 둔다.** 본인 IP(`/32`)로 제한하고, **MySQL 3306 · Redis 6379 · Kafka 29092 · Elasticsearch 9200 은 절대 인바운드로 개방하지 않는다.**
