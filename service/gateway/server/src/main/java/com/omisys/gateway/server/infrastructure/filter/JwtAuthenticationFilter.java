@@ -33,23 +33,17 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 
     private static final String ACCESS_TOKEN_COOKIE = "accessToken";
 
-    private static final List<String> PUBLIC_PATHS = List.of(
-            "/api/auth/",
-            "/oauth2/",
-            "/login/oauth2/",
-            "/api/users/sign-up",
-            "/api/search",
-            "/api/products/search",
-            "/api/preorder/search",
-            "/api/categories/search"
-    );
-
     private final AuthService authService;
     private final ObjectMapper objectMapper;
+    private final PublicPathPolicy publicPathPolicy;
 
-    public JwtAuthenticationFilter(@Lazy AuthService authService, ObjectMapper objectMapper) {
+    public JwtAuthenticationFilter(
+            @Lazy AuthService authService,
+            ObjectMapper objectMapper,
+            PublicPathPolicy publicPathPolicy) {
         this.authService = authService;
         this.objectMapper = objectMapper;
+        this.publicPathPolicy = publicPathPolicy;
     }
 
     @Override
@@ -63,7 +57,7 @@ public class JwtAuthenticationFilter implements GlobalFilter {
 
         String path = exchange.getRequest().getURI().getPath();
 
-        if (isPublicPath(path)) {
+        if (publicPathPolicy.isPublic(path)) {
             return chain.filter(exchange);
         }
 
@@ -85,10 +79,6 @@ public class JwtAuthenticationFilter implements GlobalFilter {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
-    }
-
-    private boolean isPublicPath(String path) {
-        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
     }
 
     private Optional<String> extractToken(ServerWebExchange exchange) {
