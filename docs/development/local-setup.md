@@ -17,9 +17,8 @@ IDE(Spring Boot × N, local 프로파일)
 
 | 항목 | 값 |
 |---|---|
-| SSH 키 | `.pem` 을 `<repo>/` · `~/.ssh/` · `~/Downloads/` 중 한 곳에 `omisys.pem` 이름으로 배치 |
+| SSH 키 | 저장소 루트에 `omisys.pem` 이름으로 배치 |
 | `.env.local` 의 `OMISYS_DEP_HOST` | `ubuntu@<Elastic IP>` |
-| `.env.local` 의 `OMISYS_DEP_KEY` | 생략 가능 — 위 위치를 자동 탐색한다 |
 | 로컬 포트 | 6379 / 29092 / 9200 이 비어 있을 것 (MySQL 포트는 LOCAL_MYSQL_PORT 로 우회 가능) |
 
 `.env.local` 에 호스트를 적는다. 이 파일은 어차피 DB 비밀번호 때문에 PC 마다 만들어야 하므로 추가 부담이 아니다.
@@ -28,20 +27,17 @@ IDE(Spring Boot × N, local 프로파일)
 OMISYS_DEP_HOST=ubuntu@1.2.3.4
 ```
 
-키는 `omisys.pem` 이름으로 아래 중 한 곳에 두면 자동으로 찾는다. PC 마다 경로를 맞출 필요가 없다.
+키는 저장소 루트에 `omisys.pem` 이름으로 둔다. 경로는 여기로 고정이라 설정할 값이 없다.
 
 ```
-<repo>/omisys.pem  |  ~/.ssh/omisys.pem  |  ~/Downloads/omisys.pem  |  ~/keys/omisys.pem
+<repo>/omisys.pem
 ```
 
-다른 이름이나 위치를 쓴다면 `.env.local` 에 `OMISYS_DEP_KEY=<절대경로>` 를 적는다.
-환경변수로 직접 넘긴 값이 항상 우선한다.
+키 권한은 스크립트가 실행할 때 알아서 맞춘다. 직접 `chmod` 할 필요가 없다.
 
-Git Bash 에서는 키 권한을 조여 둔다.
-
-```bash
-chmod 600 <키 경로>
-```
+- WSL 에서 Windows 드라이브(`/mnt/c/...`) 위의 키는 항상 `0777` 로 보이고 `chmod` 도 먹지 않는다.
+  이때는 `~/.ssh/omisys-tunnel.pem` 으로 600 사본을 만들어 그 사본으로 접속한다.
+- PowerShell 에서는 키 파일 ACL 을 소유자 전용으로 정리한 뒤 접속한다.
 
 > `.pem` 과 `.env.local` 은 `.gitignore` 대상이다. 저장소에 커밋하지 않는다.
 
@@ -134,6 +130,21 @@ curl -s http://localhost:9200 -k -u elastic:<password>
 
 > `omisys_user` 계정은 `omisys_user` 스키마만 보여야 한다. 다른 스키마가 보이면 `docs/migrations/mysql/01-init-schemas.sh`의 `GRANT` 범위를 다시 확인한다.
 
+### `bind: Permission denied` 가 3306 이외의 포트에서 날 때
+
+권한 문제가 아니라 **그 포트를 이미 누가 잡고 있다는 뜻이다.** 원인은 대개 터널이 두 개 떠 있는 것이다.
+
+WSL 을 `networkingMode=mirrored` 로 쓰면(`%USERPROFILE%\.wslconfig`) WSL 과 Windows 가 **포트를 공유한다.**
+그래서 WSL 에서 `tunnel.sh` 를 띄운 채 PowerShell 에서 `tunnel.ps1` 을 띄우면 뒤에 뜬 쪽이 포트를 못 잡는다.
+종료된 터널의 예약이 잠시 남아 `netstat` 에는 안 보이는데도 bind 가 막히는 경우도 있다.
+
+- **터널은 한 셸에서만 띄운다.** WSL 이면 `tunnel.sh`, PowerShell 이면 `tunnel.ps1` 중 하나로 고정한다.
+- 떠 있는 터널 확인: `Get-Process ssh` (Windows), `pgrep -af "ssh -i"` (WSL)
+- 예약이 남아 안 풀리면 `wsl --shutdown` 으로 정리한다.
+
+두 스크립트 모두 `ExitOnForwardFailure=yes` 로 뜨기 때문에, 포트를 하나라도 못 잡으면 **절반만 연결된 채 살아남지 않고 즉시 종료된다.**
+절반만 포워딩된 터널은 애플리케이션이 엉뚱한 곳에서 죽게 만들기 때문이다.
+
 ---
 
 ## 3. 애플리케이션 실행 (IDE)
@@ -187,7 +198,10 @@ defaultZone: ${EUREKA_URI:http://eureka-service:19090/eureka/}
 
 Config Server 주소만은 환경변수여야 한다 — 설정을 받아오기 *전에* 필요한 값이라 설정 저장소에 둘 수 없다.
 
-> Config 저장소(`chanhoan/omisys_config`)를 수정했다면 Config Server가 `clone-on-start: true` 라 **재시작해야 반영된다.**
+> Config 저장소(`chanhoan/omisys_config`)를 수정했다면 **푸시만 하면 반영된다.** Config Server 는
+> 설정 요청마다 원격을 다시 읽으므로 재시작할 필요가 없다 — `clone-on-start: true` 는 기동 시점에
+> 한 번 클론한다는 뜻이지 그 뒤로 갱신하지 않는다는 뜻이 아니다.
+> 다만 **설정을 받아 가는 쪽 서비스는 재시작해야 한다.** 값은 기동 시 한 번만 주입된다.
 
 ### 연결 확인
 
@@ -236,6 +250,57 @@ ORDER_MYSQL_PASSWORD=<원격 omisys_order 계정 비밀번호>
 
 여러 서비스를 자주 띄운다면 IDE의 EnvFile 플러그인으로 `.env` 하나를 공유하는 편이 낫다.
 `.env`와 `.pem`은 커밋하지 않는다.
+
+---
+
+### 목데이터 시딩
+
+상품·카테고리 목데이터는 `scripts/seed/` 가 만든다.
+
+```bash
+python3 scripts/seed/seed.py --dry-run      # 전송 없이 생성 결과만 확인
+python3 scripts/seed/seed.py --count 300    # 실제 투입
+```
+
+product 서비스 주소는 Eureka(`localhost:19090`)에서 찾으므로 포트를 외울 필요가 없다.
+못 찾으면 `--base-url http://localhost:18083` 으로 직접 준다.
+
+**SQL 로 직접 INSERT 하지 않고 API 를 거치는 이유가 있다.** 상품 생성은 S3 업로드와
+outbox → Kafka → Elasticsearch 색인을 함께 태운다. DB 에 바로 넣으면 이미지도 검색도
+통째로 빈 채로 남는다.
+
+- 인증은 `X-User-Claims` 헤더로 처리한다. 게이트웨이가 JWT 를 검증한 뒤 넣어 주는 헤더를
+  시더가 직접 만들어 붙이므로 로그인 절차가 필요 없다.
+- 이미지는 picsum.photos 에서 24쌍만 받아 `scripts/seed/.cache/` 에 두고 돌려 쓴다.
+  저작권 부담이 없고 API 키도 필요 없다. 사진이 그 상품일 필요는 없고, 실제 바이너리가
+  S3 로 올라가는 것이 목적이다.
+- `--seed` 값이 같으면 같은 카탈로그가 나온다. 카테고리는 이름이 겹치면 건너뛰므로
+  여러 번 돌려도 중복이 쌓이지 않는다.
+
+> 서비스를 띄운 뒤 터널을 다시 연결했다면 **서비스를 재시작해야 한다.** 커넥션 풀이
+> 끊어진 터널을 붙잡고 있어 요청이 응답 없이 멈춘다.
+
+### 상품 이미지 저장 구조
+
+상품 이미지는 **버킷 하나**(`omisys-products`, `ap-northeast-2`)에 프리픽스로 나눠 담는다.
+
+```
+omisys-products/origin/<uuid>.jpg    상품 대표 이미지 (썸네일도 이 URL 을 함께 쓴다)
+omisys-products/detail/<uuid>.jpg    상세 이미지
+```
+
+DB 에 저장되는 URL 은 S3 가 아니라 **CloudFront** 를 가리킨다. 버킷은 OAC 로만 열려 있어
+직접 접근이 막혀 있으므로, 퍼블릭 액세스 차단 4개를 모두 켠 채로 두어야 한다.
+
+- 버킷 정책은 직접 쓰지 말고 CloudFront 배포 생성 화면이 제시하는 것을 붙여넣는다.
+  `Principal` 이 `*` 가 아니라 `cloudfront.amazonaws.com` 이고 배포 ARN 으로 조건이 걸린다.
+- 버킷 이름과 CloudFront 도메인은 config 저장소의 `aws.s3.bucket-name` 과 `aws.cdn.base-url`
+  에 있다. local 과 prod 가 같은 값을 쓴다.
+- 앱에 필요한 IAM 권한은 `s3:PutObject` · `s3:GetObject` · `s3:DeleteObject` 다.
+
+> **리사이즈 파이프라인은 없다.** `thumbnailImgUrl` 은 원본과 같은 이미지를 가리킨다.
+> 별도 크기가 필요해지면 시더가 축소본을 함께 올리는 편이 낫다 — 상품 등록은 관리자만 하는
+> 저빈도 작업이라 앱에 리사이즈를 넣을 이유가 약하다.
 
 ---
 

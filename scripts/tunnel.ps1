@@ -4,10 +4,13 @@
 #
 # 접속 정보는 저장소 루트의 .env.local 에서 읽는다:
 #   OMISYS_DEP_HOST=ubuntu@<ip>          (필수)
-#   OMISYS_DEP_KEY=<키 경로>              (생략 시 자동 탐색)
+#
+# SSH 키는 저장소 루트의 omisys.pem 으로 고정한다. 다른 위치는 보지 않는다.
 #
 # 포워딩 포트: 3306(MySQL, LOCAL_MYSQL_PORT 로 변경 가능) / 6379-6383(Redis 5개) / 29092(Kafka) / 9200(ES)
 # 종료: Ctrl+C
+#
+# 키 파일 ACL 이 소유자 외에게 열려 있으면 SSH 가 거부하므로 실행 시 자동으로 정리한다.
 #
 # 자세한 절차는 docs/development/local-setup.md 참조.
 
@@ -26,24 +29,9 @@ if (Test-Path -LiteralPath $EnvFile) {
 }
 
 $Ec2Host = $env:OMISYS_DEP_HOST
-$KeyPath = $env:OMISYS_DEP_KEY
 
-# 키 파일: 명시된 경로가 없으면 흔한 위치를 순서대로 찾는다.
-if ([string]::IsNullOrWhiteSpace($KeyPath)) {
-    $candidates = @(
-        (Join-Path $RepoRoot "omisys.pem"),
-        (Join-Path $HOME ".ssh\omisys.pem"),
-        (Join-Path $HOME "Downloads\omisys.pem"),
-        (Join-Path $HOME "keys\omisys.pem")
-    )
-    foreach ($c in $candidates) {
-        if (Test-Path -LiteralPath $c -PathType Leaf) {
-            $KeyPath = $c
-            Write-Host "[info] 키 파일 자동 탐색: $KeyPath"
-            break
-        }
-    }
-}
+# 키 파일은 저장소 루트로 고정한다. PC 마다 여기에 omisys.pem 만 놓으면 된다.
+$KeyPath = Join-Path $RepoRoot "omisys.pem"
 # 로컬에 MySQL 이 이미 3306 을 잡고 있으면 bind 가 실패한다. 그럴 때만 바꾼다.
 $LocalMysqlPort = if ($env:LOCAL_MYSQL_PORT) { $env:LOCAL_MYSQL_PORT } else { "3306" }
 
@@ -52,22 +40,35 @@ if ([string]::IsNullOrWhiteSpace($Ec2Host)) {
     exit 1
 }
 
-if ([string]::IsNullOrWhiteSpace($KeyPath)) {
-    Write-Error 'OMISYS_DEP_KEY 가 설정되지 않았습니다. 예) $env:OMISYS_DEP_KEY = "C:\keys\omisys.pem"'
+if (-not (Test-Path -LiteralPath $KeyPath -PathType Leaf)) {
+    Write-Error "SSH 키가 없습니다: $KeyPath`nomisys.pem 을 저장소 루트에 두십시오. (.gitignore 대상이라 커밋되지 않습니다)"
     exit 1
 }
 
-if (-not (Test-Path -LiteralPath $KeyPath -PathType Leaf)) {
-    Write-Error "키 파일을 찾을 수 없습니다: $KeyPath"
-    exit 1
+# Windows OpenSSH 는 소유자 외 계정이 접근 가능한 키를 거부한다
+# ("UNPROTECTED PRIVATE KEY FILE"). 저장소나 Downloads 에 둔 .pem 은 상속된 ACL 때문에
+# 대부분 여기에 걸리므로, 필요할 때만 소유자 전용으로 정리한다.
+$Me = "$env:USERDOMAIN\$env:USERNAME"
+try {
+    $acl = Get-Acl -LiteralPath $KeyPath
+    $extra = @($acl.Access | Where-Object { $_.IdentityReference.Value -ne $Me })
+    if ((-not $acl.AreAccessRulesProtected) -or $extra.Count -gt 0) {
+        Write-Host "[info] 키 파일 권한을 소유자 전용으로 정리합니다: $KeyPath"
+        icacls $KeyPath /inheritance:r /grant:r "${Me}:(R)" | Out-Null
+    }
+} catch {
+    Write-Warning "키 파일 권한을 확인하지 못했습니다: $($_.Exception.Message)"
 }
 
 Write-Host "[info] 터널 연결: $Ec2Host"
 Write-Host "[info] 로컬 포트 $LocalMysqlPort / 6379-6383 / 29092 / 9200 -> 원격 의존성"
 Write-Host "[info] 종료하려면 Ctrl+C"
 
+# ExitOnForwardFailure: 포트를 하나라도 못 잡으면 즉시 끝낸다.
+# 이게 없으면 절반만 포워딩된 채로 살아남아, 애플리케이션이 엉뚱한 곳에서 죽는다.
 ssh -i $KeyPath -N `
     -o ServerAliveInterval=30 `
+    -o ExitOnForwardFailure=yes `
     -L ${LocalMysqlPort}:localhost:3306 `
     -L 6379:localhost:6379 `
     -L 6380:localhost:6380 `
@@ -77,3 +78,14 @@ ssh -i $KeyPath -N `
     -L 29092:localhost:29092 `
     -L 9200:localhost:9200 `
     $Ec2Host
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "[error] 터널이 종료되었습니다 (exit $LASTEXITCODE)."
+    Write-Host "        위에 'bind ... Permission denied' 가 보이면 그 포트를 이미 누가 잡고 있다는 뜻입니다."
+    Write-Host "        - 다른 터널이 떠 있는지 확인하십시오. WSL 과 PowerShell 양쪽 다 봐야 합니다."
+    Write-Host "        - WSL 이 networkingMode=mirrored 면 두 환경이 포트를 공유하고,"
+    Write-Host "          종료된 터널의 예약이 남기도 합니다. 그때는 'wsl --shutdown' 으로 정리됩니다."
+    Write-Host "        - MySQL 포트만 겹친다면 LOCAL_MYSQL_PORT 로 옮길 수 있습니다."
+    exit $LASTEXITCODE
+}
