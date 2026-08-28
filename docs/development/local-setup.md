@@ -198,7 +198,10 @@ defaultZone: ${EUREKA_URI:http://eureka-service:19090/eureka/}
 
 Config Server 주소만은 환경변수여야 한다 — 설정을 받아오기 *전에* 필요한 값이라 설정 저장소에 둘 수 없다.
 
-> Config 저장소(`chanhoan/omisys_config`)를 수정했다면 Config Server가 `clone-on-start: true` 라 **재시작해야 반영된다.**
+> Config 저장소(`chanhoan/omisys_config`)를 수정했다면 **푸시만 하면 반영된다.** Config Server 는
+> 설정 요청마다 원격을 다시 읽으므로 재시작할 필요가 없다 — `clone-on-start: true` 는 기동 시점에
+> 한 번 클론한다는 뜻이지 그 뒤로 갱신하지 않는다는 뜻이 아니다.
+> 다만 **설정을 받아 가는 쪽 서비스는 재시작해야 한다.** 값은 기동 시 한 번만 주입된다.
 
 ### 연결 확인
 
