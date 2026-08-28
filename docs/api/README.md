@@ -66,12 +66,22 @@ npx openapi-typescript ../omisys/docs/api/product.json -o src/api/product.d.ts
 경로 접두사로 라우팅되므로 스펙에 적힌 경로를 그대로 게이트웨이에 붙이면 된다.
 `/api/products/**` → product, `/api/orders/**` · `/api/carts/**` → order 하는 식이다.
 
+## 인증
+
+스펙의 `accessToken` 보안 스킴을 보면 된다. 로그인(`POST /api/auth/sign-in`)이 내려주는
+쿠키를 그대로 실어 보내면 되고, 게이트웨이가 검증한 뒤 `X-User-Claims` 헤더로 바꿔 각
+서비스에 넘긴다. **브라우저가 그 헤더를 직접 만들 필요는 없다.**
+
+권한이 필요한 엔드포인트는 설명 끝에 `필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER` 처럼
+적혀 있다. 오퍼레이션 115개 중 57개가 여기 해당한다.
+
+이 표기는 손으로 단 것이 아니라 컨트롤러의 `@PreAuthorize` 를 읽어서 만든다
+(`common:domain` 의 `OmisysRoleDocAutoConfiguration`). 권한 규칙을 바꾸면 스펙을 다시 뽑는
+것만으로 따라온다.
+
 ## 지금 스펙에 없는 것
 
-- **설명이 없다.** 오퍼레이션에 `summary` 가 붙어 있지 않아 경로 · 메서드 · 타입만 알 수 있다.
-- **인증 스킴이 없다.** 로그인해서 받은 JWT 를 게이트웨이에 보내면 게이트웨이가 검증 후
-  `X-User-Claims` 로 바꿔 서비스에 넘긴다. 이 흐름과 엔드포인트별 롤 요구사항이 스펙에 없다.
-- **multipart 엔드포인트의 파트 형식이 드러나지 않는다.** `POST` · `PATCH /api/products` 는
-  `request`(JSON) · `productImg` · `detailImg` 세 파트를 받는데, `request` 파트에
-  `Content-Type: application/json` 을 붙이지 않으면 역직렬화되지 않는다. 실제 호출 예시는
-  `scripts/seed/api.py` 의 `create_product` 를 참고한다.
+- **오퍼레이션 설명이 대체로 비어 있다.** `summary` 가 붙은 것은 상품 등록 · 수정 정도이고,
+  나머지는 경로 · 메서드 · 타입과 필요 권한만 알 수 있다.
+- **에러 응답이 문서화되어 있지 않다.** 성공 스키마만 있고 실패 시 어떤 `statusName` 이
+  오는지는 적혀 있지 않다.
