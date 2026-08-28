@@ -17,9 +17,8 @@ IDE(Spring Boot × N, local 프로파일)
 
 | 항목 | 값 |
 |---|---|
-| SSH 키 | `.pem` 을 `<repo>/` · `~/.ssh/` · `~/Downloads/` 중 한 곳에 `omisys.pem` 이름으로 배치 |
+| SSH 키 | 저장소 루트에 `omisys.pem` 이름으로 배치 |
 | `.env.local` 의 `OMISYS_DEP_HOST` | `ubuntu@<Elastic IP>` |
-| `.env.local` 의 `OMISYS_DEP_KEY` | 생략 가능 — 위 위치를 자동 탐색한다 |
 | 로컬 포트 | 6379 / 29092 / 9200 이 비어 있을 것 (MySQL 포트는 LOCAL_MYSQL_PORT 로 우회 가능) |
 
 `.env.local` 에 호스트를 적는다. 이 파일은 어차피 DB 비밀번호 때문에 PC 마다 만들어야 하므로 추가 부담이 아니다.
@@ -28,20 +27,17 @@ IDE(Spring Boot × N, local 프로파일)
 OMISYS_DEP_HOST=ubuntu@1.2.3.4
 ```
 
-키는 `omisys.pem` 이름으로 아래 중 한 곳에 두면 자동으로 찾는다. PC 마다 경로를 맞출 필요가 없다.
+키는 저장소 루트에 `omisys.pem` 이름으로 둔다. 경로는 여기로 고정이라 설정할 값이 없다.
 
 ```
-<repo>/omisys.pem  |  ~/.ssh/omisys.pem  |  ~/Downloads/omisys.pem  |  ~/keys/omisys.pem
+<repo>/omisys.pem
 ```
 
-다른 이름이나 위치를 쓴다면 `.env.local` 에 `OMISYS_DEP_KEY=<절대경로>` 를 적는다.
-환경변수로 직접 넘긴 값이 항상 우선한다.
+키 권한은 스크립트가 실행할 때 알아서 맞춘다. 직접 `chmod` 할 필요가 없다.
 
-Git Bash 에서는 키 권한을 조여 둔다.
-
-```bash
-chmod 600 <키 경로>
-```
+- WSL 에서 Windows 드라이브(`/mnt/c/...`) 위의 키는 항상 `0777` 로 보이고 `chmod` 도 먹지 않는다.
+  이때는 `~/.ssh/omisys-tunnel.pem` 으로 600 사본을 만들어 그 사본으로 접속한다.
+- PowerShell 에서는 키 파일 ACL 을 소유자 전용으로 정리한 뒤 접속한다.
 
 > `.pem` 과 `.env.local` 은 `.gitignore` 대상이다. 저장소에 커밋하지 않는다.
 

@@ -4,10 +4,13 @@
 #
 # 접속 정보는 저장소 루트의 .env.local 에서 읽는다:
 #   OMISYS_DEP_HOST=ubuntu@<ip>          (필수)
-#   OMISYS_DEP_KEY=<키 경로>              (생략 시 자동 탐색)
+#
+# SSH 키는 저장소 루트의 omisys.pem 으로 고정한다. 다른 위치는 보지 않는다.
 #
 # 포워딩 포트: 3306(MySQL, LOCAL_MYSQL_PORT 로 변경 가능) / 6379-6383(Redis 5개) / 29092(Kafka) / 9200(ES)
 # 종료: Ctrl+C
+#
+# 키 파일 ACL 이 소유자 외에게 열려 있으면 SSH 가 거부하므로 실행 시 자동으로 정리한다.
 #
 # 자세한 절차는 docs/development/local-setup.md 참조.
 
@@ -26,24 +29,9 @@ if (Test-Path -LiteralPath $EnvFile) {
 }
 
 $Ec2Host = $env:OMISYS_DEP_HOST
-$KeyPath = $env:OMISYS_DEP_KEY
 
-# 키 파일: 명시된 경로가 없으면 흔한 위치를 순서대로 찾는다.
-if ([string]::IsNullOrWhiteSpace($KeyPath)) {
-    $candidates = @(
-        (Join-Path $RepoRoot "omisys.pem"),
-        (Join-Path $HOME ".ssh\omisys.pem"),
-        (Join-Path $HOME "Downloads\omisys.pem"),
-        (Join-Path $HOME "keys\omisys.pem")
-    )
-    foreach ($c in $candidates) {
-        if (Test-Path -LiteralPath $c -PathType Leaf) {
-            $KeyPath = $c
-            Write-Host "[info] 키 파일 자동 탐색: $KeyPath"
-            break
-        }
-    }
-}
+# 키 파일은 저장소 루트로 고정한다. PC 마다 여기에 omisys.pem 만 놓으면 된다.
+$KeyPath = Join-Path $RepoRoot "omisys.pem"
 # 로컬에 MySQL 이 이미 3306 을 잡고 있으면 bind 가 실패한다. 그럴 때만 바꾼다.
 $LocalMysqlPort = if ($env:LOCAL_MYSQL_PORT) { $env:LOCAL_MYSQL_PORT } else { "3306" }
 
@@ -52,14 +40,24 @@ if ([string]::IsNullOrWhiteSpace($Ec2Host)) {
     exit 1
 }
 
-if ([string]::IsNullOrWhiteSpace($KeyPath)) {
-    Write-Error 'OMISYS_DEP_KEY 가 설정되지 않았습니다. 예) $env:OMISYS_DEP_KEY = "C:\keys\omisys.pem"'
+if (-not (Test-Path -LiteralPath $KeyPath -PathType Leaf)) {
+    Write-Error "SSH 키가 없습니다: $KeyPath`nomisys.pem 을 저장소 루트에 두십시오. (.gitignore 대상이라 커밋되지 않습니다)"
     exit 1
 }
 
-if (-not (Test-Path -LiteralPath $KeyPath -PathType Leaf)) {
-    Write-Error "키 파일을 찾을 수 없습니다: $KeyPath"
-    exit 1
+# Windows OpenSSH 는 소유자 외 계정이 접근 가능한 키를 거부한다
+# ("UNPROTECTED PRIVATE KEY FILE"). 저장소나 Downloads 에 둔 .pem 은 상속된 ACL 때문에
+# 대부분 여기에 걸리므로, 필요할 때만 소유자 전용으로 정리한다.
+$Me = "$env:USERDOMAIN\$env:USERNAME"
+try {
+    $acl = Get-Acl -LiteralPath $KeyPath
+    $extra = @($acl.Access | Where-Object { $_.IdentityReference.Value -ne $Me })
+    if ((-not $acl.AreAccessRulesProtected) -or $extra.Count -gt 0) {
+        Write-Host "[info] 키 파일 권한을 소유자 전용으로 정리합니다: $KeyPath"
+        icacls $KeyPath /inheritance:r /grant:r "${Me}:(R)" | Out-Null
+    }
+} catch {
+    Write-Warning "키 파일 권한을 확인하지 못했습니다: $($_.Exception.Message)"
 }
 
 Write-Host "[info] 터널 연결: $Ec2Host"
