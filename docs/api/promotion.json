@@ -1,0 +1,834 @@
+{
+  "components": {
+    "schemas": {
+      "ApiResponseGet": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Get"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseLong": {
+        "properties": {
+          "data": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseMapStringString": {
+        "properties": {
+          "data": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseObject": {
+        "properties": {
+          "data": {
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponsePageGet": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PageGet"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseVoid": {
+        "properties": {
+          "data": {
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Create": {
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "endAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "imgUrl": {
+            "type": "string"
+          },
+          "startAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "content",
+          "endAt",
+          "startAt",
+          "title"
+        ],
+        "type": "object"
+      },
+      "Get": {
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "endAt": {
+            "type": "string"
+          },
+          "id": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "imgUrl": {
+            "type": "string"
+          },
+          "startAt": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "PageGet": {
+        "properties": {
+          "content": {
+            "items": {
+              "$ref": "#/components/schemas/Get"
+            },
+            "type": "array"
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "number": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "numberOfElements": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "size": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "totalElements": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPages": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Pageable": {
+        "properties": {
+          "page": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "size": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "PageableObject": {
+        "properties": {
+          "offset": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "pageNumber": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageSize": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "unpaged": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "SortObject": {
+        "properties": {
+          "ascending": {
+            "type": "boolean"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "ignoreCase": {
+            "type": "boolean"
+          },
+          "nullHandling": {
+            "type": "string"
+          },
+          "property": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Update": {
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "endAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "imgUrl": {
+            "type": "string"
+          },
+          "startAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "content",
+          "endAt",
+          "startAt",
+          "title"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "omisys promotion service",
+    "version": "v0"
+  },
+  "openapi": "3.0.1",
+  "paths": {
+    "/api/coupons": {
+      "get": {
+        "operationId": "getCouponList",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "coupon-controller"
+        ]
+      }
+    },
+    "/api/coupons/event": {
+      "post": {
+        "operationId": "createEventCoupon",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Create"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "coupon-controller"
+        ]
+      }
+    },
+    "/api/coupons/event/{couponId}": {
+      "post": {
+        "operationId": "provideEventCoupon",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "couponId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMapStringString"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "coupon-controller"
+        ]
+      }
+    },
+    "/api/coupons/me": {
+      "get": {
+        "operationId": "getCouponListByUser",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "coupon-controller"
+        ]
+      }
+    },
+    "/api/coupons/users/{userId}": {
+      "get": {
+        "operationId": "getCouponListByUserId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "coupon-controller"
+        ]
+      }
+    },
+    "/api/coupons/{couponId}": {
+      "delete": {
+        "operationId": "deleteCoupon",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "couponId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseObject"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "coupon-controller"
+        ]
+      },
+      "get": {
+        "operationId": "getCoupon",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "couponId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "coupon-controller"
+        ]
+      },
+      "patch": {
+        "operationId": "updateCoupon",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "couponId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Update"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseObject"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "coupon-controller"
+        ]
+      }
+    },
+    "/api/events": {
+      "get": {
+        "operationId": "getEvents",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "event-controller"
+        ]
+      },
+      "post": {
+        "operationId": "createEvent",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Create"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLong"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "event-controller"
+        ]
+      }
+    },
+    "/api/events/{eventId}": {
+      "delete": {
+        "operationId": "deleteEvent",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "event-controller"
+        ]
+      },
+      "get": {
+        "operationId": "getEvent",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseGet"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "event-controller"
+        ]
+      },
+      "patch": {
+        "operationId": "updateEvent",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "eventId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Update"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLong"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "event-controller"
+        ]
+      }
+    },
+    "/internal/coupons/{couponId}/apply": {
+      "patch": {
+        "operationId": "applyUserCoupon",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "couponId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "productPrice",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "number"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "coupon-internal-controller"
+        ]
+      }
+    },
+    "/internal/coupons/{couponId}/refund": {
+      "patch": {
+        "operationId": "refundCoupon",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "couponId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "coupon-internal-controller"
+        ]
+      }
+    },
+    "/internal/coupons/{couponId}/user": {
+      "patch": {
+        "operationId": "userCoupon",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "couponId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "coupon-internal-controller"
+        ]
+      }
+    }
+  }
+}

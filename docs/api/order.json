@@ -1,0 +1,1225 @@
+{
+  "components": {
+    "schemas": {
+      "AllOrderGetResponse": {
+        "properties": {
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "orderDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "orderState": {
+            "type": "string"
+          },
+          "orderType": {
+            "type": "string"
+          },
+          "productIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "totalQuantity": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseListCartProductResponse": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CartProductResponse"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseLong": {
+        "properties": {
+          "data": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseOrderCreateResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OrderCreateResponse"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseOrderGetResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OrderGetResponse"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponsePageAllOrderGetResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PageAllOrderGetResponse"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponsePageMyOrderGetResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PageMyOrderGetResponse"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ApiResponseVoid": {
+        "properties": {
+          "data": {
+            "type": "object"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CartProductRequest": {
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "quantity": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "productId",
+          "quantity"
+        ],
+        "type": "object"
+      },
+      "CartProductResponse": {
+        "properties": {
+          "discountPercent": {
+            "format": "double",
+            "type": "number"
+          },
+          "discountedPrice": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "originalPrice": {
+            "type": "number"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "quantity": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "thumbnailImgUrl": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "Get": {
+        "properties": {
+          "amount": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "histories": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentHistoryDto"
+            },
+            "type": "array"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "orderName": {
+            "type": "string"
+          },
+          "paymentId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "PAYMENT",
+              "PENDING",
+              "FAILED",
+              "CANCEL",
+              "REFUND_PENDING",
+              "REFUND"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MyOrderGetResponse": {
+        "properties": {
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "myOrderProducts": {
+            "items": {
+              "$ref": "#/components/schemas/MyOrderProductResponse"
+            },
+            "type": "array"
+          },
+          "orderDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "orderState": {
+            "type": "string"
+          },
+          "orderType": {
+            "type": "string"
+          },
+          "totalQuantity": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "MyOrderProductResponse": {
+        "properties": {
+          "orderProductId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "purchasePrice": {
+            "type": "number"
+          },
+          "quantity": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "NotificationOrderDto": {
+        "properties": {
+          "displayProductName": {
+            "type": "string"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "orderState": {
+            "type": "string"
+          },
+          "totalQuantity": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "OrderCreateRequest": {
+        "properties": {
+          "addressId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "orderProductInfos": {
+            "items": {
+              "$ref": "#/components/schemas/OrderProductInfo"
+            },
+            "type": "array"
+          },
+          "orderType": {
+            "type": "string"
+          },
+          "pointPrice": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "addressId",
+          "orderProductInfos",
+          "orderType"
+        ],
+        "type": "object"
+      },
+      "OrderCreateResponse": {
+        "properties": {
+          "checkoutUrl": {
+            "type": "string"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "OrderGetResponse": {
+        "properties": {
+          "couponPrice": {
+            "type": "number"
+          },
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "orderDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "orderId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "orderProducts": {
+            "items": {
+              "$ref": "#/components/schemas/OrderProductResponse"
+            },
+            "type": "array"
+          },
+          "orderState": {
+            "type": "string"
+          },
+          "orderType": {
+            "type": "string"
+          },
+          "payment": {
+            "$ref": "#/components/schemas/Get"
+          },
+          "paymentId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "pointPrice": {
+            "type": "number"
+          },
+          "recipient": {
+            "type": "string"
+          },
+          "shippingAddress": {
+            "type": "string"
+          },
+          "shippingAmount": {
+            "type": "number"
+          },
+          "totalAmount": {
+            "type": "number"
+          },
+          "totalQuantity": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalRealAmount": {
+            "type": "number"
+          },
+          "userId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "zipcode": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "OrderProductInfo": {
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "quantity": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "userCouponId": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "productId"
+        ],
+        "type": "object"
+      },
+      "OrderProductResponse": {
+        "properties": {
+          "couponPrice": {
+            "type": "number"
+          },
+          "orderProductId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "purchasePrice": {
+            "type": "number"
+          },
+          "quantity": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "PageAllOrderGetResponse": {
+        "properties": {
+          "content": {
+            "items": {
+              "$ref": "#/components/schemas/AllOrderGetResponse"
+            },
+            "type": "array"
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "number": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "numberOfElements": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "size": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "totalElements": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPages": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "PageMyOrderGetResponse": {
+        "properties": {
+          "content": {
+            "items": {
+              "$ref": "#/components/schemas/MyOrderGetResponse"
+            },
+            "type": "array"
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "number": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "numberOfElements": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "size": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "totalElements": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPages": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "Pageable": {
+        "properties": {
+          "page": {
+            "format": "int32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "size": {
+            "format": "int32",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "sort": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "PageableObject": {
+        "properties": {
+          "offset": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "pageNumber": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageSize": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "sort": {
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            },
+            "type": "array"
+          },
+          "unpaged": {
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "PaymentHistoryDto": {
+        "properties": {
+          "amount": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "cancelReason": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "PAYMENT",
+              "PENDING",
+              "FAILED",
+              "CANCEL",
+              "REFUND_PENDING",
+              "REFUND"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "SortObject": {
+        "properties": {
+          "ascending": {
+            "type": "boolean"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "ignoreCase": {
+            "type": "boolean"
+          },
+          "nullHandling": {
+            "type": "string"
+          },
+          "property": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "omisys order service",
+    "version": "v0"
+  },
+  "openapi": "3.0.1",
+  "paths": {
+    "/api/carts": {
+      "get": {
+        "operationId": "getCartList",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListCartProductResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "cart-controller"
+        ]
+      }
+    },
+    "/api/carts/clear": {
+      "delete": {
+        "operationId": "clearCart",
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "cart-controller"
+        ]
+      }
+    },
+    "/api/carts/products": {
+      "patch": {
+        "operationId": "updateCart",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartProductRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "cart-controller"
+        ]
+      },
+      "post": {
+        "operationId": "addCart",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CartProductRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "cart-controller"
+        ]
+      }
+    },
+    "/api/carts/products/{productId}": {
+      "delete": {
+        "operationId": "deleteCart",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "productId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "cart-controller"
+        ]
+      }
+    },
+    "/api/orders": {
+      "post": {
+        "operationId": "createOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOrderCreateResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "order-controller"
+        ]
+      }
+    },
+    "/api/orders/all": {
+      "get": {
+        "operationId": "getAllOrder",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "user_id",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "product_id",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageAllOrderGetResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "order-controller"
+        ]
+      }
+    },
+    "/api/orders/me": {
+      "get": {
+        "operationId": "getMyOrder",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pageable",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Pageable"
+            }
+          },
+          {
+            "in": "query",
+            "name": "keyword",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageMyOrderGetResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "order-controller"
+        ]
+      }
+    },
+    "/api/orders/{orderId}": {
+      "delete": {
+        "operationId": "deleteOrder",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "order-controller"
+        ]
+      },
+      "get": {
+        "operationId": "getOrder_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseOrderGetResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "order-controller"
+        ]
+      }
+    },
+    "/api/orders/{orderId}/": {
+      "patch": {
+        "operationId": "updateOrderAddress",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "addressId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLong"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "order-controller"
+        ]
+      }
+    },
+    "/api/orders/{orderId}/cancel": {
+      "patch": {
+        "operationId": "cancelOrder",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLong"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "order-controller"
+        ]
+      }
+    },
+    "/api/orders/{orderId}/invoice-number/{invoiceNumber}": {
+      "patch": {
+        "deprecated": true,
+        "operationId": "addOrderInvoiceNumber",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "invoiceNumber",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLong"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "order-controller"
+        ]
+      }
+    },
+    "/api/orders/{orderId}/{orderState}": {
+      "patch": {
+        "operationId": "updateOrderState",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orderState",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseLong"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "order-controller"
+        ]
+      }
+    },
+    "/internal/orders": {
+      "get": {
+        "operationId": "getOrder",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationOrderDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "order-internal-controller"
+        ]
+      }
+    },
+    "/internal/orders/purchase-confirmed": {
+      "get": {
+        "operationId": "isPurchaseConfirmed",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "userId",
+            "required": true,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "order-internal-controller"
+        ]
+      }
+    }
+  }
+}

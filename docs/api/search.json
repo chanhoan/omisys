@@ -1,0 +1,245 @@
+{
+  "components": {
+    "schemas": {
+      "ApiResponsePageResponseProductSearchDto": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PageResponseProductSearchDto"
+          },
+          "message": {
+            "type": "string"
+          },
+          "statusName": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "PageResponseProductSearchDto": {
+        "properties": {
+          "content": {
+            "items": {
+              "$ref": "#/components/schemas/ProductSearchDto"
+            },
+            "type": "array"
+          },
+          "page": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "pageSize": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "totalElements": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "totalPages": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "ProductSearchDto": {
+        "properties": {
+          "averageRating": {
+            "format": "double",
+            "type": "number"
+          },
+          "brandName": {
+            "type": "string"
+          },
+          "categoryId": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "deleted": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "discountPercent": {
+            "format": "double",
+            "type": "number"
+          },
+          "discountedPrice": {
+            "type": "number"
+          },
+          "mainColor": {
+            "type": "string"
+          },
+          "originalPrice": {
+            "type": "number"
+          },
+          "productId": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "public": {
+            "type": "boolean"
+          },
+          "reviewCount": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "salesCount": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "size": {
+            "type": "string"
+          },
+          "soldout": {
+            "type": "boolean"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "thumbnailImgUrl": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "omisys search service",
+    "version": "v0"
+  },
+  "openapi": "3.0.1",
+  "paths": {
+    "/api/search": {
+      "get": {
+        "operationId": "searchProducts",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "keyword",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "categoryId",
+            "required": false,
+            "schema": {
+              "format": "int64",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "brandName",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mainColor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "minPrice",
+            "required": false,
+            "schema": {
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "maxPrice",
+            "required": false,
+            "schema": {
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sortOption",
+            "required": false,
+            "schema": {
+              "default": "RELEVANCE",
+              "enum": [
+                "RELEVANCE",
+                "PRICE_LOW_TO_HIGH",
+                "PRICE_HIGH_TO_LOW",
+                "NEWEST",
+                "OLDEST",
+                "NAME_A_TO_Z",
+                "NAME_Z_TO_A",
+                "REVIEW",
+                "BEST_SELLING"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "format": "int32",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageResponseProductSearchDto"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "search-controller"
+        ]
+      }
+    }
+  }
+}
