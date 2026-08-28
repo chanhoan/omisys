@@ -1,0 +1,2 @@
+com.omisys.common.domain.openapi.OmisysOpenApiAutoConfiguration
+com.omisys.common.domain.openapi.OmisysRoleDocAutoConfiguration

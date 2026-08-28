@@ -292,6 +292,14 @@
         ],
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "accessToken": {
+        "description": "로그인(POST /api/auth/sign-in)이 내려주는 JWT.\n\n게이트웨이가 쿠키의 accessToken 을 검증한 뒤 X-User-Claims 헤더로 바꿔\n각 서비스에 넘긴다. 브라우저는 쿠키만 실어 보내면 되고 헤더를 직접\n만들 필요가 없다. 서비스 간 호출은 Authorization: Bearer 도 받는다.",
+        "in": "cookie",
+        "name": "accessToken",
+        "type": "apiKey"
+      }
     }
   },
   "info": {
@@ -302,6 +310,7 @@
   "paths": {
     "/api/coupons": {
       "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "getCouponList",
         "parameters": [
           {
@@ -332,6 +341,7 @@
     },
     "/api/coupons/event": {
       "post": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "createEventCoupon",
         "requestBody": {
           "content": {
@@ -362,6 +372,7 @@
     },
     "/api/coupons/event/{couponId}": {
       "post": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "provideEventCoupon",
         "parameters": [
           {
@@ -393,6 +404,7 @@
     },
     "/api/coupons/me": {
       "get": {
+        "description": "필요 권한: ROLE_USER",
         "operationId": "getCouponListByUser",
         "parameters": [
           {
@@ -423,6 +435,7 @@
     },
     "/api/coupons/users/{userId}": {
       "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "getCouponListByUserId",
         "parameters": [
           {
@@ -462,6 +475,7 @@
     },
     "/api/coupons/{couponId}": {
       "delete": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "deleteCoupon",
         "parameters": [
           {
@@ -491,6 +505,7 @@
         ]
       },
       "get": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "getCoupon",
         "parameters": [
           {
@@ -520,6 +535,7 @@
         ]
       },
       "patch": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "updateCoupon",
         "parameters": [
           {
@@ -589,6 +605,7 @@
         ]
       },
       "post": {
+        "description": "필요 권한: ROLE_ADMIN",
         "operationId": "createEvent",
         "requestBody": {
           "content": {
@@ -619,6 +636,7 @@
     },
     "/api/events/{eventId}": {
       "delete": {
+        "description": "필요 권한: ROLE_ADMIN",
         "operationId": "deleteEvent",
         "parameters": [
           {
@@ -677,6 +695,7 @@
         ]
       },
       "patch": {
+        "description": "필요 권한: ROLE_ADMIN",
         "operationId": "updateEvent",
         "parameters": [
           {
@@ -830,5 +849,10 @@
         ]
       }
     }
-  }
+  },
+  "security": [
+    {
+      "accessToken": []
+    }
+  ]
 }

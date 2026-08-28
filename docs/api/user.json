@@ -473,6 +473,14 @@
         },
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "accessToken": {
+        "description": "로그인(POST /api/auth/sign-in)이 내려주는 JWT.\n\n게이트웨이가 쿠키의 accessToken 을 검증한 뒤 X-User-Claims 헤더로 바꿔\n각 서비스에 넘긴다. 브라우저는 쿠키만 실어 보내면 되고 헤더를 직접\n만들 필요가 없다. 서비스 간 호출은 Authorization: Bearer 도 받는다.",
+        "in": "cookie",
+        "name": "accessToken",
+        "type": "apiKey"
+      }
     }
   },
   "info": {
@@ -483,6 +491,7 @@
   "paths": {
     "/api/address": {
       "get": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "getAddressList",
         "responses": {
           "200": {
@@ -531,6 +540,7 @@
     },
     "/api/address/me": {
       "get": {
+        "description": "필요 권한: ROLE_USER",
         "operationId": "getAddressByUserId",
         "responses": {
           "200": {
@@ -551,6 +561,7 @@
     },
     "/api/address/{addressId}": {
       "delete": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "deleteAddress",
         "parameters": [
           {
@@ -580,6 +591,7 @@
         ]
       },
       "patch": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "updateAddress",
         "parameters": [
           {
@@ -621,6 +633,7 @@
     },
     "/api/tier": {
       "get": {
+        "description": "필요 권한: ROLE_ADMIN",
         "operationId": "getTierList",
         "responses": {
           "200": {
@@ -639,6 +652,7 @@
         ]
       },
       "post": {
+        "description": "필요 권한: ROLE_ADMIN",
         "operationId": "createTier",
         "requestBody": {
           "content": {
@@ -669,6 +683,7 @@
     },
     "/api/tier/{tierId}": {
       "delete": {
+        "description": "필요 권한: ROLE_ADMIN",
         "operationId": "deleteTier",
         "parameters": [
           {
@@ -698,6 +713,7 @@
         ]
       },
       "patch": {
+        "description": "필요 권한: ROLE_ADMIN",
         "operationId": "updateTier",
         "parameters": [
           {
@@ -739,6 +755,7 @@
     },
     "/api/users": {
       "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "getUserList",
         "responses": {
           "200": {
@@ -759,6 +776,7 @@
     },
     "/api/users/me": {
       "get": {
+        "description": "필요 권한: ROLE_USER",
         "operationId": "getMyPage",
         "responses": {
           "200": {
@@ -779,6 +797,7 @@
     },
     "/api/users/me/devices/{deviceId}": {
       "delete": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "delete",
         "parameters": [
           {
@@ -809,6 +828,7 @@
         ]
       },
       "get": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "get",
         "parameters": [
           {
@@ -839,6 +859,7 @@
         ]
       },
       "put": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "register",
         "parameters": [
           {
@@ -881,6 +902,7 @@
     },
     "/api/users/point": {
       "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "getPointHistoryList",
         "parameters": [
           {
@@ -911,6 +933,7 @@
     },
     "/api/users/point/me": {
       "get": {
+        "description": "필요 권한: ROLE_USER",
         "operationId": "getPointHistoryByUser",
         "parameters": [
           {
@@ -941,6 +964,7 @@
     },
     "/api/users/point/{pointHistoryId}": {
       "delete": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "deletePointHistory",
         "parameters": [
           {
@@ -972,6 +996,7 @@
     },
     "/api/users/point/{userId}": {
       "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "getPointHistoryByUserId",
         "parameters": [
           {
@@ -1011,6 +1036,7 @@
     },
     "/api/users/reset-password": {
       "patch": {
+        "description": "필요 권한: ROLE_USER 또는 ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "updateUserPassword",
         "requestBody": {
           "content": {
@@ -1071,6 +1097,7 @@
     },
     "/api/users/tier": {
       "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "getUserTierList",
         "parameters": [
           {
@@ -1101,6 +1128,7 @@
     },
     "/api/users/tier/me": {
       "get": {
+        "description": "필요 권한: ROLE_USER",
         "operationId": "getUserTierByUser",
         "responses": {
           "200": {
@@ -1121,6 +1149,7 @@
     },
     "/api/users/tier/{userId}": {
       "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "getUserTierByUserId",
         "parameters": [
           {
@@ -1150,6 +1179,7 @@
         ]
       },
       "patch": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "updateUserTier",
         "parameters": [
           {
@@ -1191,6 +1221,7 @@
     },
     "/api/users/{userId}": {
       "delete": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "deleteUser",
         "parameters": [
           {
@@ -1220,6 +1251,7 @@
         ]
       },
       "get": {
+        "description": "필요 권한: ROLE_MANAGER 또는 ROLE_ADMIN",
         "operationId": "getUser",
         "parameters": [
           {
@@ -1251,6 +1283,7 @@
     },
     "/api/users/{userId}/role": {
       "patch": {
+        "description": "필요 권한: ROLE_ADMIN",
         "operationId": "updateUserRole",
         "parameters": [
           {
@@ -1521,5 +1554,10 @@
         ]
       }
     }
-  }
+  },
+  "security": [
+    {
+      "accessToken": []
+    }
+  ]
 }

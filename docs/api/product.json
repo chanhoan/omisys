@@ -823,6 +823,14 @@
         ],
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "accessToken": {
+        "description": "로그인(POST /api/auth/sign-in)이 내려주는 JWT.\n\n게이트웨이가 쿠키의 accessToken 을 검증한 뒤 X-User-Claims 헤더로 바꿔\n각 서비스에 넘긴다. 브라우저는 쿠키만 실어 보내면 되고 헤더를 직접\n만들 필요가 없다. 서비스 간 호출은 Authorization: Bearer 도 받는다.",
+        "in": "cookie",
+        "name": "accessToken",
+        "type": "apiKey"
+      }
     }
   },
   "info": {
@@ -833,6 +841,7 @@
   "paths": {
     "/api/categories": {
       "post": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "createCategory",
         "requestBody": {
           "content": {
@@ -883,6 +892,7 @@
     },
     "/api/categories/{categoryId}": {
       "delete": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "deleteCategory",
         "parameters": [
           {
@@ -912,6 +922,7 @@
         ]
       },
       "patch": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "updateCategory",
         "parameters": [
           {
@@ -953,6 +964,7 @@
     },
     "/api/preorders": {
       "patch": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "updatePreOrder",
         "requestBody": {
           "content": {
@@ -981,6 +993,7 @@
         ]
       },
       "post": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "createPreOrder",
         "requestBody": {
           "content": {
@@ -1086,6 +1099,7 @@
     },
     "/api/preorders/{preOrderId}": {
       "delete": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "deletePreOrder",
         "parameters": [
           {
@@ -1117,6 +1131,7 @@
     },
     "/api/preorders/{preOrderId}/cancel": {
       "patch": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "cancelPreOrder",
         "parameters": [
           {
@@ -1148,6 +1163,7 @@
     },
     "/api/preorders/{preOrderId}/open": {
       "patch": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "openPreOrder",
         "parameters": [
           {
@@ -1219,6 +1235,7 @@
     },
     "/api/products": {
       "get": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "getProductList_1",
         "parameters": [
           {
@@ -1324,6 +1341,7 @@
         ]
       },
       "patch": {
+        "description": "상품 이미지를 함께 올리는 multipart 요청이다. request 파트에 Content-Type: application/json 을 명시하지 않으면 역직렬화되지 않는다. productImg 는 대표 이미지, detailImg 는 상세 이미지이며 둘 다 필수다.\n\n필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "updateProduct",
         "requestBody": {
           "content": {
@@ -1364,11 +1382,13 @@
             "description": "OK"
           }
         },
+        "summary": "상품 수정",
         "tags": [
           "product-controller"
         ]
       },
       "post": {
+        "description": "상품 이미지를 함께 올리는 multipart 요청이다. request 파트에 Content-Type: application/json 을 명시하지 않으면 역직렬화되지 않는다. productImg 는 대표 이미지, detailImg 는 상세 이미지이며 둘 다 필수다.\n\n필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "createProduct",
         "requestBody": {
           "content": {
@@ -1409,6 +1429,7 @@
             "description": "OK"
           }
         },
+        "summary": "상품 등록",
         "tags": [
           "product-controller"
         ]
@@ -1585,6 +1606,7 @@
     },
     "/api/products/{productId}": {
       "delete": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "deleteProduct",
         "parameters": [
           {
@@ -1614,6 +1636,7 @@
         ]
       },
       "patch": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "updateStatus",
         "parameters": [
           {
@@ -1741,5 +1764,10 @@
         ]
       }
     }
-  }
+  },
+  "security": [
+    {
+      "accessToken": []
+    }
+  ]
 }

@@ -663,6 +663,14 @@
         },
         "type": "object"
       }
+    },
+    "securitySchemes": {
+      "accessToken": {
+        "description": "로그인(POST /api/auth/sign-in)이 내려주는 JWT.\n\n게이트웨이가 쿠키의 accessToken 을 검증한 뒤 X-User-Claims 헤더로 바꿔\n각 서비스에 넘긴다. 브라우저는 쿠키만 실어 보내면 되고 헤더를 직접\n만들 필요가 없다. 서비스 간 호출은 Authorization: Bearer 도 받는다.",
+        "in": "cookie",
+        "name": "accessToken",
+        "type": "apiKey"
+      }
     }
   },
   "info": {
@@ -831,6 +839,7 @@
     },
     "/api/orders/all": {
       "get": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "getAllOrder",
         "parameters": [
           {
@@ -1074,6 +1083,7 @@
     "/api/orders/{orderId}/invoice-number/{invoiceNumber}": {
       "patch": {
         "deprecated": true,
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "addOrderInvoiceNumber",
         "parameters": [
           {
@@ -1113,6 +1123,7 @@
     },
     "/api/orders/{orderId}/{orderState}": {
       "patch": {
+        "description": "필요 권한: ROLE_ADMIN 또는 ROLE_MANAGER",
         "operationId": "updateOrderState",
         "parameters": [
           {
@@ -1221,5 +1232,10 @@
         ]
       }
     }
-  }
+  },
+  "security": [
+    {
+      "accessToken": []
+    }
+  ]
 }

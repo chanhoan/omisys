@@ -9,6 +9,7 @@ import com.omisys.product.presentation.response.ProductResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +31,9 @@ public class ProductController {
     private final ProductService productService;
     private final ProductFacadeService productFacadeService;
 
+    @Operation(
+            summary = "상품 등록",
+            description = "상품 이미지를 함께 올리는 multipart 요청이다. request 파트에 Content-Type: application/json 을 명시하지 않으면 역직렬화되지 않는다. productImg 는 대표 이미지, detailImg 는 상세 이미지이며 둘 다 필수다.")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PostMapping(
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
@@ -42,6 +46,9 @@ public class ProductController {
         return ApiResponse.created(productFacadeService.createProduct(request, productImg, detailImg));
     }
 
+    @Operation(
+            summary = "상품 수정",
+            description = "상품 이미지를 함께 올리는 multipart 요청이다. request 파트에 Content-Type: application/json 을 명시하지 않으면 역직렬화되지 않는다. productImg 는 대표 이미지, detailImg 는 상세 이미지이며 둘 다 필수다.")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PatchMapping(
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
