@@ -5,7 +5,8 @@ Apply each script to its owning service database before deploying application co
 1. `mysql/01-init-schemas.sh` runs itself against the consolidated MySQL instance (`omisys-mysql`) — it creates the eight service schemas (user, product, order, payment, promotion, review, notification, delivery) and their per-schema accounts. It is mounted at `/docker-entrypoint-initdb.d/01-init-schemas.sh` and runs only on first start, while the `mysql-data` volume is still empty; drop that volume to re-run it. It creates the schemas the scripts below run inside, so it comes first.
 2. `user/20260610-user-devices.sql` to the user-service MySQL database.
 3. `notification/20260610-notification-device.sql` to the notification-service MySQL database.
-4. `user/20260709-seed-admin-account.sql` to the user-service MySQL database — replace `:BCRYPT_HASH` with a freshly generated BCrypt hash before running; never commit the real hash or plaintext password.
+4. `user/20260901-seed-tier.sql` to the user-service MySQL database — seeds the membership tiers into `p_tier`. Signup fails with `TIER_NOT_FOUND` ("등급을 찾을 수 없습니다.") while that table is empty, because `UserService.createUser` looks the default tier up by name, and step 5 joins `p_tier` on that same name, so this runs before it. Re-running it inserts nothing.
+5. `user/20260709-seed-admin-account.sql` to the user-service MySQL database — replace `:BCRYPT_HASH` with a freshly generated BCrypt hash before running; never commit the real hash or plaintext password.
 
 Manual procedures (documents, not scripts):
 
