@@ -1,0 +1,84 @@
+name: Full Stack Deploy
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-full-stack-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Encode deployment files
+        id: files
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+        run: |
+          echo "compose=$(base64 --wrap=0 docker-compose.yml)" >> "$GITHUB_OUTPUT"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" | base64 --wrap=0 | sed 's/^/firebase=/' >> "$GITHUB_OUTPUT"
+
+      - name: Configure and deploy EC2 stack
+        uses: appleboy/ssh-action@v1
+        env:
+          COMPOSE_B64: ${{ steps.files.outputs.compose }}
+          FIREBASE_B64: ${{ steps.files.outputs.firebase }}
+          ENCRYPT_KEY: ${{ secrets.ENCRYPT_KEY }}
+          GIT_NAME: ${{ secrets.GIT_NAME }}
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
+          GIT_URI: ${{ secrets.GIT_URI }}
+          INTERNAL_SECRET: ${{ secrets.INTERNAL_SECRET }}
+          PUBLIC_BASE_URL: ${{ secrets.PUBLIC_BASE_URL }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: COMPOSE_B64,FIREBASE_B64,ENCRYPT_KEY,GIT_NAME,GIT_TOKEN,GIT_URI,INTERNAL_SECRET,PUBLIC_BASE_URL
+          script_stop: true
+          command_timeout: 20m
+          script: |
+            set -eu
+            umask 077
+
+            deploy_dir=/opt/omisys
+            remote_env="$deploy_dir/.env"
+            incoming=/tmp/omisys-required-app.env
+            merged=/tmp/omisys-merged-app.env
+
+            for key in ENCRYPT_KEY GIT_NAME GIT_TOKEN GIT_URI INTERNAL_SECRET PUBLIC_BASE_URL; do
+              test -n "$(printenv "$key")"
+            done
+            test -n "$FIREBASE_B64"
+
+            printf '%s' "$COMPOSE_B64" | base64 --decode > "$deploy_dir/docker-compose.yml"
+            printf '%s' "$FIREBASE_B64" | base64 --decode > "$deploy_dir/firebase-adminsdk.json"
+
+            fingerprint="$(docker exec omisys-es01-1 openssl x509 -noout -fingerprint -sha256 -in /usr/share/elasticsearch/config/certs/es01/es01.crt | cut -d= -f2)"
+            test -n "$fingerprint"
+
+            : > "$incoming"
+            for key in ENCRYPT_KEY GIT_NAME GIT_TOKEN GIT_URI INTERNAL_SECRET PUBLIC_BASE_URL; do
+              printf '%s=%s\n' "$key" "$(printenv "$key")" >> "$incoming"
+            done
+            printf 'ELASTIC_FINGERPRINT=%s\n' "$fingerprint" >> "$incoming"
+
+            cp "$remote_env" "$remote_env.backup-$(date +%Y%m%d%H%M%S)"
+            awk -F= 'NR==FNR { values[$1]=$0; next } { key=$1; if (key in values) { print values[key]; delete values[key]; next } print } END { for (key in values) print values[key] }' "$incoming" "$remote_env" > "$merged"
+            mv "$merged" "$remote_env"
+            rm -f "$incoming"
+            chmod 600 "$remote_env" "$deploy_dir/firebase-adminsdk.json"
+
+            cd "$deploy_dir"
+            docker compose -f docker-compose-dep.yml up -d
+            docker compose config --quiet
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker compose ps
