@@ -12,8 +12,13 @@ cd "$COMPOSE_DIR"
 log "=== omisys startup begin ==="
 
 # 1. 인프라 스택 기동
+log "Pulling dep stack images..."
+if ! docker compose -f docker-compose-dep.yml --profile search pull; then
+  warn "Could not pull every dependency image. Starting with locally cached images."
+fi
+
 log "Starting dep stack..."
-if ! docker compose -f docker-compose-dep.yml up -d; then
+if ! docker compose -f docker-compose-dep.yml --profile search up -d; then
   err "Dep stack failed to start. Continuing anyway..."
 fi
 log "Dep stack started."
@@ -67,6 +72,11 @@ if [ "$KAFKA_READY" = false ]; then
 fi
 
 # 5. 앱 서비스 스택 기동
+log "Pulling app stack images..."
+if ! docker compose pull; then
+  warn "Could not pull every application image. Starting with locally cached images."
+fi
+
 log "Starting app stack..."
 if ! docker compose up -d; then
   err "App stack failed to start cleanly. Containers with restart:always will self-heal."
