@@ -1,0 +1,50 @@
+name: User Tier Migration
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "docs/migrations/user/20260901-seed-tier.sql"
+      - ".github/workflows/user-tier-migration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-user-tier-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Encode migration
+        id: migration
+        run: echo "content=$(base64 --wrap=0 docs/migrations/user/20260901-seed-tier.sql)" >> "$GITHUB_OUTPUT"
+
+      - name: Apply and verify membership tiers
+        uses: appleboy/ssh-action@v1
+        env:
+          MIGRATION_B64: ${{ steps.migration.outputs.content }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: MIGRATION_B64
+          script_stop: true
+          script: |
+            set -eu
+            migration=/tmp/20260901-seed-tier.sql
+            printf '%s' "$MIGRATION_B64" | base64 --decode > "$migration"
+            test -f "$migration"
+
+            docker exec -i omisys-mysql sh -c 'MYSQL_PWD="$USER_MYSQL_PASSWORD" exec mysql --protocol=socket -u"$USER_MYSQL_USER" "$USER_MYSQL_DATABASE"' < "$migration"
+
+            tier_count="$(docker exec omisys-mysql sh -c 'MYSQL_PWD="$USER_MYSQL_PASSWORD" exec mysql --protocol=socket -u"$USER_MYSQL_USER" "$USER_MYSQL_DATABASE" -Nse "SELECT COUNT(*) FROM p_tier"')"
+            test "$tier_count" -eq 6
+            rm -f "$migration"
