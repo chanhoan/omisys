@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omisys.auth.server.auth_dto.jwt.JwtClaim;
 import com.omisys.gateway.server.application.UserQueueService;
 import com.omisys.gateway.server.application.dto.RegisterUserResponse;
+import com.omisys.gateway.server.application.dto.QueueStatusResponse;
 import com.omisys.gateway.server.infrastructure.exception.GatewayErrorCode;
 import com.omisys.gateway.server.infrastructure.exception.GatewayException;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,6 +85,7 @@ class GlobalQueueFilterTest {
     @Test
     void isAllowed_false이고_registerUser_rank0이면_chain통과() throws Exception {
         when(userQueueService.isAllowed("1")).thenReturn(Mono.just(false));
+        when(userQueueService.getRetryAfterSeconds()).thenReturn(30L);
 
         // registerUser 응답 타입은 프로젝트 타입에 맞춰서 바꿔야 함.
         // 아래는 예시: QueueRegisterResponse { long rank; }
@@ -104,6 +106,7 @@ class GlobalQueueFilterTest {
     void isAllowed_false이고_registerUser_rank양수면_200과_X_Queue_Rank를_응답하고_chain미호출() throws Exception {
         when(userQueueService.isAllowed("1")).thenReturn(Mono.just(false));
 
+        when(userQueueService.getRetryAfterSeconds()).thenReturn(30L);
         var response = new RegisterUserResponse(5L);
         when(userQueueService.registerUser("1")).thenReturn(Mono.just(response));
 
@@ -113,19 +116,53 @@ class GlobalQueueFilterTest {
         filter.filter(exchange, chain).block();
 
         assertThat(chain.isCalled()).isFalse();
-        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(exchange.getResponse().getHeaders().getFirst("X-Queue-Rank")).isEqualTo("5");
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+        assertThat(exchange.getResponse().getHeaders().getFirst("Retry-After")).isEqualTo("30");
+        assertThat(exchange.getResponse().getBodyAsString().block())
+                .contains("\"state\":\"WAITING\"", "\"rank\":5", "\"retryAfterSeconds\":30");
 
         verify(userQueueService).isAllowed("1");
         verify(userQueueService).registerUser("1");
     }
 
+    @Test
+    void queueStatusReadyReturns200WithoutCallingChain() throws Exception {
+        when(userQueueService.getQueueStatus("1")).thenReturn(Mono.just(QueueStatusResponse.ready()));
+        var exchange = exchangeWithClaimsUserId(1L, "/api/queue/status");
+        var chain = new CapturingGatewayFilterChain(null);
+
+        filter.filter(exchange, chain).block();
+
+        assertThat(chain.isCalled()).isFalse();
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(exchange.getResponse().getBodyAsString().block()).contains("\"state\":\"READY\"");
+        verify(userQueueService).getQueueStatus("1");
+        verify(userQueueService, never()).registerUser(anyString());
+    }
+
+    @Test
+    void queueStatusExpiredReturns410WithoutCallingChain() throws Exception {
+        when(userQueueService.getQueueStatus("1")).thenReturn(Mono.just(QueueStatusResponse.expired()));
+        var exchange = exchangeWithClaimsUserId(1L, "/api/queue/status");
+        var chain = new CapturingGatewayFilterChain(null);
+
+        filter.filter(exchange, chain).block();
+
+        assertThat(chain.isCalled()).isFalse();
+        assertThat(exchange.getResponse().getStatusCode()).isEqualTo(HttpStatus.GONE);
+        assertThat(exchange.getResponse().getBodyAsString().block()).contains("\"state\":\"EXPIRED\"");
+    }
+
     private MockServerWebExchange exchangeWithClaimsUserId(Long userId) throws Exception {
+        return exchangeWithClaimsUserId(userId, "/api/orders");
+    }
+
+    private MockServerWebExchange exchangeWithClaimsUserId(Long userId, String path) throws Exception {
         JwtClaim claim = new JwtClaim(userId, "u", "ROLE_USER");
         String json = objectMapper.writeValueAsString(claim);
         String encoded = URLEncoder.encode(json, StandardCharsets.UTF_8);
 
-        var request = MockServerHttpRequest.get("/api/orders")
+        var request = MockServerHttpRequest.get(path)
                 .header(X_USER_CLAIMS, encoded)
                 .build();
 

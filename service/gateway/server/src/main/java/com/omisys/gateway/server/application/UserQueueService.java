@@ -1,6 +1,7 @@
 package com.omisys.gateway.server.application;
 
 import com.omisys.gateway.server.application.dto.RegisterUserResponse;
+import com.omisys.gateway.server.application.dto.QueueStatusResponse;
 import com.omisys.gateway.server.infrastructure.exception.GatewayErrorCode;
 import com.omisys.gateway.server.infrastructure.exception.GatewayException;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -20,11 +22,33 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class UserQueueService {
 
+    private static final DefaultRedisScript<Long> REGISTER_WAITING_USER_SCRIPT = new DefaultRedisScript<>("""
+            local rank = redis.call('ZRANK', KEYS[1], ARGV[1])
+            if not rank then
+                redis.call('ZADD', KEYS[1], ARGV[2], ARGV[1])
+                rank = redis.call('ZRANK', KEYS[1], ARGV[1])
+            end
+            redis.call('ZADD', KEYS[2], ARGV[2], ARGV[1])
+            return rank + 1
+            """, Long.class);
+
+    private static final DefaultRedisScript<Long> REMOVE_STALE_WAITING_USER_SCRIPT = new DefaultRedisScript<>("""
+            local activity = redis.call('ZSCORE', KEYS[2], ARGV[1])
+            if activity and tonumber(activity) <= tonumber(ARGV[2]) then
+                redis.call('ZREM', KEYS[1], ARGV[1])
+                redis.call('ZREM', KEYS[2], ARGV[1])
+                return 1
+            end
+            return 0
+            """, Long.class);
+
     private final ReactiveRedisTemplate<String, String> reactiveRedisTemplate;
     private final DistributedLockComponent lockComponent;
 
     /** 대기 큐(Sorted Set): score = 요청 시각(Unix time), 오래 기다린 사용자부터 승격(popMin) */
     private final String USER_QUEUE_WAIT_KEY = "users:queue:wait";
+
+    private final String USER_QUEUE_WAIT_ACTIVITY_KEY = "users:queue:wait:activity";
 
     /** 진행 큐(Sorted Set): score = 마지막 활동 시각(Unix time), 일정 시간 무활동이면 제거 */
     private final String USER_QUEUE_PROCEED_KEY = "users:queue:proceed";
@@ -35,6 +59,12 @@ public class UserQueueService {
     /** 동시에 proceed(진행) 상태로 허용할 최대 사용자 수 */
     @Value("${MAX_ACTIVE_USERS}")
     private long MAX_ACTIVE_USERS;
+
+    @Value("${gateway.queue.promotion-interval-ms:30000}")
+    private long promotionIntervalMs;
+
+    @Value("${gateway.queue.wait-inactivity-threshold-seconds:90}")
+    private long waitInactivityThresholdSeconds;
 
     /** 무활동 사용자 제거 기준(초): proceed 큐에서 마지막 활동 시간이 이 값을 넘으면 제거 */
     private final long INACTIVITY_THRESHOLD = 300;
@@ -101,9 +131,10 @@ public class UserQueueService {
      *   <li>스케줄러 메서드는 void이므로 내부에서 구독을 트리거한다.</li>
      * </ul>
      */
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRateString = "${gateway.queue.promotion-interval-ms:30000}")
     public void scheduleAllUser() {
-        removeInactiveUsers()
+        removeInactiveWaitingUsers()
+                .then(removeInactiveUsers())
                 .then(allowUserTask())
                 .subscribe(
                         movedUsers -> {},
@@ -148,6 +179,27 @@ public class UserQueueService {
         return reactiveRedisTemplate.opsForZSet().rank(USER_QUEUE_WAIT_KEY, userId)
                 .defaultIfEmpty(-1L)
                 .map(rank -> rank >= 0 ? rank + 1 : rank);
+    }
+
+    public Mono<QueueStatusResponse> getQueueStatus(String userId) {
+        return isAllowed(userId)
+                .flatMap(allowed -> {
+                    if (allowed) {
+                        return Mono.just(QueueStatusResponse.ready());
+                    }
+                    return getRank(userId)
+                            .flatMap(rank -> {
+                                if (rank < 0) {
+                                    return Mono.just(QueueStatusResponse.expired());
+                                }
+                                return updateWaitingActivityTime(userId)
+                                        .thenReturn(QueueStatusResponse.waiting(rank, getRetryAfterSeconds()));
+                            });
+                });
+    }
+
+    public long getRetryAfterSeconds() {
+        return Math.max(1L, promotionIntervalMs / 1000L);
     }
 
     /**
@@ -202,15 +254,7 @@ public class UserQueueService {
      * @return RegisterUserResponse(대기 순번)
      */
     private Mono<RegisterUserResponse> checkAndAddToQueue(String userId) {
-        return reactiveRedisTemplate.opsForZSet().score(USER_QUEUE_WAIT_KEY, userId)
-                .defaultIfEmpty(-1.0)
-                .flatMap(score -> {
-                    if (score >= 0) {
-                        return updateWaitQueueScore(userId);
-                    } else {
-                        return addToWaitQueue(userId);
-                    }
-                });
+        return addOrRefreshWaitingUser(userId);
     }
 
     /**
@@ -222,16 +266,6 @@ public class UserQueueService {
      * @param userId 사용자 식별자
      * @return RegisterUserResponse(갱신 후 대기 순번)
      */
-    private Mono<RegisterUserResponse> updateWaitQueueScore(String userId) {
-        double newScore = Instant.now().getEpochSecond();
-        return reactiveRedisTemplate.opsForZSet().score(USER_QUEUE_WAIT_KEY, userId)
-                .flatMap(oldScore ->
-                        reactiveRedisTemplate.opsForZSet().add(USER_QUEUE_WAIT_KEY, userId, newScore)
-                                .then(reactiveRedisTemplate.opsForZSet().rank(USER_QUEUE_WAIT_KEY, userId))
-                )
-                .map(rank -> new RegisterUserResponse(rank + 1));
-    }
-
     /**
      * 사용자를 대기 큐(wait)에 추가한다.
      *
@@ -242,15 +276,17 @@ public class UserQueueService {
      * @return RegisterUserResponse(대기 순번)
      * @throws GatewayException 대기열 등록 실패 시 (TOO_MANY_REQUESTS)
      */
-    private Mono<RegisterUserResponse> addToWaitQueue(String userId) {
-        var unixTime = Instant.now().getEpochSecond();
+    private Mono<RegisterUserResponse> addOrRefreshWaitingUser(String userId) {
+        return reactiveRedisTemplate.execute(REGISTER_WAITING_USER_SCRIPT,
+                        java.util.List.of(USER_QUEUE_WAIT_KEY, USER_QUEUE_WAIT_ACTIVITY_KEY),
+                        java.util.List.of(userId, String.valueOf(Instant.now().getEpochSecond())))
+                .single()
+                .map(RegisterUserResponse::new);
+    }
+
+    private Mono<Boolean> updateWaitingActivityTime(String userId) {
         return reactiveRedisTemplate.opsForZSet()
-                .add(USER_QUEUE_WAIT_KEY, userId, unixTime)
-                .filter(i -> i)
-                .switchIfEmpty(Mono.error(new GatewayException(GatewayErrorCode.TOO_MANY_REQUESTS)))
-                .flatMap(i -> reactiveRedisTemplate.opsForZSet()
-                        .rank(USER_QUEUE_WAIT_KEY, userId))
-                .map(rank -> new RegisterUserResponse(rank + 1));
+                .add(USER_QUEUE_WAIT_ACTIVITY_KEY, userId, Instant.now().getEpochSecond());
     }
 
     /**
@@ -318,6 +354,21 @@ public class UserQueueService {
                 .then();
     }
 
+    private Mono<Void> removeInactiveWaitingUsers() {
+        long currentTime = Instant.now().getEpochSecond();
+        return reactiveRedisTemplate.opsForZSet()
+                .rangeWithScores(USER_QUEUE_WAIT_ACTIVITY_KEY, Range.closed(0L, -1L))
+                .filter(userWithScore -> currentTime - userWithScore.getScore() > waitInactivityThresholdSeconds)
+                .flatMap(userWithScore -> {
+                    String userId = Objects.requireNonNull(userWithScore.getValue());
+                    return reactiveRedisTemplate.execute(REMOVE_STALE_WAITING_USER_SCRIPT,
+                                    java.util.List.of(USER_QUEUE_WAIT_KEY, USER_QUEUE_WAIT_ACTIVITY_KEY),
+                                    java.util.List.of(userId, String.valueOf(currentTime - waitInactivityThresholdSeconds)))
+                            .then();
+                })
+                .then();
+    }
+
     /**
      * 현재 활성 사용자 수를 기준으로 빈 슬롯을 계산하고, 그 수만큼 대기열에서 진행열로 승격시킨다.
      *
@@ -351,7 +402,8 @@ public class UserQueueService {
                 .popMin(USER_QUEUE_WAIT_KEY, count)
                 .flatMap(user -> {
                     String userId = Objects.requireNonNull(user.getValue());
-                    return updateUserActivityTime(userId)
+                    return reactiveRedisTemplate.opsForZSet().remove(USER_QUEUE_WAIT_ACTIVITY_KEY, userId)
+                            .then(updateUserActivityTime(userId))
                             .then(reactiveRedisTemplate.opsForSet().add(USER_ACTIVE_SET_KEY, userId));
                 })
                 .count();
