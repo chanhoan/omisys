@@ -24,7 +24,6 @@ services:
       - "8888:8888"
     networks:
       - omisys-network
-    mem_limit: 256m
 
   eureka-service:
     image: ghcr.io/chanhoan/omisys-eureka-service:latest
@@ -48,7 +47,6 @@ services:
       - omisys-network
     ports:
       - "19090:19090"
-    mem_limit: 256m
 
   user-service:
     image: ghcr.io/chanhoan/omisys-user-service:latest
@@ -69,7 +67,6 @@ services:
 
     networks:
       - omisys-network
-    mem_limit: 320m
 
   auth-service:
     image: ghcr.io/chanhoan/omisys-auth-service:latest
@@ -89,7 +86,6 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     networks:
       - omisys-network
-    mem_limit: 320m
 
   gateway-service:
     image: ghcr.io/chanhoan/omisys-gateway-service:latest
@@ -108,7 +104,6 @@ services:
       - "19091:19091"
     networks:
       - omisys-network
-    mem_limit: 448m
 
   product-service:
     image: ghcr.io/chanhoan/omisys-product-service:latest
@@ -137,7 +132,6 @@ services:
 
     networks:
       - omisys-network
-    mem_limit: 448m
 
   order-service:
     image: ghcr.io/chanhoan/omisys-order-service:latest
@@ -157,7 +151,6 @@ services:
       INTERNAL_SECRET: ${INTERNAL_SECRET}
     networks:
       - omisys-network
-    mem_limit: 384m
 
   payment-service:
     image: ghcr.io/chanhoan/omisys-payment-service:latest
@@ -181,7 +174,6 @@ services:
       INTERNAL_SECRET: ${INTERNAL_SECRET}
     networks:
       - omisys-network
-    mem_limit: 384m
 
   promotion-service:
     image: ghcr.io/chanhoan/omisys-promotion-service:latest
@@ -201,7 +193,6 @@ services:
       INTERNAL_SECRET: ${INTERNAL_SECRET}
     networks:
       - omisys-network
-    mem_limit: 384m
 
   search-service:
     image: ghcr.io/chanhoan/omisys-search-service:latest
@@ -223,7 +214,6 @@ services:
       PRODUCT_MYSQL_PASSWORD: ${PRODUCT_MYSQL_PASSWORD}
     networks:
       - omisys-network
-    mem_limit: 320m
 
   review-service:
     image: ghcr.io/chanhoan/omisys-review-service:latest
@@ -244,7 +234,6 @@ services:
       INTERNAL_SECRET: ${INTERNAL_SECRET}
     networks:
       - omisys-network
-    mem_limit: 320m
 
   notification-service:
     image: ghcr.io/chanhoan/omisys-notification-service:latest
@@ -269,7 +258,6 @@ services:
       - ./firebase-adminsdk.json:/app/firebase-adminsdk.json:ro
     networks:
       - omisys-network
-    mem_limit: 320m
 
   delivery-service:
     image: ghcr.io/chanhoan/omisys-delivery-service:latest
@@ -289,7 +277,6 @@ services:
       INTERNAL_SECRET: ${INTERNAL_SECRET}
     networks:
       - omisys-network
-    mem_limit: 320m
 
 networks:
   omisys-network:
