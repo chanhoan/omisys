@@ -2,6 +2,7 @@
 Description=omisys application stack
 After=docker.service network-online.target
 Wants=docker.service network-online.target
+Requires=docker.service
 
 [Service]
 Type=oneshot
