@@ -21,6 +21,7 @@ public class PublicPathPolicy {
             "/api/users/sign-up",
             "/api/search",
             "/api/products/search",
+            "/api/products/detail",
             "/api/preorder/search",
             "/api/categories/search"
     );
