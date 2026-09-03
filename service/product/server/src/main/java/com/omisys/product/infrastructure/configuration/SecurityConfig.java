@@ -41,6 +41,8 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers("/api/products/search/**")
                                         .permitAll()
+                                        .requestMatchers("/api/products/detail/**")
+                                        .permitAll()
                                         .requestMatchers("/api/categories/search/**")
                                         .permitAll()
                                         .requestMatchers("/api/preorders/search/**")
