@@ -7,7 +7,7 @@ services:
     stop_grace_period: 45s
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
       SERVER_PORT: 8888
 
       SPRING_CLOUD_CONFIG_SERVER_GIT_URI: ${GIT_URI}
@@ -35,7 +35,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
       SERVER_PORT: 19090
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:19090/actuator/health" ]
@@ -58,7 +58,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
 
       USER_MYSQL_DATABASE: ${USER_MYSQL_DATABASE}
       USER_MYSQL_USER: ${USER_MYSQL_USER}
@@ -78,7 +78,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
 
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       INTERNAL_SECRET: ${INTERNAL_SECRET}
@@ -97,7 +97,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
       MAX_ACTIVE_USERS: ${MAX_ACTIVE_USERS}
       INTERNAL_SECRET: ${INTERNAL_SECRET}
     ports:
@@ -116,7 +116,7 @@ services:
     environment:
 
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
 
       ELASTIC_FINGERPRINT: ${ELASTIC_FINGERPRINT}
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
@@ -143,7 +143,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
 
       ORDER_MYSQL_DATABASE: ${ORDER_MYSQL_DATABASE}
       ORDER_MYSQL_USER: ${ORDER_MYSQL_USER}
@@ -162,7 +162,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
 
       PAYMENT_MYSQL_DATABASE: ${PAYMENT_MYSQL_DATABASE}
       PAYMENT_MYSQL_USER: ${PAYMENT_MYSQL_USER}
@@ -185,7 +185,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
 
       PROMOTION_MYSQL_DATABASE: ${PROMOTION_MYSQL_DATABASE}
       PROMOTION_MYSQL_USER: ${PROMOTION_MYSQL_USER}
@@ -204,7 +204,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
 
       ELASTIC_FINGERPRINT: ${ELASTIC_FINGERPRINT}
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
@@ -225,7 +225,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
       SPRING_APPLICATION_NAME: review
 
       REVIEW_MYSQL_DATABASE: ${REVIEW_MYSQL_DATABASE}
@@ -245,7 +245,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
 
       NOTIFICATION_MYSQL_DATABASE: ${NOTIFICATION_MYSQL_DATABASE}
       NOTIFICATION_MYSQL_USER: ${NOTIFICATION_MYSQL_USER}
@@ -269,7 +269,7 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k -XX:MaxMetaspaceSize=128m"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=70 -XX:+UseG1GC -Xss512k"
 
       DELIVERY_MYSQL_DATABASE: ${DELIVERY_MYSQL_DATABASE}
       DELIVERY_MYSQL_USER: ${DELIVERY_MYSQL_USER}
