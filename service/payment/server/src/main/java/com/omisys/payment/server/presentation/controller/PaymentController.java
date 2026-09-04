@@ -5,17 +5,19 @@ import com.omisys.payment.server.application.service.PaymentService;
 import com.omisys.payment.server.presentation.response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Slf4j
 @Validated
@@ -24,39 +26,38 @@ import org.thymeleaf.context.Context;
 public class PaymentController {
 
     private final PaymentService paymentService;
-    private final TemplateEngine templateEngine;
+
+    @Value("${FRONTEND_BASE_URL:http://localhost:3000}")
+    private String frontendBaseUrl;
 
     @GetMapping("/payments/success")
-    public ResponseEntity<String> paymentSuccess(@RequestParam String paymentKey) {
+    public ResponseEntity<Void> paymentSuccess(@RequestParam String paymentKey) {
         PaymentResponse.Get response = paymentService.paymentSuccess(paymentKey);
-        Context context = new Context();
-        context.setVariable("orderId", response.getOrderId());
-        context.setVariable("orderName", response.getOrderName());
-        context.setVariable("amount", response.getAmount());
-        context.setVariable("createdAt", response.getCreatedAt());
-
-        String htmlContent = templateEngine.process("success", context);
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.TEXT_HTML)
-                .body(htmlContent);
+        return redirectToFrontend("success", response.getOrderId().toString(), null);
     }
 
     @GetMapping("/payments/fail")
-    public ResponseEntity<String> paymentFail(@RequestParam String paymentKey) {
-        PaymentResponse.Get response = paymentService.paymentFail(paymentKey);
+    public ResponseEntity<Void> paymentFail(
+            @RequestParam String code,
+            @RequestParam String message,
+            @RequestParam(required = false) String orderId) {
+        return redirectToFrontend("fail", orderId, message);
+    }
 
-        Context context = new Context();
-        context.setVariable("orderId", response.getOrderId());
-        context.setVariable("orderName", response.getOrderName());
-        context.setVariable("amount", response.getAmount());
-        context.setVariable("createdAt", response.getCreatedAt());
-
-        String htmlContent = templateEngine.process("fail", context);
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.TEXT_HTML)
-                .body(htmlContent);
+    private ResponseEntity<Void> redirectToFrontend(String status, String orderId, String reason) {
+        UriComponentsBuilder redirect = UriComponentsBuilder
+                .fromUriString(StringUtils.trimTrailingCharacter(frontendBaseUrl, '/'))
+                .path("/checkout/result")
+                .queryParam("status", status);
+        if (orderId != null) {
+            redirect.queryParam("orderId", orderId);
+        }
+        if (reason != null) {
+            redirect.queryParam("reason", reason);
+        }
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(redirect.build().toUri())
+                .build();
     }
 
     @PreAuthorize("hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')")

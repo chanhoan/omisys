@@ -133,32 +133,6 @@ public class PaymentService {
                 .build();
     }
 
-    @Transactional
-    public PaymentResponse.Get paymentFail(String paymentKey) {
-        Payment payment = paymentRepository.findByPaymentKey(paymentKey)
-                .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
-
-        PaymentCompletedEvent event = PaymentCompletedEvent.builder()
-                .paymentId(payment.getPaymentId())
-                .orderId(payment.getOrderId())
-                .amount(payment.getAmount())
-                .userId(payment.getUserId())
-                .success(false)
-                .build();
-
-        saveOutboxEvent(payment, event);
-
-        payment.setState(PaymentState.CANCEL);
-        paymentRepository.save(payment);
-
-        return PaymentResponse.Get.builder()
-                .orderId(payment.getOrderId())
-                .orderName(payment.getOrderName())
-                .amount(payment.getAmount())
-                .createdAt(payment.getCreatedAt())
-                .build();
-    }
-
     public Page<PaymentResponse.Get> getAllPayments(
             Pageable pageable,
             String userId,

@@ -117,26 +117,6 @@ class PaymentServiceTest {
     }
 
     @Test
-    @DisplayName("paymentFail: 상태 CANCEL 변경 + OutboxEvent PENDING 저장 (success=false)")
-    void paymentFail_savesOutboxEvent() throws Exception {
-        // given
-        Payment payment = buildPayment(99L, 10L, 1L, 10000L);
-        when(paymentRepository.findByPaymentKey("pay_key_123")).thenReturn(Optional.of(payment));
-
-        // when
-        paymentService.paymentFail("pay_key_123");
-
-        // then
-        assertThat(payment.getState()).isEqualTo(PaymentState.CANCEL);
-        verify(paymentRepository).save(payment);
-
-        ArgumentCaptor<OutboxEvent> captor = ArgumentCaptor.forClass(OutboxEvent.class);
-        verify(outboxEventRepository).save(captor.capture());
-        assertThat(captor.getValue().getPayload()).contains("\"success\":false");
-        assertThat(captor.getValue().getEventType()).isEqualTo(KafkaTopicConstant.PAYMENT_COMPLETED);
-    }
-
-    @Test
     @DisplayName("paymentSuccess: KafkaTemplate을 직접 호출하지 않는다 (OutboxPoller에 위임)")
     void paymentSuccess_doesNotCallKafkaDirectly() {
         // given

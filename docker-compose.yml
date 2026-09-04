@@ -171,6 +171,7 @@ services:
       TOSS_SECRET_KEY: ${TOSS_SECRET_KEY}
 
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:3000}
       INTERNAL_SECRET: ${INTERNAL_SECRET}
     networks:
       - omisys-network
