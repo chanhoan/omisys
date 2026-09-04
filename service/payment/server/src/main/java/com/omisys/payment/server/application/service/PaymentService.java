@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Base64;
 import java.util.List;
 
 @Slf4j
@@ -95,7 +94,7 @@ public class PaymentService {
         log.info("Amount: {}", payment.getAmount());
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(Base64.getEncoder().encodeToString(originalKey.getBytes()));
+        headers.setBasicAuth(originalKey, "");
 
         PaymentRequest.Confirm body = new PaymentRequest.Confirm();
         body.setPaymentKey(paymentKey);

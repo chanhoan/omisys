@@ -19,6 +19,8 @@ public class PublicPathPolicy {
             "/oauth2/",
             "/login/oauth2/",
             "/api/users/sign-up",
+            "/payments/success",
+            "/payments/fail",
             "/api/search",
             "/api/products/search",
             "/api/products/detail",

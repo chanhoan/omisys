@@ -13,6 +13,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static com.omisys.common.domain.jwt.JwtGlobalConstant.AUTHORIZATION;
 import static com.omisys.common.domain.jwt.JwtGlobalConstant.BEARER_PREFIX;
@@ -48,6 +49,22 @@ class JwtAuthenticationFilterTest {
         verifyNoInteractions(authService);
         // public path는 response status를 강제하지 않으므로 null일 수 있음
         assertThat(exchange.getResponse().getStatusCode()).isNull();
+    }
+
+    @Test
+    void paymentCallbackPaths_are_public_without_token() {
+        for (String path : List.of("/payments/success", "/payments/fail")) {
+            var exchange = MockServerWebExchange.from(
+                    MockServerHttpRequest.get(path).build());
+            var chain = new CapturingGatewayFilterChain(null);
+
+            filter.filter(exchange, chain).block();
+
+            assertThat(chain.isCalled()).isTrue();
+            assertThat(exchange.getResponse().getStatusCode()).isNull();
+        }
+
+        verifyNoInteractions(authService);
     }
 
     @Test
