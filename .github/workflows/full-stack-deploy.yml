@@ -37,11 +37,12 @@ jobs:
           GIT_URI: ${{ secrets.GIT_URI }}
           INTERNAL_SECRET: ${{ secrets.INTERNAL_SECRET }}
           PUBLIC_BASE_URL: ${{ secrets.PUBLIC_BASE_URL }}
+          FRONTEND_BASE_URL: ${{ secrets.FRONTEND_BASE_URL }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: COMPOSE_B64,FIREBASE_B64,ENCRYPT_KEY,GIT_NAME,GIT_TOKEN,GIT_URI,INTERNAL_SECRET,PUBLIC_BASE_URL
+          envs: COMPOSE_B64,FIREBASE_B64,ENCRYPT_KEY,GIT_NAME,GIT_TOKEN,GIT_URI,INTERNAL_SECRET,PUBLIC_BASE_URL,FRONTEND_BASE_URL
           command_timeout: 20m
           script: |
             set -eu
@@ -52,7 +53,7 @@ jobs:
             incoming=/tmp/omisys-required-app.env
             merged=/tmp/omisys-merged-app.env
 
-            for key in ENCRYPT_KEY GIT_NAME GIT_TOKEN GIT_URI INTERNAL_SECRET PUBLIC_BASE_URL; do
+            for key in ENCRYPT_KEY GIT_NAME GIT_TOKEN GIT_URI INTERNAL_SECRET PUBLIC_BASE_URL FRONTEND_BASE_URL; do
               test -n "$(printenv "$key")"
             done
             test -n "$FIREBASE_B64"
@@ -64,7 +65,7 @@ jobs:
             test -n "$fingerprint"
 
             : > "$incoming"
-            for key in ENCRYPT_KEY GIT_NAME GIT_TOKEN GIT_URI INTERNAL_SECRET PUBLIC_BASE_URL; do
+            for key in ENCRYPT_KEY GIT_NAME GIT_TOKEN GIT_URI INTERNAL_SECRET PUBLIC_BASE_URL FRONTEND_BASE_URL; do
               printf '%s=%s\n' "$key" "$(printenv "$key")" >> "$incoming"
             done
             printf 'ELASTIC_FINGERPRINT=%s\n' "$fingerprint" >> "$incoming"
