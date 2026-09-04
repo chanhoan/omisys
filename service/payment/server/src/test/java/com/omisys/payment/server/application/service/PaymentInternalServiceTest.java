@@ -104,6 +104,10 @@ class PaymentInternalServiceTest {
         );
         assertThat(requestCaptor.getValue().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
                 .isEqualTo("Basic " + HttpHeaders.encodeBasicAuth("test-secret-key", "", StandardCharsets.UTF_8));
+        PaymentRequest.CreateExt paymentRequest = (PaymentRequest.CreateExt) requestCaptor.getValue().getBody();
+        assertThat(paymentRequest.getFlowMode()).isEqualTo("DIRECT");
+        assertThat(paymentRequest.getMethod()).isEqualTo("CARD");
+        assertThat(paymentRequest.getEasyPay()).isEqualTo("TOSSPAY");
     }
 
     @Test

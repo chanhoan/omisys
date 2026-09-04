@@ -22,8 +22,8 @@ public class PaymentRequest {
     public static class CreateExt {
 
         private String flowMode = "DIRECT";
-        private String easyPay = "토스페이";
-        private String method = "";
+        private String easyPay = "TOSSPAY";
+        private String method = "CARD";
         private String successUrl;
         private String failUrl;
         private String orderId;
