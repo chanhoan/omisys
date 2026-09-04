@@ -13,13 +13,28 @@
           "alias": {
             "type": "string"
           },
+          "detailAddress": {
+            "type": "string"
+          },
           "isDefault": {
             "type": "boolean"
+          },
+          "jibunAddress": {
+            "type": "string"
           },
           "phoneNumber": {
             "type": "string"
           },
           "recipient": {
+            "type": "string"
+          },
+          "roadAddress": {
+            "type": "string"
+          },
+          "sido": {
+            "type": "string"
+          },
+          "sigungu": {
             "type": "string"
           },
           "userId": {

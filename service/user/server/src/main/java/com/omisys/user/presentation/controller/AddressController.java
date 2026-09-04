@@ -22,7 +22,7 @@ public class AddressController {
 
     @PostMapping
     public ApiResponse<Void> createAddress(
-            @RequestBody AddressRequest.Create request,
+            @RequestBody @Valid AddressRequest.Create request,
             @AuthenticationPrincipal JwtClaim claim
     ) {
         addressService.createAddress(claim.getUserId(), request);

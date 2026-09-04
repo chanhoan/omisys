@@ -16,5 +16,10 @@ public class AddressDto {
     private String zipcode;
     private String address;
     private Boolean isDefault;
+    private String roadAddress;
+    private String jibunAddress;
+    private String detailAddress;
+    private String sido;
+    private String sigungu;
 
 }
