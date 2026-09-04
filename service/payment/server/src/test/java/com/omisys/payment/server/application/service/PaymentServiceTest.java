@@ -23,11 +23,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -86,6 +89,12 @@ class PaymentServiceTest {
         assertThat(saved.getStatus()).isEqualTo(OutboxStatus.PENDING);
         assertThat(saved.getEventType()).isEqualTo(KafkaTopicConstant.PAYMENT_COMPLETED);
         assertThat(saved.getAggregateType()).isEqualTo("Payment");
+
+        ArgumentCaptor<HttpEntity> requestCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).exchange(anyString(), eq(HttpMethod.POST), requestCaptor.capture(), eq(Object.class));
+        assertThat(requestCaptor.getValue().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
+                .isEqualTo("Basic " + Base64.getEncoder().encodeToString(
+                        "test-secret-key:".getBytes(StandardCharsets.UTF_8)));
     }
 
     @Test
