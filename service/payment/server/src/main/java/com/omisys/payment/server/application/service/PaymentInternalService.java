@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -54,10 +53,9 @@ public class PaymentInternalService {
     }
 
     public String createPayment(PaymentRequest.Create request) {
-        String secretKey = Base64.getEncoder().encodeToString(originalKey.getBytes());
         try {
             HttpHeaders headers = new HttpHeaders();
-            headers.setBasicAuth(secretKey);
+            headers.setBasicAuth(originalKey, "");
 
             String tossOrderId =
                     "order_" + request.getOrderId() + "_" +
@@ -99,10 +97,8 @@ public class PaymentInternalService {
                 .orElseThrow(() -> new PaymentException(PaymentErrorCode.PAYMENT_NOT_FOUND));
 
         try {
-            String secretKey = Base64.getEncoder().encodeToString(originalKey.getBytes());
-
             HttpHeaders headers = new HttpHeaders();
-            headers.setBasicAuth(secretKey);
+            headers.setBasicAuth(originalKey, "");
 
             PaymentRequest.Cancel body = new PaymentRequest.Cancel();
             body.setCancelReason(request.getCancelReason());

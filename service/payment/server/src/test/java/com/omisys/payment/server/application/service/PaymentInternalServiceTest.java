@@ -18,6 +18,7 @@ import org.springframework.http.*;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -93,6 +94,16 @@ class PaymentInternalServiceTest {
         assertThat(saved.getAmount()).isEqualTo(10000L);
         assertThat(saved.getPaymentKey()).isEqualTo("pay_key_123");
         assertThat(saved.getState()).isEqualTo(PaymentState.PENDING);
+
+        ArgumentCaptor<HttpEntity> requestCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).exchange(
+                eq("https://api.tosspayments.com/v1/payments"),
+                eq(HttpMethod.POST),
+                requestCaptor.capture(),
+                eq(PaymentResponse.CreateResponse.class)
+        );
+        assertThat(requestCaptor.getValue().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
+                .isEqualTo("Basic " + HttpHeaders.encodeBasicAuth("test-secret-key", "", StandardCharsets.UTF_8));
     }
 
     @Test
@@ -135,6 +146,16 @@ class PaymentInternalServiceTest {
 
         assertThat(payment.getState()).isEqualTo(PaymentState.CANCEL);
         verify(paymentRepository).save(payment);
+
+        ArgumentCaptor<HttpEntity> requestCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).exchange(
+                eq("https://api.tosspayments.com/v1/payments/pay_key_123/cancel"),
+                eq(HttpMethod.POST),
+                requestCaptor.capture(),
+                eq(Object.class)
+        );
+        assertThat(requestCaptor.getValue().getHeaders().getFirst(HttpHeaders.AUTHORIZATION))
+                .isEqualTo("Basic " + HttpHeaders.encodeBasicAuth("test-secret-key", "", StandardCharsets.UTF_8));
     }
 
     @Test
