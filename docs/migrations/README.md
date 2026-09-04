@@ -8,6 +8,8 @@ Apply each script to its owning service database before deploying application co
 4. `user/20260901-seed-tier.sql` to the user-service MySQL database — seeds the membership tiers into `p_tier`. Signup fails with `TIER_NOT_FOUND` ("등급을 찾을 수 없습니다.") while that table is empty, because `UserService.createUser` looks the default tier up by name, and step 5 joins `p_tier` on that same name, so this runs before it. Re-running it inserts nothing.
 5. `user/20260709-seed-admin-account.sql` to the user-service MySQL database — replace `:BCRYPT_HASH` with a freshly generated BCrypt hash before running; never commit the real hash or plaintext password.
 
+6. `user/20260903-address-structured-columns.sql` to the user-service MySQL database ??adds nullable structured road-address columns to `p_address`; run it before deploying user-service code that reads those columns.
+
 Manual procedures (documents, not scripts):
 
 - `product/cassandra-to-mysql.md` — moves product data from Cassandra into the `omisys_product` schema. Skip it and start from empty tables if the environment will be reseeded with fresh mock data.

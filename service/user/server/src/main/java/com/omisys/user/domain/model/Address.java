@@ -36,6 +36,16 @@ public class Address extends BaseEntity {
     @Column(nullable = false)
     private String address;
 
+    private String roadAddress;
+
+    private String jibunAddress;
+
+    private String detailAddress;
+
+    private String sido;
+
+    private String sigungu;
+
     @Column(nullable = false)
     private Boolean isDefault;
 
@@ -46,7 +56,12 @@ public class Address extends BaseEntity {
                 .recipient(request.getRecipient())
                 .phoneNumber(request.getPhoneNumber())
                 .zipcode(request.getZipcode())
-                .address(request.getAddress())
+                .address(resolveAddress(request.getAddress(), request.getRoadAddress(), request.getDetailAddress()))
+                .roadAddress(request.getRoadAddress())
+                .jibunAddress(request.getJibunAddress())
+                .detailAddress(request.getDetailAddress())
+                .sido(request.getSido())
+                .sigungu(request.getSigungu())
                 .isDefault(request.getIsDefault())
                 .build();
     }
@@ -56,8 +71,22 @@ public class Address extends BaseEntity {
         this.recipient = request.getRecipient();
         this.phoneNumber = request.getPhoneNumber();
         this.zipcode = request.getZipcode();
-        this.address = request.getAddress();
+        this.address = resolveAddress(request.getAddress(), request.getRoadAddress(), request.getDetailAddress());
+        this.roadAddress = request.getRoadAddress();
+        this.jibunAddress = request.getJibunAddress();
+        this.detailAddress = request.getDetailAddress();
+        this.sido = request.getSido();
+        this.sigungu = request.getSigungu();
         this.isDefault = request.getIsDefault();
+    }
+
+    private static String resolveAddress(String explicitAddress, String roadAddress, String detailAddress) {
+        if (explicitAddress != null && !explicitAddress.isBlank()) {
+            return explicitAddress;
+        }
+
+        return (roadAddress == null ? "" : roadAddress)
+                + (detailAddress == null || detailAddress.isBlank() ? "" : " " + detailAddress);
     }
 
 }

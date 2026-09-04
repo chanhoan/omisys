@@ -28,7 +28,12 @@ public class AddressInternalService {
                 address.getPhoneNumber(),
                 address.getZipcode(),
                 address.getAddress(),
-                address.getIsDefault()
+                address.getIsDefault(),
+                address.getRoadAddress(),
+                address.getJibunAddress(),
+                address.getDetailAddress(),
+                address.getSido(),
+                address.getSigungu()
         );
     }
 

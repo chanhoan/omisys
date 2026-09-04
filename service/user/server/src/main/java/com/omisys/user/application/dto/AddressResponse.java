@@ -21,6 +21,11 @@ public class AddressResponse {
         private String phoneNumber;
         private String zipcode;
         private String address;
+        private String roadAddress;
+        private String jibunAddress;
+        private String detailAddress;
+        private String sido;
+        private String sigungu;
         private Boolean isDefault;
 
         public static AddressResponse.Get of(Address address) {
@@ -33,6 +38,11 @@ public class AddressResponse {
                     .phoneNumber(address.getPhoneNumber())
                     .zipcode(address.getZipcode())
                     .address(address.getAddress())
+                    .roadAddress(address.getRoadAddress())
+                    .jibunAddress(address.getJibunAddress())
+                    .detailAddress(address.getDetailAddress())
+                    .sido(address.getSido())
+                    .sigungu(address.getSigungu())
                     .isDefault(address.getIsDefault())
                     .build();
 
