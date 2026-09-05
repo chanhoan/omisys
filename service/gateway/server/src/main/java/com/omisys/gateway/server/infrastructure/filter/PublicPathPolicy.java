@@ -24,8 +24,9 @@ public class PublicPathPolicy {
             "/api/search",
             "/api/products/search",
             "/api/products/detail",
-            "/api/preorder/search",
-            "/api/categories/search"
+            "/api/preorders/search",
+            "/api/categories/search",
+            "/api/events"
     );
 
     /** OpenAPI 문서와 Swagger UI. 열어 둘지는 프로파일이 정한다. */

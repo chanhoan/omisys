@@ -13,4 +13,18 @@ class PublicPathPolicyTest {
         assertThat(policy.isPublic("/api/products/detail/00000000-0000-0000-0000-000000000001"))
                 .isTrue();
     }
+
+    @Test
+    void preordersSearchPath_is_public() {
+        var policy = new PublicPathPolicy(false);
+
+        assertThat(policy.isPublic("/api/preorders/search?page=0&size=12")).isTrue();
+    }
+
+    @Test
+    void eventsPath_is_public() {
+        var policy = new PublicPathPolicy(false);
+
+        assertThat(policy.isPublic("/api/events")).isTrue();
+    }
 }
