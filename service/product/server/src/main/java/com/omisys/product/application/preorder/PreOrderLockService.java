@@ -24,9 +24,10 @@ public class PreOrderLockService {
                 3000,
                 3000,
                 () -> {
+                    // 수량 확인과 차감(SADD)을 같은 락 안에서 수행해야 초과 예약이 생기지 않는다
                     preOrderRedisService.validateQuantity(cachedPreOrder, userId);
+                    preOrderRedisService.preOrder(getRedisKeyOfPreOrder(preOrderId), userId);
                 });
-        preOrderRedisService.preOrder(getRedisKeyOfPreOrder(preOrderId), userId);
         return cachedPreOrder;
     }
 }
