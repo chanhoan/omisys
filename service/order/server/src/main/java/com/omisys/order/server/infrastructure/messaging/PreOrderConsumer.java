@@ -1,5 +1,7 @@
 package com.omisys.order.server.infrastructure.messaging;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omisys.common.domain.entity.KafkaTopicConstant;
 import com.omisys.order.order_dto.dto.OrderCreateRequest;
 import com.omisys.order.server.application.service.OrderCreateService;
@@ -18,12 +20,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class PreOrderConsumer {
 
     public final OrderCreateService orderCreateService;
+    private final ObjectMapper objectMapper;
 
+    // Outbox가 미리 직렬화한 JSON 문자열을 JsonSerializer가 다시 감싸 보내므로 String으로 받아 직접 파싱한다
     @KafkaListener(topics = KafkaTopicConstant.PROCESS_PREORDER, groupId = "product")
     public void consume(
-            @Payload OrderCreateRequest request,
-            @Header(name = "kafka_receivedMessageKey") String userId) {
+            @Payload String payload,
+            @Header(name = "kafka_receivedMessageKey") String userId) throws JsonProcessingException {
 
+        OrderCreateRequest request = objectMapper.readValue(payload, OrderCreateRequest.class);
         log.info("preorder by {}", userId);
         orderCreateService.createOrder(Long.parseLong(userId), request);
         log.info("process preorder : {}", request.getOrderProductInfos().get(0).getProductId());

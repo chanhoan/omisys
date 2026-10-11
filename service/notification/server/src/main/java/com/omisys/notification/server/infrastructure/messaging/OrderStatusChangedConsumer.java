@@ -1,5 +1,7 @@
 package com.omisys.notification.server.infrastructure.messaging;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.omisys.common.domain.entity.KafkaTopicConstant;
 import com.omisys.notification.server.application.service.NotificationService;
 import com.omisys.order.order_dto.dto.NotificationOrderDto;
@@ -15,10 +17,13 @@ import org.springframework.stereotype.Component;
 public class OrderStatusChangedConsumer {
 
     private final NotificationService notificationService;
+    private final ObjectMapper objectMapper;
 
+    // Outbox가 미리 직렬화한 JSON 문자열을 JsonSerializer가 다시 감싸 보내므로 String으로 받아 직접 파싱한다
     @KafkaListener(topics = KafkaTopicConstant.ORDER_STATUS_CHANGED,
                    groupId = "notification-service-group")
-    public void consume(@Payload NotificationOrderDto dto) {
+    public void consume(@Payload String payload) throws JsonProcessingException {
+        NotificationOrderDto dto = objectMapper.readValue(payload, NotificationOrderDto.class);
         log.info("Received order status changed event: orderId={} userId={} state={}",
                 dto.getOrderId(), dto.getUserId(), dto.getOrderState());
         notificationService.processNotification(dto);
