@@ -14,6 +14,10 @@ public class RedisRepository {
         return redisTemplate.opsForSet().add(key, value);
     }
 
+    public Long sRem(String key, String value) {
+        return redisTemplate.opsForSet().remove(key, value);
+    }
+
     public Long sCard(String key) {
         return redisTemplate.opsForSet().size(key);
     }
