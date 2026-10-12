@@ -43,11 +43,39 @@ OMISYS는 도메인 책임을 기준으로 서비스를 분리하여
 
 ![alt text](/docs/architecture.png)
 
-- Spring Cloud 기반 MSA 아키텍처
-- Config Server / Eureka Discovery / API Gateway
-- Kafka 기반 비동기 메시징
-- Redis, Cassandra, MySQL 혼합 저장소 구조
-- Docker + GitHub Actions 기반 CI/CD
+- Spring Cloud 기반 MSA 아키텍처 (Config Server / Eureka Discovery / API Gateway)
+- Gateway → Auth(JWT 검증) → 9개 애플리케이션 서비스로 라우팅
+- 서비스 간 동기 호출은 OpenFeign + Resilience4j Circuit Breaker(fallback)
+- **DB per service**: MySQL 컨테이너 1개 안에 서비스별 DB 분리
+- 용도별 Redis 분리: gateway(대기열) · auth · product(사전예약) · cart · coupon
+- Kafka 기반 비동기 이벤트 + **Transactional Outbox** 패턴
+- Elasticsearch 상품 검색, AWS S3 상품 이미지, Firebase FCM 푸시 알림
+- Prometheus · Grafana · Zipkin 모니터링 / 분산 추적
+- GitHub Actions → GHCR 이미지 빌드 → EC2 Docker Compose 배포
+
+| 서비스 | 역할 | 저장소 |
+|---|---|---|
+| Gateway | 라우팅, 대기열(트래픽 제어) | Redis |
+| Auth | 인증 · JWT 발급/검증 | Redis |
+| User | 회원 · 등급 | MySQL |
+| Product | 상품 · 재고 · 사전예약 | MySQL, Redis, Elasticsearch, S3 |
+| Order | 주문 · 장바구니 · 보상 트랜잭션 | MySQL, Redis |
+| Payment | 결제 세션 · 결제 완료 처리 | MySQL |
+| Promotion | 쿠폰 발급 | MySQL, Redis |
+| Search | 상품 검색 | Elasticsearch |
+| Review | 리뷰 · 평점 | MySQL |
+| Delivery | 배송 | MySQL |
+| Notification | 주문 상태 알림 (FCM) | MySQL |
+
+#### Kafka 토픽
+
+| Producer | Topic | Consumer |
+|---|---|---|
+| Product | `process-preorder` | Order |
+| Payment | `payment-completed` | Order, Delivery |
+| Order, Delivery | `order-status-changed` | Order, Notification |
+| Review | `review-rating` | Product |
+| Promotion | `provide-event-coupon` | Promotion |
 
 ---
 
@@ -69,8 +97,9 @@ OMISYS는 도메인 책임을 기준으로 서비스를 분리하여
 - 고트래픽 상황에서 DB 조회 최소화
 - Redisson 분산 락으로 예약 수량 제어
 - 예약 수량 초과 요청은 Redis 레벨에서 선제 차단
-- 재고 검증을 통과한 요청만 Kafka 이벤트 발행
-- Order Service는 이벤트를 소비하여 **비동기 주문 생성**
+- 재고 검증을 통과한 요청만 예약 처리와 같은 트랜잭션에서 **Outbox 이벤트로 저장**
+- Outbox Poller가 Kafka(`process-preorder`)로 발행해 이벤트 유실 방지
+- Order Service는 이벤트를 소비하여 **비동기 주문 생성** (중복 소비에도 멱등 처리)
 
 이를 통해 **주문 서비스의 동시성 부담을 제거**하고
 **재고 정합성을 Product Service 경계 내에서 보장**했습니다.
@@ -141,8 +170,10 @@ MSA 환경에서는
 OMISYS는 Kafka 기반 **SAGA 패턴**을 적용하여  
 분산 트랜잭션을 Application 레벨에서 관리합니다.
 
-- 서비스 실패 시 보상 트랜잭션 이벤트 발행
-- 이전 서비스를 호출한 쪽에서 상태 보정
+- 상태 변경과 이벤트 저장을 한 트랜잭션으로 묶는 **Transactional Outbox** (Product · Order · Payment · Delivery)
+- Outbox Poller가 Kafka로 발행해 DB 커밋과 메시지 발행 간 불일치 방지
+- 서비스 실패 시 보상 트랜잭션 수행 (예: Order의 재고 · 쿠폰 롤백)
+- 결제 완료 → 주문 상태 변경 → 배송 생성 → 알림 순으로 이벤트 체이닝
 - 데이터의 **최종적 일관성(Eventual Consistency)** 유지
 
 ---
@@ -150,12 +181,13 @@ OMISYS는 Kafka 기반 **SAGA 패턴**을 적용하여
 ## 🛠 Tech Stack
 
 - **Language**: Java 17
-- **Framework**: Spring Boot 3.4, Spring Cloud
-- **Messaging**: Kafka
-- **Database**: MySQL, Cassandra, Redis
-- **Search**: ElasticSearch
-- **Infra**: Docker, GitHub Actions
-- **ETC**: Redisson, FeignClient, Toss Payments API
+- **Framework**: Spring Boot 3.3.4, Spring Cloud 2023.0.3
+- **Messaging**: Kafka 3.8 (Transactional Outbox)
+- **Database**: MySQL 8.0, Redis 7.4
+- **Search**: Elasticsearch
+- **Infra**: AWS EC2, Docker Compose, GitHub Actions, GHCR, AWS S3
+- **Monitoring**: Prometheus, Grafana, Zipkin
+- **ETC**: Redisson, OpenFeign, Resilience4j, Toss Payments API, Firebase FCM
 
 ---
 
