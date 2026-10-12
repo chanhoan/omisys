@@ -28,6 +28,10 @@ public class PreOrderRedisService {
         redisRepository.sAdd(key, Long.toString(userId));
     }
 
+    public void cancel(String key, long userId) {
+        redisRepository.sRem(key, Long.toString(userId));
+    }
+
     private boolean availableUser(long preOrderId, long userId) {
         String key = getRedisKeyOfPreOrder(preOrderId);
         return !redisRepository.sIsMember(key, Long.toString(userId));
